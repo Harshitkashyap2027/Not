@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Attendance – lvlBase Parent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(0,206,201,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.xp-bar-bg{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.xp-bar-fill{height:100%;border-radius:4px;transition:width .6s;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(0,206,201,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Page-specific */
+.child-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.child-tab{padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);transition:all .2s;}
+.child-tab.active{background:rgba(0,206,201,.15);border-color:rgba(0,206,201,.4);color:#00CEC9;}
+.month-nav{display:flex;align-items:center;gap:16px;}
+.month-nav button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.month-nav button:hover{background:rgba(0,206,201,.2);}
+.month-label{font-size:16px;font-weight:700;min-width:150px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-header{text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);padding:8px 0;text-transform:uppercase;}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:all .2s;position:relative;border:1px solid transparent;}
+.cal-day:hover{background:rgba(255,255,255,.08);}
+.cal-day.empty{pointer-events:none;}
+.cal-day.present{background:rgba(0,184,148,.12);border-color:rgba(0,184,148,.25);}
+.cal-day.absent{background:rgba(214,48,49,.12);border-color:rgba(214,48,49,.25);}
+.cal-day.late{background:rgba(253,203,110,.12);border-color:rgba(253,203,110,.25);}
+.cal-day.weekend{background:rgba(255,255,255,.03);}
+.cal-day.holiday{background:rgba(108,92,231,.1);border-color:rgba(108,92,231,.2);}
+.cal-day-num{font-size:13px;font-weight:600;}
+.cal-dot{width:6px;height:6px;border-radius:50%;margin-top:2px;}
+.dot-present{background:#00B894;}
+.dot-absent{background:#D63031;}
+.dot-late{background:#FDCB6E;}
+.dot-grey{background:rgba(255,255,255,.2);}
+.dot-purple{background:#a29bfe;}
+.day-popup{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1a1a3e;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 16px;min-width:180px;z-index:50;font-size:12px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.day-popup::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1a1a3e;}
+.absence-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,255,255,.04);border-radius:12px;border-left:3px solid #D63031;margin-bottom:10px;}
+.warning-banner{background:rgba(253,203,110,.1);border:1px solid rgba(253,203,110,.25);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:13px;}
+.stat-mini{text-align:center;}
+.stat-mini-val{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-mini-label{font-size:11px;color:rgba(255,255,255,.45);}
+.stat-mini-sub{font-size:12px;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/attendance.html" class="nav-item active"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/parent/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/teacher-contact.html" class="nav-item"><span class="nav-icon">👩‍🏫</span>Teachers</a>
+    <a href="/app/parent/fee-payment.html" class="nav-item"><span class="nav-icon">💳</span>Fee &amp; Payment</a>
+    <a href="/app/parent/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">P</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Parent</div>
+        <div style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">✅</span>
+    <h1 class="header-title">Child Attendance</h1>
+    <button class="btn btn-primary btn-sm" onclick="openLeaveModal()">📋 Request Leave</button>
+    <button class="btn btn-dark btn-sm" onclick="downloadReport()">📥 Download Report</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="headerAvatar">P</div>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Warning Banner -->
+    <div class="warning-banner" id="warningBanner">
+      <span style="font-size:20px;">⚠️</span>
+      <div>
+        <div style="font-weight:700;color:#FDCB6E;margin-bottom:2px;">Attendance Alert</div>
+        <div style="color:rgba(255,255,255,.7);">Arjun's attendance is at <strong style="color:#FDCB6E;">78%</strong> this month — Please ensure regular attendance to avoid academic concerns.</div>
+      </div>
+    </div>
+
+    <!-- Child Selector -->
+    <div class="child-tabs" id="childTabs">
+      <button class="child-tab active" onclick="selectChild(0, this)">👦 Arjun (Class 9-A)</button>
+      <button class="child-tab" onclick="selectChild(1, this)">👧 Priya (Class 7-B)</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">This Month</div>
+        <div class="stat-mini-val" style="color:#FDCB6E;" id="monthPct">78%</div>
+        <div class="stat-mini-label">Attendance Rate</div>
+        <div style="margin-top:10px;">
+          <div class="xp-bar-bg"><div class="xp-bar-fill" id="attBar" style="width:78%;background:linear-gradient(90deg,#FDCB6E,#e17055);"></div></div>
+        </div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Days Present</div>
+        <div class="stat-mini-val" style="color:#00B894;" id="daysPresent">19/21</div>
+        <div class="stat-mini-label">Working days</div>
+        <div class="badge badge-success" style="margin-top:10px;">✓ Good Streak</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Days Absent</div>
+        <div class="stat-mini-val" style="color:#D63031;" id="daysAbsent">2</div>
+        <div class="stat-mini-label">This month</div>
+        <div class="badge badge-danger" style="margin-top:10px;">Needs Attention</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Late Arrivals</div>
+        <div class="stat-mini-val" style="color:#FDCB6E;" id="lateCount">1</div>
+        <div class="stat-mini-label">This month</div>
+        <div class="badge badge-warning" style="margin-top:10px;">⏰ Monitor</div>
+      </div>
+    </div>
+
+    <div class="bento-grid">
+      <!-- Calendar -->
+      <div class="bento-card b-col-8">
+        <div class="card-title">
+          <span>📆 Monthly Calendar</span>
+          <div class="month-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <span class="month-label" id="monthLabel">November 2024</span>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);"><div class="cal-dot dot-present"></div>Present</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);"><div class="cal-dot dot-absent"></div>Absent</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);"><div class="cal-dot dot-late"></div>Late</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);"><div class="cal-dot dot-grey"></div>Weekend</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);"><div class="cal-dot dot-purple"></div>Holiday</div>
+        </div>
+
+        <div class="cal-grid" id="calGrid">
+          <!-- JS-rendered -->
+        </div>
+      </div>
+
+      <!-- Absence Details -->
+      <div class="bento-card b-col-4">
+        <div class="card-title"><span>📋 Absence Details</span><span class="badge badge-danger" id="absenceBadge">2 absent</span></div>
+        <div id="absenceList">
+          <!-- JS-rendered -->
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Overall Stats</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;"><span style="color:rgba(255,255,255,.6);">Total School Days</span><span style="font-weight:600;" id="totalDays">21</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;"><span style="color:rgba(255,255,255,.6);">Present</span><span style="font-weight:600;color:#00B894;" id="statPresent">19</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;"><span style="color:rgba(255,255,255,.6);">Absent</span><span style="font-weight:600;color:#D63031;" id="statAbsent">2</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:rgba(255,255,255,.6);">Late</span><span style="font-weight:600;color:#FDCB6E;" id="statLate">1</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Leave Request Modal -->
+<div class="modal-overlay" id="leaveModal">
+  <div class="modal">
+    <div class="modal-title">📋 Request Leave</div>
+    <div class="form-group">
+      <label class="form-label">Child</label>
+      <select class="form-select" id="leaveChild">
+        <option>Arjun (Class 9-A)</option>
+        <option>Priya (Class 7-B)</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">From Date</label>
+        <input type="date" class="form-input" id="leaveFrom">
+      </div>
+      <div class="form-group">
+        <label class="form-label">To Date</label>
+        <input type="date" class="form-input" id="leaveTo">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Leave Type</label>
+      <select class="form-select" id="leaveType">
+        <option>Medical / Health</option>
+        <option>Family Emergency</option>
+        <option>Personal</option>
+        <option>School Event / Trip</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <textarea class="form-input" rows="3" placeholder="Please describe the reason for leave..." id="leaveReason" style="resize:none;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-dark" onclick="closeLeaveModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLeave()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day Detail Popup -->
+<div class="modal-overlay" id="dayModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title" id="dayModalTitle">📅 Day Details</div>
+    <div id="dayModalContent"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-dark" onclick="closeDayModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let currentMonth = 10; // November (0-indexed)
+let currentYear = 2024;
+
+// Attendance data per child
+const attendanceData = {
+  0: { // Arjun
+    name: 'Arjun',
+    pct: '78%', present: '19/21', absent: 2, late: 1,
+    color: '#FDCB6E',
+    barColor: 'linear-gradient(90deg,#FDCB6E,#e17055)',
+    days: {
+      1:'present',2:'present',3:'weekend',4:'weekend',5:'present',6:'present',7:'present',
+      8:'present',9:'late',10:'weekend',11:'weekend',12:'present',13:'present',14:'present',
+      15:'absent',16:'weekend',17:'weekend',18:'present',19:'present',20:'present',
+      21:'present',22:'present',23:'weekend',24:'weekend',25:'holiday',26:'present',27:'present',
+      28:'present',29:'absent',30:'weekend'
+    },
+    absences: [
+      {date:'Nov 15, 2024',reason:'Fever – Medical Certificate submitted',subjects:['Physics','Chemistry','Math']},
+      {date:'Nov 29, 2024',reason:'Family event – Leave approved',subjects:['English','History']}
+    ]
+  },
+  1: { // Priya
+    name: 'Priya',
+    pct: '95%', present: '20/21', absent: 1, late: 0,
+    color: '#00B894',
+    barColor: 'linear-gradient(90deg,#00B894,#00CEC9)',
+    days: {
+      1:'present',2:'present',3:'weekend',4:'weekend',5:'present',6:'present',7:'present',
+      8:'present',9:'present',10:'weekend',11:'weekend',12:'present',13:'present',14:'present',
+      15:'present',16:'weekend',17:'weekend',18:'present',19:'present',20:'present',
+      21:'present',22:'present',23:'weekend',24:'weekend',25:'holiday',26:'present',27:'present',
+      28:'present',29:'absent',30:'weekend'
+    },
+    absences: [
+      {date:'Nov 29, 2024',reason:'Not feeling well',subjects:['Science','Art']}
+    ]
+  }
+};
+
+let activeChild = 0;
+
+function selectChild(idx, el) {
+  activeChild = idx;
+  document.querySelectorAll('.child-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const d = attendanceData[idx];
+  document.getElementById('monthPct').textContent = d.pct;
+  document.getElementById('attBar').style.width = d.pct;
+  document.getElementById('attBar').style.background = d.barColor;
+  document.getElementById('daysPresent').textContent = d.present;
+  document.getElementById('daysAbsent').textContent = d.absent;
+  document.getElementById('lateCount').textContent = d.late;
+  // Update warning
+  const pctNum = parseInt(d.pct);
+  const banner = document.getElementById('warningBanner');
+  if(pctNum < 85) {
+    banner.style.display='flex';
+    banner.querySelector('div div:last-child').innerHTML = `${d.name}'s attendance is at <strong style="color:#FDCB6E;">${d.pct}</strong> this month — Please ensure regular attendance to avoid academic concerns.`;
+  } else {
+    banner.style.display='none';
+  }
+  renderCalendar();
+  renderAbsences();
+}
+
+function getDaysInMonth(month, year) {
+  return new Date(year, month+1, 0).getDate();
+}
+function getFirstDayOfMonth(month, year) {
+  return new Date(year, month, 1).getDay();
+}
+
+const subjectsByPeriod = {
+  present: ['Mathematics','English','Science','Social Studies','Hindi','Computer Science'],
+  absent: [],
+  late: ['Mathematics (late)','English','Science','Social Studies','Hindi'],
+  weekend: [],
+  holiday: []
+};
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  const d = attendanceData[activeChild];
+  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+  const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+
+  let html = '';
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  dayNames.forEach(dn => { html += `<div class="cal-day-header">${dn}</div>`; });
+
+  for(let i=0;i<firstDay;i++) html += `<div class="cal-day empty"></div>`;
+
+  for(let day=1;day<=daysInMonth;day++) {
+    const status = d.days[day] || 'empty';
+    let dotClass = '';
+    if(status==='present') dotClass='dot-present';
+    else if(status==='absent') dotClass='dot-absent';
+    else if(status==='late') dotClass='dot-late';
+    else if(status==='weekend') dotClass='dot-grey';
+    else if(status==='holiday') dotClass='dot-purple';
+
+    html += `<div class="cal-day ${status}" onclick="showDayDetail(${day},'${status}')">
+      <span class="cal-day-num" style="color:${status==='weekend'?'rgba(255,255,255,.3)':'rgba(255,255,255,.85)'}">${day}</span>
+      ${dotClass ? `<div class="cal-dot ${dotClass}"></div>` : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function showDayDetail(day, status) {
+  if(status==='empty') return;
+  const d = attendanceData[activeChild];
+  const monthName = months[currentMonth];
+  document.getElementById('dayModalTitle').textContent = `📅 ${monthName} ${day}, ${currentYear}`;
+
+  const statusMap = {present:'✅ Present',absent:'❌ Absent',late:'⏰ Late Arrival',weekend:'🏖️ Weekend',holiday:'🎉 Holiday'};
+  const colorMap = {present:'#00B894',absent:'#D63031',late:'#FDCB6E',weekend:'rgba(255,255,255,.4)',holiday:'#a29bfe'};
+
+  let subjectsHtml = '';
+  if(status==='present') {
+    const subs = subjectsByPeriod.present;
+    subjectsHtml = `<div style="margin-top:12px;"><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Subjects Attended</div>${subs.map(s=>`<div style="padding:6px 10px;background:rgba(0,184,148,.1);border-radius:8px;font-size:12px;color:#00B894;margin-bottom:4px;">✓ ${s}</div>`).join('')}</div>`;
+  } else if(status==='late') {
+    subjectsHtml = `<div style="margin-top:12px;font-size:13px;color:#FDCB6E;">⏰ Arrived 25 minutes late. Missed first period morning assembly.</div>`;
+  } else if(status==='absent') {
+    const absInfo = d.absences.find(a=>a.date.includes(`${monthName} ${day}`));
+    if(absInfo) subjectsHtml = `<div style="margin-top:12px;"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px;">Reason: ${absInfo.reason}</div><div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Missed Subjects</div>${absInfo.subjects.map(s=>`<div style="padding:6px 10px;background:rgba(214,48,49,.1);border-radius:8px;font-size:12px;color:#D63031;margin-bottom:4px;">✗ ${s}</div>`).join('')}</div>`;
+  }
+
+  document.getElementById('dayModalContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="font-size:22px;">${statusMap[status]?.split(' ')[0]||'📅'}</span>
+      <span style="font-size:16px;font-weight:700;color:${colorMap[status]}">${statusMap[status]?.slice(2)||status}</span>
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);">${d.name} · Class ${activeChild===0?'9-A':'7-B'}</div>
+    ${subjectsHtml}
+  `;
+  document.getElementById('dayModal').classList.add('open');
+}
+
+function closeDayModal() {
+  document.getElementById('dayModal').classList.remove('open');
+}
+
+function renderAbsences() {
+  const d = attendanceData[activeChild];
+  document.getElementById('absenceBadge').textContent = `${d.absent} absent`;
+  document.getElementById('statAbsent').textContent = d.absent;
+  document.getElementById('statLate').textContent = d.late;
+
+  let html = '';
+  d.absences.forEach(a => {
+    html += `<div class="absence-item">
+      <span style="font-size:20px;">❌</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${a.date}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);">${a.reason}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;">Missed: ${a.subjects.join(', ')}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('absenceList').innerHTML = html || '<div style="text-align:center;color:rgba(255,255,255,.4);padding:20px;">No absences recorded</div>';
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if(currentMonth < 0) { currentMonth=11; currentYear--; }
+  if(currentMonth > 11) { currentMonth=0; currentYear++; }
+  document.getElementById('monthLabel').textContent = `${months[currentMonth]} ${currentYear}`;
+  renderCalendar();
+}
+
+function openLeaveModal() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('leaveFrom').value = today;
+  document.getElementById('leaveTo').value = today;
+  document.getElementById('leaveModal').classList.add('open');
+}
+function closeLeaveModal() {
+  document.getElementById('leaveModal').classList.remove('open');
+}
+function submitLeave() {
+  const reason = document.getElementById('leaveReason').value.trim();
+  if(!reason) { showToast('Please provide a reason for leave','error','⚠️'); return; }
+  closeLeaveModal();
+  showToast('📋 Leave request submitted successfully!','success','📋');
+  document.getElementById('leaveReason').value = '';
+}
+
+function downloadReport() {
+  showToast('📥 Attendance report downloaded!','success','📥');
+}
+
+// Close modals on overlay click
+document.getElementById('leaveModal').addEventListener('click',function(e){ if(e.target===this) closeLeaveModal(); });
+document.getElementById('dayModal').addEventListener('click',function(e){ if(e.target===this) closeDayModal(); });
+
+// Init
+document.getElementById('monthLabel').textContent = `${months[currentMonth]} ${currentYear}`;
+renderCalendar();
+renderAbsences();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['parent']);</script>
+</body>
+</html>
