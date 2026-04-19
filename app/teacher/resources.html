@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Teaching Resources – lvlBase Teacher</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(108,92,231,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}.res-grid{grid-template-columns:1fr 1fr!important;}}
+
+/* Resource-specific */
+.stat-val{font-size:32px;font-weight:800;margin:8px 0 4px;}
+.stat-lbl{font-size:12px;color:rgba(255,255,255,.5);}
+.stat-icon-lg{font-size:28px;margin-bottom:4px;}
+.tab-nav{display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;}
+.tab-btn{flex:1;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:#6C5CE7;color:#fff;}
+
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.res-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;transition:all .2s;position:relative;}
+.res-card:hover{border-color:rgba(108,92,231,.3);background:rgba(108,92,231,.06);transform:translateY(-2px);}
+.res-card.bookmarked{border-color:rgba(253,203,110,.2);}
+.res-type-icon{font-size:32px;margin-bottom:12px;}
+.res-title{font-size:14px;font-weight:700;margin-bottom:4px;line-height:1.3;}
+.res-subject{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:8px;}
+.res-date{font-size:11px;color:rgba(255,255,255,.3);margin-bottom:12px;}
+.res-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.res-btn{padding:5px 10px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;}
+.res-btn-share{background:rgba(0,206,201,.12);color:#00CEC9;}
+.res-btn-share:hover{background:rgba(0,206,201,.2);}
+.res-btn-dl{background:rgba(108,92,231,.12);color:#a29bfe;}
+.res-btn-dl:hover{background:rgba(108,92,231,.2);}
+.res-btn-bm{background:rgba(253,203,110,.12);color:#FDCB6E;}
+.res-btn-bm:hover{background:rgba(253,203,110,.2);}
+.res-btn-del{background:rgba(214,48,49,.1);color:#D63031;}
+.res-bookmark-star{position:absolute;top:12px;right:12px;font-size:16px;}
+.type-badge{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;margin-bottom:8px;}
+.type-pdf{background:rgba(214,48,49,.15);color:#D63031;}
+.type-video{background:rgba(108,92,231,.15);color:#a29bfe;}
+.type-link{background:rgba(0,206,201,.15);color:#00CEC9;}
+.type-slides{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.type-doc{background:rgba(0,184,148,.15);color:#00B894;}
+
+/* Share modal checkboxes */
+.cls-check{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px;cursor:pointer;}
+.cls-check input{width:16px;height:16px;accent-color:#6C5CE7;cursor:pointer;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <a href="/app/teacher/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/teacher/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/resources.html" class="nav-item active"><span class="nav-icon">📚</span>Resources</a>
+    <a href="/app/teacher/certificates.html" class="nav-item"><span class="nav-icon">🎓</span>Certificates</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">T</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Teacher</div>
+        <div style="font-size:11px;color:#00CEC9;">Teacher</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">📚 Teaching Resources</div>
+    <button class="btn btn-primary btn-sm" onclick="openUploadModal()">📤 Upload Resource</button>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Stats -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">📚</div>
+        <div class="stat-val" style="color:#a29bfe;">84</div>
+        <div class="stat-lbl">Total Resources</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">✨</div>
+        <div class="stat-val" style="color:#00CEC9;">12</div>
+        <div class="stat-lbl">Recently Added</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">🔗</div>
+        <div class="stat-val" style="color:#00B894;">56</div>
+        <div class="stat-lbl">Shared with Students</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">⭐</div>
+        <div class="stat-val" style="color:#FDCB6E;">23</div>
+        <div class="stat-lbl">Bookmarked</div>
+      </div>
+    </div>
+
+    <!-- Tabs & Toolbar -->
+    <div class="card">
+      <div class="tab-nav" id="tabNav">
+        <button class="tab-btn active" onclick="switchTab('all',this)">📚 All</button>
+        <button class="tab-btn" onclick="switchTab('mine',this)">👤 My Resources</button>
+        <button class="tab-btn" onclick="switchTab('shared',this)">🔗 Shared</button>
+        <button class="tab-btn" onclick="switchTab('bookmarked',this)">⭐ Bookmarked</button>
+      </div>
+
+      <div class="toolbar">
+        <input class="search-input" id="searchInput" placeholder="🔍 Search resources..." oninput="filterResources()" />
+        <select class="form-select" id="subjectFilter" style="width:auto;padding:8px 14px;font-size:13px;" onchange="filterResources()">
+          <option value="">All Subjects</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Science">Science</option>
+          <option value="English">English</option>
+          <option value="Computer Science">Computer Science</option>
+          <option value="History">History</option>
+        </select>
+        <select class="form-select" id="typeFilter" style="width:auto;padding:8px 14px;font-size:13px;" onchange="filterResources()">
+          <option value="">All Types</option>
+          <option value="PDF">📄 PDF</option>
+          <option value="Video">🎥 Video</option>
+          <option value="Link">🔗 Link</option>
+          <option value="Slides">📊 Slides</option>
+          <option value="Doc">📝 Doc</option>
+        </select>
+      </div>
+
+      <div class="res-grid" id="resourcesGrid"></div>
+      <div id="emptyState" style="display:none;text-align:center;padding:40px;color:rgba(255,255,255,.3);">
+        <div style="font-size:40px;margin-bottom:12px;">📂</div>
+        <div>No resources found.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-title">📤 Upload Resource
+      <button onclick="closeUploadModal()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="resTitle" placeholder="e.g. Algebra Chapter 5 Notes" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">File Type</label>
+        <select class="form-select" id="resType">
+          <option value="PDF">📄 PDF</option>
+          <option value="Video">🎥 Video</option>
+          <option value="Link">🔗 Link</option>
+          <option value="Slides">📊 Slides</option>
+          <option value="Doc">📝 Doc</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="form-select" id="resSubject">
+          <option>Mathematics</option><option>Science</option><option>English</option>
+          <option>Computer Science</option><option>History</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" id="resDesc" rows="2" style="resize:none;" placeholder="Brief description..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">File URL / Link</label>
+      <input class="form-input" id="resUrl" placeholder="https://..." />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-dark" onclick="closeUploadModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadResource()">📤 Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <div class="modal-title">🔗 Share with Students
+      <button onclick="closeShareModal()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:16px;">Sharing: <strong id="shareResTitle"></strong></div>
+    <div style="margin-bottom:16px;">
+      <label class="cls-check"><input type="checkbox" id="chk9a" checked /><span>Class 9-A · Mathematics</span></label>
+      <label class="cls-check"><input type="checkbox" id="chk10b" /><span>Class 10-B · Science</span></label>
+      <label class="cls-check"><input type="checkbox" id="chk8c" checked /><span>Class 8-C · English</span></label>
+      <label class="cls-check"><input type="checkbox" id="chk11a" /><span>Class 11-A · Computer Science</span></label>
+      <label class="cls-check"><input type="checkbox" id="chk7b" checked /><span>Class 7-B · History</span></label>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-dark" onclick="closeShareModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmShare()">🔗 Share Selected</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const typeIcon = {PDF:'📄',Video:'🎥',Link:'🔗',Slides:'📊',Doc:'📝'};
+const typeBadgeClass = {PDF:'type-pdf',Video:'type-video',Link:'type-link',Slides:'type-slides',Doc:'type-doc'};
+
+let resources = [
+  {id:1,title:'Quadratic Equations – Full Notes',type:'PDF',subject:'Mathematics',date:'2024-12-10',mine:true,shared:true,bookmarked:true,desc:'Complete notes covering all quadratic formula methods.'},
+  {id:2,title:'Newton\'s Laws of Motion',type:'Video',subject:'Science',date:'2024-12-09',mine:true,shared:true,bookmarked:false,desc:'Animated explainer video for laws of motion.'},
+  {id:3,title:'Shakespeare\'s Hamlet – Analysis',type:'Doc',subject:'English',date:'2024-12-08',mine:true,shared:false,bookmarked:true,desc:'In-depth character analysis and themes.'},
+  {id:4,title:'Python Programming Basics',type:'Slides',subject:'Computer Science',date:'2024-12-07',mine:false,shared:true,bookmarked:false,desc:'Intro slides for Python: variables, loops, functions.'},
+  {id:5,title:'World War II – Timeline',type:'Link',subject:'History',date:'2024-12-06',mine:true,shared:true,bookmarked:true,desc:'Interactive timeline resource link.'},
+  {id:6,title:'Trigonometry Practice Problems',type:'PDF',subject:'Mathematics',date:'2024-12-05',mine:true,shared:false,bookmarked:false,desc:'50 practice problems with solutions.'},
+  {id:7,title:'Periodic Table Interactive',type:'Link',subject:'Science',date:'2024-12-04',mine:false,shared:true,bookmarked:true,desc:'Interactive periodic table website.'},
+  {id:8,title:'Essay Writing Framework',type:'Doc',subject:'English',date:'2024-12-03',mine:true,shared:true,bookmarked:false,desc:'PEEL paragraph framework guide.'},
+  {id:9,title:'Database Concepts – ERD',type:'Slides',subject:'Computer Science',date:'2024-12-02',mine:true,shared:false,bookmarked:true,desc:'Entity-Relationship Diagram slides.'},
+  {id:10,title:'Ancient Civilizations Overview',type:'PDF',subject:'History',date:'2024-12-01',mine:false,shared:true,bookmarked:false,desc:'Comprehensive overview PDF for Grade 7.'},
+  {id:11,title:'Calculus Introduction',type:'Video',subject:'Mathematics',date:'2024-11-30',mine:true,shared:true,bookmarked:true,desc:'Video introduction to limits and derivatives.'},
+  {id:12,title:'Cell Biology Diagrams',type:'PDF',subject:'Science',date:'2024-11-29',mine:true,shared:false,bookmarked:false,desc:'Labeled cell diagrams printable.'},
+];
+
+let currentTab = 'all';
+let shareResId = null;
+
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = name;
+  filterResources();
+}
+
+function filterResources(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const subject = document.getElementById('subjectFilter').value;
+  const type = document.getElementById('typeFilter').value;
+
+  let filtered = resources.filter(r=>{
+    const matchSearch = !search || r.title.toLowerCase().includes(search) || r.subject.toLowerCase().includes(search);
+    const matchSubject = !subject || r.subject === subject;
+    const matchType = !type || r.type === type;
+    const matchTab = currentTab==='all' || (currentTab==='mine'&&r.mine) || (currentTab==='shared'&&r.shared) || (currentTab==='bookmarked'&&r.bookmarked);
+    return matchSearch && matchSubject && matchType && matchTab;
+  });
+
+  renderGrid(filtered);
+}
+
+function renderGrid(list){
+  const grid = document.getElementById('resourcesGrid');
+  const empty = document.getElementById('emptyState');
+  if(list.length===0){
+    grid.innerHTML='';
+    empty.style.display='block';
+    return;
+  }
+  empty.style.display='none';
+  grid.innerHTML = list.map(r=>`
+    <div class="res-card${r.bookmarked?' bookmarked':''}" id="rcard-${r.id}">
+      ${r.bookmarked ? '<div class="res-bookmark-star">⭐</div>' : ''}
+      <div class="res-type-icon">${typeIcon[r.type]}</div>
+      <span class="type-badge ${typeBadgeClass[r.type]}">${r.type}</span>
+      <div class="res-title">${r.title}</div>
+      <div class="res-subject">${r.subject}</div>
+      <div class="res-date">📅 ${r.date}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:10px;">${r.desc}</div>
+      <div style="display:flex;gap:4px;margin-bottom:8px;">
+        ${r.shared?'<span class="badge badge-teal" style="font-size:10px;">🔗 Shared</span>':''}
+        ${r.mine?'<span class="badge badge-purple" style="font-size:10px;">👤 Mine</span>':''}
+      </div>
+      <div class="res-actions">
+        <button class="res-btn res-btn-share" onclick="openShare(${r.id},'${r.title.replace(/'/g,"\\'")}')">🔗 Share</button>
+        <button class="res-btn res-btn-dl" onclick="downloadRes('${r.title.replace(/'/g,"\\'")}')">📥 Download</button>
+        <button class="res-btn res-btn-bm" onclick="toggleBookmark(${r.id})">${r.bookmarked?'★ Saved':'☆ Save'}</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleBookmark(id){
+  const r = resources.find(x=>x.id===id);
+  if(r){ r.bookmarked=!r.bookmarked; filterResources(); showToast(r.bookmarked?'⭐ Resource bookmarked!':'Bookmark removed','info',r.bookmarked?'⭐':'🗑️'); }
+}
+
+function downloadRes(title){ showToast(`📥 Downloading: ${title}`, 'success', '📥'); }
+
+function openShare(id, title){
+  shareResId = id;
+  document.getElementById('shareResTitle').textContent = title;
+  document.getElementById('shareModal').classList.add('open');
+}
+
+function closeShareModal(){ document.getElementById('shareModal').classList.remove('open'); shareResId=null; }
+
+function confirmShare(){
+  const checks = ['chk9a','chk10b','chk8c','chk11a','chk7b'];
+  const cls = ['9-A','10-B','8-C','11-A','7-B'];
+  const selected = checks.map((id,i)=>document.getElementById(id).checked?cls[i]:null).filter(Boolean);
+  if(selected.length===0){ showToast('Please select at least one class','error','❌'); return; }
+  if(shareResId){ const r=resources.find(x=>x.id===shareResId); if(r) r.shared=true; }
+  closeShareModal();
+  showToast(`🔗 Shared with ${selected.length} class${selected.length>1?'es':''}!`, 'success', '🔗');
+  filterResources();
+}
+
+function openUploadModal(){ document.getElementById('uploadModal').classList.add('open'); }
+function closeUploadModal(){ document.getElementById('uploadModal').classList.remove('open'); }
+
+function uploadResource(){
+  const title = document.getElementById('resTitle').value.trim();
+  const type = document.getElementById('resType').value;
+  const subject = document.getElementById('resSubject').value;
+  const desc = document.getElementById('resDesc').value.trim();
+  if(!title){ showToast('Please enter a resource title','error','❌'); return; }
+  const newRes = {
+    id: Date.now(),
+    title, type, subject,
+    date: new Date().toISOString().slice(0,10),
+    mine: true, shared: false, bookmarked: false,
+    desc: desc || 'No description provided.'
+  };
+  resources.unshift(newRes);
+  closeUploadModal();
+  document.getElementById('resTitle').value='';
+  document.getElementById('resDesc').value='';
+  document.getElementById('resUrl').value='';
+  filterResources();
+  showToast('📤 Resource uploaded successfully!', 'success', '📤');
+}
+
+document.getElementById('uploadModal').addEventListener('click',function(e){if(e.target===this)closeUploadModal();});
+document.getElementById('shareModal').addEventListener('click',function(e){if(e.target===this)closeShareModal();});
+
+filterResources();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['teacher']);</script>
+</body>
+</html>

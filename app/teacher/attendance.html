@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Attendance – lvlBase Teacher</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(108,92,231,.5);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}.students-grid{grid-template-columns:repeat(2,1fr)!important;}}
+
+/* Attendance-specific */
+.stat-val{font-size:32px;font-weight:800;margin:8px 0 4px;}
+.stat-lbl{font-size:12px;color:rgba(255,255,255,.5);}
+.stat-icon-lg{font-size:28px;margin-bottom:4px;}
+
+.students-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.student-att-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;transition:all .2s;}
+.student-att-card.present{border-color:rgba(0,184,148,.3);background:rgba(0,184,148,.06);}
+.student-att-card.absent{border-color:rgba(214,48,49,.3);background:rgba(214,48,49,.06);}
+.student-att-card.late{border-color:rgba(253,203,110,.3);background:rgba(253,203,110,.06);}
+.stu-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:8px;}
+.stu-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.stu-roll{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.att-btns{display:flex;gap:6px;}
+.att-btn{flex:1;padding:5px 4px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);transition:all .2s;}
+.att-btn.sel-present{background:rgba(0,184,148,.2);color:#00B894;border:1px solid rgba(0,184,148,.3);}
+.att-btn.sel-absent{background:rgba(214,48,49,.2);color:#D63031;border:1px solid rgba(214,48,49,.3);}
+.att-btn.sel-late{background:rgba(253,203,110,.2);color:#FDCB6E;border:1px solid rgba(253,203,110,.3);}
+
+.bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;margin-top:4px;}
+.bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#00B894,#00CEC9);}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <a href="/app/teacher/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/attendance.html" class="nav-item active"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/teacher/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/resources.html" class="nav-item"><span class="nav-icon">📚</span>Resources</a>
+    <a href="/app/teacher/certificates.html" class="nav-item"><span class="nav-icon">🎓</span>Certificates</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">T</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Teacher</div>
+        <div style="font-size:11px;color:#00CEC9;">Teacher</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">✅ Attendance</div>
+    <select class="form-select" id="classSelector" style="width:auto;padding:8px 14px;font-size:13px;" onchange="loadClass()">
+      <option value="9-A Math">Class 9-A · Mathematics</option>
+      <option value="10-B Science">Class 10-B · Science</option>
+      <option value="8-C English">Class 8-C · English</option>
+      <option value="11-A CS">Class 11-A · Computer Science</option>
+      <option value="7-B History">Class 7-B · History</option>
+    </select>
+    <input type="date" class="form-input" id="attDate" style="width:160px;padding:8px 12px;font-size:13px;" />
+    <button class="btn btn-primary btn-sm" onclick="saveAttendance()">💾 Save Attendance</button>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Stats -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">📊</div>
+        <div class="stat-val" style="color:#00B894;">87%</div>
+        <div class="stat-lbl">Today's Attendance</div>
+        <div class="bar-wrap"><div class="bar" style="width:87%;"></div></div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">❌</div>
+        <div class="stat-val" style="color:#D63031;">4</div>
+        <div class="stat-lbl">Absent Today</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">📅</div>
+        <div class="stat-val" style="color:#a29bfe;">91%</div>
+        <div class="stat-lbl">This Month Avg</div>
+        <div class="bar-wrap"><div class="bar" style="width:91%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);"></div></div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">🌟</div>
+        <div class="stat-val" style="color:#FDCB6E;">12</div>
+        <div class="stat-lbl">Perfect Attendance</div>
+      </div>
+    </div>
+
+    <!-- Student Grid -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title">
+        <span id="classLabel">📋 Class 9-A · Mathematics</span>
+        <div style="display:flex;gap:8px;font-size:13px;">
+          <span style="color:#00B894;" id="presentCount">28 Present</span>
+          <span style="color:#D63031;" id="absentCount">2 Absent</span>
+          <span style="color:#FDCB6E;" id="lateCount">1 Late</span>
+        </div>
+      </div>
+      <div class="students-grid" id="studentsGrid"></div>
+    </div>
+
+    <!-- Absent Students Card -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="b-col-6" style="grid-column:span 6;">
+        <div class="card">
+          <div class="card-title">⚠️ Absent Students <span class="badge badge-danger" id="absentBadge">2</span></div>
+          <div id="absentList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        </div>
+      </div>
+      <div class="b-col-6" style="grid-column:span 6;">
+        <div class="card">
+          <div class="card-title">📊 Monthly Trend</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Week 1</span><span style="color:#00B894;">94%</span></div>
+              <div class="bar-wrap"><div class="bar" style="width:94%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Week 2</span><span style="color:#00B894;">91%</span></div>
+              <div class="bar-wrap"><div class="bar" style="width:91%;"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Week 3</span><span style="color:#FDCB6E;">87%</span></div>
+              <div class="bar-wrap"><div class="bar" style="width:87%;background:linear-gradient(90deg,#FDCB6E,#f0932b);"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>This Week</span><span style="color:#a29bfe;">89%</span></div>
+              <div class="bar-wrap"><div class="bar" style="width:89%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="card">
+      <div class="card-title">📜 Attendance History</div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Date</th><th>Class</th><th>Present</th><th>Absent</th><th>Late</th><th>Attendance %</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2024-12-10</td><td>9-A Math</td><td style="color:#00B894;">28</td><td style="color:#D63031;">2</td><td style="color:#FDCB6E;">1</td><td><span class="badge badge-success">90.3%</span></td></tr>
+          <tr><td>2024-12-09</td><td>9-A Math</td><td style="color:#00B894;">29</td><td style="color:#D63031;">1</td><td style="color:#FDCB6E;">1</td><td><span class="badge badge-success">93.5%</span></td></tr>
+          <tr><td>2024-12-08</td><td>10-B Science</td><td style="color:#00B894;">27</td><td style="color:#D63031;">3</td><td style="color:#FDCB6E;">0</td><td><span class="badge badge-success">90%</span></td></tr>
+          <tr><td>2024-12-07</td><td>8-C English</td><td style="color:#00B894;">24</td><td style="color:#D63031;">1</td><td style="color:#FDCB6E;">0</td><td><span class="badge badge-success">96%</span></td></tr>
+          <tr><td>2024-12-06</td><td>9-A Math</td><td style="color:#00B894;">26</td><td style="color:#D63031;">4</td><td style="color:#FDCB6E;">1</td><td><span class="badge badge-warning">83.9%</span></td></tr>
+          <tr><td>2024-12-05</td><td>11-A CS</td><td style="color:#00B894;">20</td><td style="color:#D63031;">2</td><td style="color:#FDCB6E;">0</td><td><span class="badge badge-success">90.9%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Notify Parent Modal -->
+<div class="modal-overlay" id="notifyModal">
+  <div class="modal">
+    <div class="modal-title">📱 Notify Parent
+      <button onclick="document.getElementById('notifyModal').classList.remove('open')" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:14px;margin-bottom:4px;">Sending notification to parent of <strong id="notifyStudentName"></strong></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);">Parent will receive an SMS/email about today's absence.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Message</label>
+      <textarea class="form-input" id="notifyMsg" rows="3" style="resize:none;">Dear Parent, your child was absent from class today. Please get in touch with the school if needed.</textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-dark" onclick="document.getElementById('notifyModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendNotify()">📱 Send Notification</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const classData = {
+  '9-A Math': [
+    {name:'Aryan Mehta',roll:'01',color:'#6C5CE7'},{name:'Priya Sharma',roll:'02',color:'#00CEC9'},
+    {name:'Rahul Singh',roll:'03',color:'#FD79A8'},{name:'Sneha Patel',roll:'04',color:'#00B894'},
+    {name:'Amit Kumar',roll:'05',color:'#FDCB6E'},{name:'Divya Rao',roll:'06',color:'#6C5CE7'},
+    {name:'Karan Joshi',roll:'07',color:'#00CEC9'},{name:'Neha Gupta',roll:'08',color:'#FD79A8'},
+    {name:'Vikram Nair',roll:'09',color:'#00B894'},{name:'Anjali Singh',roll:'10',color:'#FDCB6E'},
+    {name:'Rohan Das',roll:'11',color:'#6C5CE7'},{name:'Meera Iyer',roll:'12',color:'#00CEC9'},
+  ],
+  '10-B Science': [
+    {name:'Aditya Verma',roll:'01',color:'#6C5CE7'},{name:'Kavya Reddy',roll:'02',color:'#00CEC9'},
+    {name:'Siddharth Roy',roll:'03',color:'#FD79A8'},{name:'Pooja Mishra',roll:'04',color:'#00B894'},
+    {name:'Arjun Pillai',roll:'05',color:'#FDCB6E'},{name:'Ritika Jain',roll:'06',color:'#6C5CE7'},
+  ],
+  '8-C English': [
+    {name:'Tanvi Shah',roll:'01',color:'#FD79A8'},{name:'Dev Chopra',roll:'02',color:'#6C5CE7'},
+    {name:'Ishaan Rao',roll:'03',color:'#00CEC9'},{name:'Simran Kaur',roll:'04',color:'#00B894'},
+  ],
+  '11-A CS': [
+    {name:'Akash Tiwari',roll:'01',color:'#00B894'},{name:'Pallavi Nanda',roll:'02',color:'#FD79A8'},
+    {name:'Gaurav Desai',roll:'03',color:'#FDCB6E'},{name:'Riya Kapoor',roll:'04',color:'#6C5CE7'},
+  ],
+  '7-B History': [
+    {name:'Naman Trivedi',roll:'01',color:'#FDCB6E'},{name:'Shreya Bose',roll:'02',color:'#00CEC9'},
+    {name:'Yash Malhotra',roll:'03',color:'#6C5CE7'},{name:'Anika Menon',roll:'04',color:'#FD79A8'},
+  ]
+};
+
+const attStatus = {};
+
+function loadClass(){
+  const cls = document.getElementById('classSelector').value;
+  document.getElementById('classLabel').textContent = `📋 Class ${cls}`;
+  const students = classData[cls] || [];
+  const grid = document.getElementById('studentsGrid');
+  grid.innerHTML = '';
+  students.forEach((s,i)=>{
+    attStatus[i] = 'present';
+    const card = document.createElement('div');
+    card.className = 'student-att-card present';
+    card.id = `scard-${i}`;
+    card.innerHTML = `
+      <div class="stu-avatar" style="background:${s.color}22;color:${s.color};">${s.name.charAt(0)}</div>
+      <div class="stu-name">${s.name}</div>
+      <div class="stu-roll">Roll #${s.roll}</div>
+      <div class="att-btns">
+        <button class="att-btn sel-present" id="btn-p-${i}" onclick="setStatus(${i},'present')">✅ P</button>
+        <button class="att-btn" id="btn-a-${i}" onclick="setStatus(${i},'absent')">❌ A</button>
+        <button class="att-btn" id="btn-l-${i}" onclick="setStatus(${i},'late')">⏰ L</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  updateCounts();
+  updateAbsentList();
+}
+
+function setStatus(idx, status){
+  attStatus[idx] = status;
+  const card = document.getElementById(`scard-${idx}`);
+  card.className = `student-att-card ${status}`;
+  ['present','absent','late'].forEach(s=>{
+    const btn = document.getElementById(`btn-${s.charAt(0)}-${idx}`);
+    btn.className = `att-btn${status===s?' sel-'+status:''}`;
+  });
+  updateCounts();
+  updateAbsentList();
+}
+
+function updateCounts(){
+  const vals = Object.values(attStatus);
+  const p = vals.filter(v=>v==='present').length;
+  const a = vals.filter(v=>v==='absent').length;
+  const l = vals.filter(v=>v==='late').length;
+  document.getElementById('presentCount').textContent = `${p} Present`;
+  document.getElementById('absentCount').textContent = `${a} Absent`;
+  document.getElementById('lateCount').textContent = `${l} Late`;
+  document.getElementById('absentBadge').textContent = a;
+}
+
+function updateAbsentList(){
+  const cls = document.getElementById('classSelector').value;
+  const students = classData[cls] || [];
+  const list = document.getElementById('absentList');
+  const absents = Object.entries(attStatus).filter(([,v])=>v==='absent').map(([i])=>students[i]).filter(Boolean);
+  if(absents.length===0){
+    list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);font-size:13px;padding:20px;">🎉 No absences today!</div>';
+    return;
+  }
+  list.innerHTML = absents.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(214,48,49,.06);border:1px solid rgba(214,48,49,.15);border-radius:10px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:${s.color}22;color:${s.color};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">${s.name.charAt(0)}</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${s.name}</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Roll #${s.roll}</div></div>
+      <button class="btn btn-sm" style="background:rgba(253,203,110,.1);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);font-size:11px;" onclick="notifyParent('${s.name}')">📱 Notify Parent</button>
+    </div>`).join('');
+}
+
+function notifyParent(name){
+  document.getElementById('notifyStudentName').textContent = name;
+  document.getElementById('notifyModal').classList.add('open');
+}
+
+function sendNotify(){
+  document.getElementById('notifyModal').classList.remove('open');
+  showToast('📱 Parent notification sent successfully!', 'success', '📱');
+}
+
+function saveAttendance(){
+  const cls = document.getElementById('classSelector').value;
+  const vals = Object.values(attStatus);
+  const p = vals.filter(v=>v==='present').length;
+  const a = vals.filter(v=>v==='absent').length;
+  const l = vals.filter(v=>v==='late').length;
+  showToast(`✅ Attendance saved for Class ${cls} — ${p} present, ${a} absent, ${l} late`, 'success', '✅');
+}
+
+document.getElementById('notifyModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+document.getElementById('attDate').value = new Date().toISOString().slice(0,10);
+loadClass();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['teacher']);</script>
+</body>
+</html>
