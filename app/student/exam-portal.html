@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scholarship Exam Portal – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter','Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.nav-section-label{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;margin-right:0;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.btn-danger{background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);}
+.btn-danger-solid{background:#D63031;color:#fff;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.bento-card.accent-purple{border-color:rgba(108,92,231,.3);}
+.bento-card.accent-teal{border-color:rgba(0,206,201,.3);}
+.bento-card.accent-gold{border-color:rgba(253,203,110,.3);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:560px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(110%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+/* Exam UI */
+#exam-state{display:none;}
+#result-state{display:none;}
+.exam-header{background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;}
+.exam-timer{font-size:1.4rem;font-weight:800;color:#FDCB6E;font-variant-numeric:tabular-nums;letter-spacing:2px;}
+.timer-warn{color:#D63031;animation:pulse 1s infinite;}
+.q-progress{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);}
+.violation-badge{background:rgba(214,48,49,.15);border:1px solid rgba(214,48,49,.3);color:#D63031;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;}
+.option-card{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1.5px solid rgba(255,255,255,.1);border-radius:14px;cursor:pointer;transition:all .2s;margin-bottom:10px;background:rgba(255,255,255,.03);}
+.option-card:hover{border-color:rgba(108,92,231,.5);background:rgba(108,92,231,.08);}
+.option-card.selected{border-color:#6C5CE7;background:rgba(108,92,231,.15);}
+.option-card.correct{border-color:#00B894;background:rgba(0,184,148,.12);}
+.option-card.wrong{border-color:#D63031;background:rgba(214,48,49,.12);animation:shake .4s;}
+.option-letter{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.q-nav-box{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:1.5px solid rgba(255,255,255,.1);}
+.q-nav-box.answered{background:rgba(108,92,231,.3);border-color:#6C5CE7;color:#a29bfe;}
+.q-nav-box.current{background:#fff;color:#0D0D1A;border-color:#fff;}
+.q-nav-box.unanswered{background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);}
+.xp-float{position:fixed;font-size:20px;font-weight:800;color:#FDCB6E;pointer-events:none;animation:floatUp 1.2s ease forwards;z-index:9999;}
+/* Result */
+.score-ring{width:160px;height:160px;border-radius:50%;background:conic-gradient(#6C5CE7 0% 86%,rgba(255,255,255,.07) 86% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto;position:relative;}
+.score-ring-inner{width:130px;height:130px;border-radius:50%;background:#12122A;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%)}.app-main{margin-left:0}.bento-grid{grid-template-columns:1fr 1fr}.b-col-3,.b-col-4{grid-column:span 6}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12}}
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="sidebar-logo">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">⚡</div>
+    <span style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">lvlBase</span>
+  </div>
+  <div style="padding:12px;margin:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;" id="sidebar-avatar">S</div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;" id="sidebar-name">Student</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);">🎓 Student</div>
+      </div>
+    </div>
+  </div>
+  <nav style="flex:1;padding:8px 0;overflow-y:auto;">
+    <div class="nav-section-label">Main</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span> Quest Map</a>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span> Profile</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span> Analytics</a>
+    <div class="nav-section-label">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span> Arena<span style="font-size:9px;background:#D63031;color:#fff;padding:2px 6px;border-radius:6px;font-weight:700;margin-left:4px;">LIVE</span></a>
+    <a href="/app/student/arena/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <a href="/app/student/exam-portal.html" class="nav-item active"><span class="nav-icon">📝</span> Exam Portal</a>
+    <div class="nav-section-label">Learn</div>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🤖</span> Sage AI</a>
+    <a href="/app/student/ai/notes.html" class="nav-item"><span class="nav-icon">📝</span> AI Notes</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span> Code Studio</a>
+    <a href="/app/student/practice-gym.html" class="nav-item"><span class="nav-icon">🏋️</span> Practice Gym</a>
+    <div class="nav-section-label">Rewards</div>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span> Backpack</a>
+    <a href="/app/student/certificates.html" class="nav-item"><span class="nav-icon">🎓</span> Certificates</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span> Support</a>
+  </nav>
+  <div style="padding:16px;">
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;padding:10px;background:rgba(214,48,49,.1);border:1px solid rgba(214,48,49,.2);border-radius:10px;color:rgba(255,255,255,.6);cursor:pointer;font-size:.82rem;font-weight:600;">Sign Out</button>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="app-main">
+
+  <!-- ── PRE-EXAM STATE ── -->
+  <div id="pre-exam-state">
+    <div class="app-header">
+      <div class="header-title">📝 Scholarship Exam Portal</div>
+      <span class="badge badge-warning">1 Attempt Remaining</span>
+    </div>
+    <div class="app-content">
+      <div class="bento-grid fade-in">
+
+        <!-- Hero Card -->
+        <div class="b-col-8">
+          <div class="bento-card accent-purple" style="background:linear-gradient(135deg,rgba(108,92,231,.18),rgba(162,155,254,.08));border-color:rgba(108,92,231,.4);padding:32px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <span style="font-size:2.5rem;">🏆</span>
+              <div>
+                <h2 style="font-size:1.5rem;font-weight:800;line-height:1.2;">Scholarship Exam</h2>
+                <p style="color:#a29bfe;font-weight:600;font-size:.95rem;">Win 100% Fee Waiver!</p>
+              </div>
+            </div>
+            <p style="color:rgba(255,255,255,.7);margin-bottom:24px;line-height:1.6;">Score <strong style="color:#FDCB6E;">85% or above</strong> to unlock a full scholarship and join lvlBase completely free. This is a one-time opportunity — give it your best shot!</p>
+
+            <!-- Eligibility -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+              <div style="background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.2);border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:1.2rem;margin-bottom:4px;">✅</div>
+                <div style="font-size:.75rem;font-weight:600;color:#00B894;">Account Verified</div>
+              </div>
+              <div style="background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.2);border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:1.2rem;margin-bottom:4px;">✅</div>
+                <div style="font-size:.75rem;font-weight:600;color:#00B894;">Email Confirmed</div>
+              </div>
+              <div style="background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.2);border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:1.2rem;margin-bottom:4px;">⚠️</div>
+                <div style="font-size:.75rem;font-weight:600;color:#FDCB6E;">Exam Attempt: 1/1</div>
+              </div>
+            </div>
+
+            <!-- Exam Info -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">📅 Date</div>
+                <div style="font-weight:700;font-size:.95rem;">Dec 25, 2024</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🕐 Time</div>
+                <div style="font-weight:700;font-size:.95rem;">10:00 AM – 11:30 AM</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">⏱️ Duration</div>
+                <div style="font-weight:700;font-size:.95rem;">90 Minutes</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">❓ Questions</div>
+                <div style="font-weight:700;font-size:.95rem;">50 MCQ</div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="openRulesModal()" style="width:100%;padding:16px;font-size:1rem;border-radius:14px;justify-content:center;gap:10px;">
+              🚀 Start Exam Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Side info -->
+        <div class="b-col-4" style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Important Notes -->
+          <div class="bento-card" style="border-color:rgba(214,48,49,.25);background:rgba(214,48,49,.05);flex:1;">
+            <div style="font-size:1rem;font-weight:700;margin-bottom:14px;color:#D63031;">⚠️ Important Notes</div>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+              <li style="display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;">
+                <span style="color:#D63031;flex-shrink:0;margin-top:1px;">•</span>
+                Once started, you <strong>cannot leave fullscreen</strong> during the exam.
+              </li>
+              <li style="display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;">
+                <span style="color:#D63031;flex-shrink:0;margin-top:1px;">•</span>
+                <strong>Face detection is active</strong> — ensure your face is visible to the camera.
+              </li>
+              <li style="display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;">
+                <span style="color:#D63031;flex-shrink:0;margin-top:1px;">•</span>
+                <strong>Tab switching will be flagged</strong> and may lead to disqualification.
+              </li>
+              <li style="display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:rgba(255,255,255,.75);line-height:1.5;">
+                <span style="color:#D63031;flex-shrink:0;margin-top:1px;">•</span>
+                This is a <strong>one-time attempt</strong>. You cannot retake the exam.
+              </li>
+            </ul>
+          </div>
+          <!-- Scholarship value -->
+          <div class="bento-card accent-gold" style="background:linear-gradient(135deg,rgba(253,203,110,.1),rgba(253,203,110,.03));text-align:center;">
+            <div style="font-size:2rem;margin-bottom:8px;">🎓</div>
+            <div style="font-weight:800;font-size:1.5rem;color:#FDCB6E;">100% Fee Waiver</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:6px;">Worth ₹49,999 / year</div>
+            <div style="margin-top:12px;padding:8px 12px;background:rgba(253,203,110,.08);border-radius:8px;font-size:.75rem;color:rgba(255,255,255,.6);">Score 85%+ to unlock</div>
+          </div>
+        </div>
+
+        <!-- Preparation tips -->
+        <div class="b-col-12">
+          <div class="bento-card">
+            <div class="card-title">📚 Exam Syllabus & Preparation Tips</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+              <div style="background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.15);border-radius:12px;padding:14px;">
+                <div style="font-size:.75rem;color:#a29bfe;font-weight:700;margin-bottom:6px;">📱 App Development (30%)</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5;">Flutter basics, Dart syntax, widget tree, state management</div>
+              </div>
+              <div style="background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.15);border-radius:12px;padding:14px;">
+                <div style="font-size:.75rem;color:#00CEC9;font-weight:700;margin-bottom:6px;">🌐 Web Dev (25%)</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5;">HTML, CSS, JavaScript, responsive design fundamentals</div>
+              </div>
+              <div style="background:rgba(253,121,168,.08);border:1px solid rgba(253,121,168,.15);border-radius:12px;padding:14px;">
+                <div style="font-size:.75rem;color:#FD79A8;font-weight:700;margin-bottom:6px;">🤖 AI & Data (25%)</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5;">Python basics, AI concepts, data science intro</div>
+              </div>
+              <div style="background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.15);border-radius:12px;padding:14px;">
+                <div style="font-size:.75rem;color:#FDCB6E;font-weight:700;margin-bottom:6px;">🧩 Logic (20%)</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5;">Algorithms, problem solving, logical reasoning</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EXAM STATE ── -->
+  <div id="exam-state">
+    <div class="exam-header">
+      <div style="font-weight:700;font-size:1rem;flex:1;">📝 Scholarship Exam</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:.75rem;color:rgba(255,255,255,.5);">Time Left:</span>
+        <span class="exam-timer" id="exam-timer">01:30:00</span>
+      </div>
+      <div class="q-progress">Question <span id="current-q-display">1</span> / 50</div>
+      <div class="violation-badge">⚠️ Violations: <span id="violation-count">0</span></div>
+      <button class="btn btn-danger btn-sm" onclick="openSubmitModal()">Submit Exam</button>
+    </div>
+
+    <div style="display:flex;gap:0;height:calc(100vh - 64px);">
+      <!-- Question Area -->
+      <div style="flex:1;overflow-y:auto;padding:32px;">
+        <div id="question-area" style="max-width:700px;margin:0 auto;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <span class="badge badge-purple">Question <span id="q-num">1</span></span>
+            <span class="badge badge-warning" id="q-topic">App Development</span>
+          </div>
+          <h3 id="q-text" style="font-size:1.15rem;font-weight:700;line-height:1.6;margin-bottom:24px;">Which widget is used to create a vertically scrollable list in Flutter?</h3>
+          <div id="options-area"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:28px;">
+            <button class="btn btn-dark" id="prev-btn" onclick="navigate(-1)">← Previous</button>
+            <button class="btn btn-primary" id="next-btn" onclick="navigate(1)">Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Navigator -->
+      <div style="width:260px;background:#12122A;border-left:1px solid rgba(255,255,255,.08);padding:20px;overflow-y:auto;flex-shrink:0;">
+        <div style="font-size:.78rem;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Question Navigator</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;" id="q-navigator"></div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:rgba(255,255,255,.5);">
+            <div style="width:14px;height:14px;border-radius:4px;background:rgba(108,92,231,.3);border:1px solid #6C5CE7;"></div> Answered
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:rgba(255,255,255,.5);">
+            <div style="width:14px;height:14px;border-radius:4px;background:#fff;"></div> Current
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:rgba(255,255,255,.5);">
+            <div style="width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"></div> Unanswered
+          </div>
+        </div>
+        <button class="btn btn-danger" onclick="openSubmitModal()" style="width:100%;justify-content:center;margin-top:24px;">🏁 Submit Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULT STATE ── -->
+  <div id="result-state">
+    <div class="app-header">
+      <div class="header-title">🏆 Exam Results</div>
+    </div>
+    <div class="app-content">
+      <div class="bento-grid fade-in">
+
+        <div class="b-col-12">
+          <div style="background:linear-gradient(135deg,rgba(0,184,148,.15),rgba(0,184,148,.05));border:1px solid rgba(0,184,148,.3);border-radius:20px;padding:28px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:8px;">🎉</div>
+            <div style="font-size:1.4rem;font-weight:800;color:#00B894;">CONGRATULATIONS!</div>
+            <div style="color:rgba(255,255,255,.7);margin-top:6px;font-size:1rem;">You've qualified for the <strong style="color:#FDCB6E;">100% Scholarship!</strong></div>
+          </div>
+        </div>
+
+        <div class="b-col-4">
+          <div class="bento-card accent-purple" style="text-align:center;padding:32px;">
+            <div class="score-ring">
+              <div class="score-ring-inner">
+                <div id="score-pct" style="font-size:2rem;font-weight:800;color:#a29bfe;animation:countUp .6s ease;">86%</div>
+                <div style="font-size:.7rem;color:rgba(255,255,255,.4);">Score</div>
+              </div>
+            </div>
+            <div style="margin-top:20px;font-size:1.5rem;font-weight:800;">43 / 50</div>
+            <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-top:4px;">Questions Correct</div>
+            <div style="margin-top:16px;" class="badge badge-success" style="font-size:1rem;padding:8px 16px;">✅ PASSED</div>
+          </div>
+        </div>
+
+        <div class="b-col-4">
+          <div class="bento-card accent-gold" style="text-align:center;padding:32px;">
+            <div style="font-size:3rem;margin-bottom:12px;">⚡</div>
+            <div style="font-size:2rem;font-weight:800;color:#FDCB6E;">+2,500 XP</div>
+            <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-top:6px;">Experience Points Earned</div>
+            <div style="margin-top:20px;background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.15);border-radius:12px;padding:14px;">
+              <div style="font-size:.75rem;color:rgba(255,255,255,.5);">New Total XP</div>
+              <div style="font-size:1.4rem;font-weight:800;color:#FDCB6E;margin-top:4px;">12,750 XP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-col-4">
+          <div class="bento-card" style="padding:32px;display:flex;flex-direction:column;gap:14px;">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">📊 Breakdown</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+              <span style="font-size:.82rem;color:rgba(255,255,255,.6);">⏱️ Time Taken</span>
+              <span style="font-weight:700;font-size:.9rem;">1h 14m</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+              <span style="font-size:.82rem;color:rgba(255,255,255,.6);">✅ Correct</span>
+              <span style="font-weight:700;color:#00B894;">43</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+              <span style="font-size:.82rem;color:rgba(255,255,255,.6);">❌ Incorrect</span>
+              <span style="font-weight:700;color:#D63031;">7</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+              <span style="font-size:.82rem;color:rgba(255,255,255,.6);">⚠️ Violations</span>
+              <span style="font-weight:700;color:#FDCB6E;" id="result-violations">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-col-6">
+          <div class="bento-card" style="background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(253,121,168,.06));border-color:rgba(108,92,231,.3);">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:16px;">🎓 Your Scholarship Certificate</div>
+            <p style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:20px;">Congratulations! Your scholarship certificate is ready for download. Share it to showcase your achievement.</p>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-primary" onclick="downloadCert()">📥 Download Certificate</button>
+              <button class="btn btn-dark" onclick="shareCert()">📤 Share</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-col-6">
+          <div class="bento-card" style="border-color:rgba(214,48,49,.2);background:rgba(214,48,49,.04);">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:16px;">⚠️ Violations Summary</div>
+            <div id="violations-summary">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.2);border-radius:10px;">
+                <span style="font-size:1.2rem;">✅</span>
+                <div>
+                  <div style="font-size:.85rem;font-weight:600;color:#00B894;">No violations recorded</div>
+                  <div style="font-size:.72rem;color:rgba(255,255,255,.4);">Excellent exam integrity!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-main -->
+
+<!-- ── RULES MODAL ── -->
+<div class="modal-overlay" id="rules-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">📋 Before You Begin</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+        <span>🖥️</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>Fullscreen Required:</strong> The exam will run in fullscreen mode. Exiting fullscreen will be flagged as a violation.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+        <span>👁️</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>Face Detection Active:</strong> Your face must remain visible throughout. Multiple face absence warnings may result in disqualification.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+        <span>🚫</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>No Tab Switching:</strong> Switching browser tabs is strictly prohibited and will be automatically detected and recorded.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+        <span>⏱️</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>90 Minutes:</strong> You have exactly 90 minutes to complete all 50 questions. The timer cannot be paused.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;">
+        <span>❓</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>50 MCQ Questions:</strong> Each question has 4 options with one correct answer. No negative marking applies.</div>
+      </div>
+      <div style="display:flex;gap:12px;padding:12px;background:rgba(214,48,49,.06);border:1px solid rgba(214,48,49,.2);border-radius:10px;">
+        <span>⚠️</span><div style="font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.5;"><strong>One Attempt Only:</strong> This is your single attempt. Once submitted or timed out, the exam cannot be retaken.</div>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.2);border-radius:12px;cursor:pointer;margin-bottom:20px;">
+      <input type="checkbox" id="agree-check" style="width:18px;height:18px;accent-color:#6C5CE7;cursor:pointer;">
+      <span style="font-size:.85rem;font-weight:600;color:rgba(255,255,255,.85);">I have read and agree to all exam rules and conditions.</span>
+    </label>
+    <div style="display:flex;gap:12px;">
+      <button class="btn btn-dark" onclick="closeRulesModal()" style="flex:1;justify-content:center;">Cancel</button>
+      <button class="btn btn-primary" id="start-btn" onclick="startExam()" style="flex:1;justify-content:center;opacity:.5;pointer-events:none;">I Agree &amp; Start Exam 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUBMIT CONFIRM MODAL ── -->
+<div class="modal-overlay" id="submit-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">🏁 Submit Exam?</div>
+    <p style="color:rgba(255,255,255,.7);font-size:.9rem;line-height:1.6;margin-bottom:10px;">Are you sure you want to submit your exam? You have answered <strong id="answered-count" style="color:#a29bfe;">0</strong> out of 50 questions.</p>
+    <p style="color:rgba(253,203,110,.8);font-size:.82rem;margin-bottom:24px;">⚠️ This action cannot be undone. Once submitted, you cannot change your answers.</p>
+    <div style="display:flex;gap:12px;">
+      <button class="btn btn-dark" onclick="closeSubmitModal()" style="flex:1;justify-content:center;">Continue Exam</button>
+      <button class="btn btn-danger-solid btn-primary" onclick="submitExam()" style="flex:1;justify-content:center;background:#D63031;">Submit Now</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['student']);</script>
+<script>
+// ── Toast ──
+function showToast(msg, type='info', icon='ℹ️'){
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:1.1rem">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>t.classList.add('show')); });
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },3500);
+}
+
+// ── Exam questions data ──
+const questions = [
+  {q:"Which widget is used to create a vertically scrollable list in Flutter?",options:["Column","ListView","Stack","GridView"],correct:1,topic:"App Development"},
+  {q:"What does the 'setState()' method do in Flutter?",options:["Initializes the widget","Rebuilds the UI with new state","Disposes the widget","Navigates to another page"],correct:1,topic:"App Development"},
+  {q:"Which Dart keyword is used to define a constant value?",options:["final","var","const","static"],correct:2,topic:"App Development"},
+  {q:"What is the purpose of 'pubspec.yaml' in a Flutter project?",options:["Store app logic","Define UI layouts","Manage dependencies and metadata","Handle routing"],correct:2,topic:"App Development"},
+  {q:"In HTML, which tag creates a hyperlink?",options:["<link>","<a>","<href>","<url>"],correct:1,topic:"Web Development"},
+  {q:"Which CSS property changes text color?",options:["text-style","font-color","color","text-color"],correct:2,topic:"Web Development"},
+  {q:"What does API stand for?",options:["Application Protocol Interface","Application Programming Interface","Applied Program Integration","Automated Programming Interface"],correct:1,topic:"Web Development"},
+  {q:"Which data structure follows LIFO (Last In, First Out)?",options:["Queue","Array","Stack","Linked List"],correct:2,topic:"Logic & Algorithms"},
+  {q:"What is the time complexity of binary search?",options:["O(n)","O(n²)","O(log n)","O(1)"],correct:2,topic:"Logic & Algorithms"},
+  {q:"In Python, which function converts a string to an integer?",options:["str()","float()","int()","num()"],correct:2,topic:"AI & Data Science"},
+  {q:"What is a Neural Network inspired by?",options:["Computer circuits","The human brain","Mathematical equations","Database structures"],correct:1,topic:"AI & Data Science"},
+  {q:"Which Flutter widget is used to handle gestures like tap?",options:["TouchDetector","GestureDetector","TapListener","EventHandler"],correct:1,topic:"App Development"},
+  {q:"What is the purpose of 'async' and 'await' in Dart?",options:["Error handling","Memory management","Asynchronous programming","UI updates"],correct:2,topic:"App Development"},
+  {q:"Which tag is used to include JavaScript in HTML?",options:["<js>","<javascript>","<script>","<code>"],correct:2,topic:"Web Development"},
+  {q:"What does CSS stand for?",options:["Computer Style Sheets","Creative Style Syntax","Cascading Style Sheets","Colorful Style System"],correct:2,topic:"Web Development"},
+  {q:"Which algorithm is used for finding shortest paths in a graph?",options:["Bubble Sort","Dijkstra's Algorithm","Binary Search","Merge Sort"],correct:1,topic:"Logic & Algorithms"},
+  {q:"In machine learning, what is 'overfitting'?",options:["Model performs well on all data","Model performs well on training but poorly on new data","Model fails to learn patterns","Model is too simple"],correct:1,topic:"AI & Data Science"},
+  {q:"What is the output of: print(type(3.14)) in Python?",options:["<class 'int'>","<class 'float'>","<class 'str'>","<class 'num'>"],correct:1,topic:"AI & Data Science"},
+  {q:"Which Flutter navigation method removes all previous routes?",options:["push()","pop()","pushAndRemoveUntil()","replace()"],correct:2,topic:"App Development"},
+  {q:"What is a 'Stateless Widget' in Flutter?",options:["A widget that changes over time","A widget with no UI","A widget whose state can't change after initialization","A widget that handles gestures"],correct:2,topic:"App Development"},
+  {q:"Which HTTP method is used to send data to a server?",options:["GET","DELETE","PUT","POST"],correct:3,topic:"Web Development"},
+  {q:"What is the box model in CSS?",options:["A 3D rendering model","Content, padding, border, and margin layout concept","A grid layout system","A flexbox variant"],correct:1,topic:"Web Development"},
+  {q:"What is Big O notation used for?",options:["Measuring code quality","Describing algorithm performance","Counting code lines","Measuring memory usage"],correct:1,topic:"Logic & Algorithms"},
+  {q:"Which sorting algorithm has average O(n log n) complexity?",options:["Bubble Sort","Insertion Sort","Merge Sort","Selection Sort"],correct:2,topic:"Logic & Algorithms"},
+  {q:"What does 'NLP' stand for in AI?",options:["Neural Learning Protocol","Natural Language Processing","Network Learning Pathway","Node Logic Programming"],correct:1,topic:"AI & Data Science"},
+  {q:"Which widget in Flutter creates a floating button at the bottom right?",options:["RaisedButton","FloatingActionButton","ElevatedButton","IconButton"],correct:1,topic:"App Development"},
+  {q:"What is the difference between 'var', 'let', and 'const' in JavaScript?",options:["They are identical","var is block-scoped, let and const are function-scoped","var is function-scoped, let is block-scoped, const is a constant","All are constants"],correct:2,topic:"Web Development"},
+  {q:"Which Python library is used for numerical computing?",options:["Pandas","Matplotlib","NumPy","Seaborn"],correct:2,topic:"AI & Data Science"},
+  {q:"What is recursion in programming?",options:["A loop construct","A function calling itself","A data type","A sorting method"],correct:1,topic:"Logic & Algorithms"},
+  {q:"In Flutter, what is 'hot reload'?",options:["Restarting the app from scratch","Instantly reflecting code changes in a running app","Clearing the cache","Refreshing Firebase data"],correct:1,topic:"App Development"},
+  {q:"What does 'responsive design' mean in web development?",options:["A fast-loading website","A website that adapts to different screen sizes","An animated website","A dynamic website"],correct:1,topic:"Web Development"},
+  {q:"Which Python data structure stores key-value pairs?",options:["List","Tuple","Set","Dictionary"],correct:3,topic:"AI & Data Science"},
+  {q:"What is the purpose of a linked list?",options:["Fast random access","Dynamic size with efficient insertions/deletions","Sorting data automatically","Storing only integers"],correct:1,topic:"Logic & Algorithms"},
+  {q:"What is Firebase used for in mobile development?",options:["UI design","Backend services like auth, database, storage","3D rendering","Image processing"],correct:1,topic:"App Development"},
+  {q:"Which CSS property is used to make elements flexible in a container?",options:["display: block","display: flex","display: inline","display: grid"],correct:1,topic:"Web Development"},
+  {q:"What is gradient descent in machine learning?",options:["A data cleaning method","An optimization algorithm to minimize loss","A classification technique","A data visualization method"],correct:1,topic:"AI & Data Science"},
+  {q:"What is the worst-case complexity of quicksort?",options:["O(n log n)","O(n)","O(n²)","O(log n)"],correct:2,topic:"Logic & Algorithms"},
+  {q:"In Flutter, which package manages state globally?",options:["http","shared_preferences","provider","sqflite"],correct:2,topic:"App Development"},
+  {q:"What is a Promise in JavaScript?",options:["A variable declaration","An object representing async operation completion or failure","A type of loop","A CSS animation"],correct:1,topic:"Web Development"},
+  {q:"What is supervised learning?",options:["Learning without labeled data","Learning with labeled training data","Reinforcement learning","Unsupervised clustering"],correct:1,topic:"AI & Data Science"},
+  {q:"Which data structure uses FIFO (First In, First Out)?",options:["Stack","Array","Queue","Tree"],correct:2,topic:"Logic & Algorithms"},
+  {q:"What does 'StatefulWidget' maintain in Flutter?",options:["Only the layout","Mutable state that can change over time","Only the theme","Navigation history"],correct:1,topic:"App Development"},
+  {q:"What is the purpose of semantic HTML?",options:["Making pages look better","Helping search engines and accessibility tools understand content","Making pages load faster","Enabling animations"],correct:1,topic:"Web Development"},
+  {q:"Which Python library is primarily used for data visualization?",options:["TensorFlow","NumPy","Matplotlib","Scikit-learn"],correct:2,topic:"AI & Data Science"},
+  {q:"What is a binary tree?",options:["A tree with exactly 2 nodes","A tree where each node has at most 2 children","A tree with 2 levels","A sorted array"],correct:1,topic:"Logic & Algorithms"},
+  {q:"What does 'null safety' mean in Dart/Flutter?",options:["Variables can be null by default","Null values are automatically converted","Variables cannot hold null unless explicitly declared as nullable","No variables are allowed"],correct:2,topic:"App Development"},
+  {q:"Which property in CSS controls the spacing inside an element?",options:["margin","gap","padding","spacing"],correct:2,topic:"Web Development"},
+  {q:"What is a confusion matrix used for?",options:["Debugging code","Evaluating classification model performance","Designing neural networks","Visualizing data clusters"],correct:1,topic:"AI & Data Science"},
+  {q:"What is dynamic programming?",options:["Programming with variables","Breaking problems into subproblems and storing results","A programming language","An OOP concept"],correct:1,topic:"Logic & Algorithms"},
+  {q:"In Flutter, what does 'BuildContext' provide?",options:["Database access","Location in the widget tree and access to inherited data","Network requests","Local storage"],correct:1,topic:"App Development"},
+];
+
+// ── State ──
+let currentQ = 0;
+let answers = new Array(50).fill(-1);
+let violations = 0;
+let examActive = false;
+let timerInterval = null;
+let timeLeft = 90 * 60; // 90 minutes in seconds
+
+// ── Modal helpers ──
+function openRulesModal(){ document.getElementById('rules-modal').classList.add('open'); }
+function closeRulesModal(){ document.getElementById('rules-modal').classList.remove('open'); }
+function openSubmitModal(){
+  const answered = answers.filter(a=>a!==-1).length;
+  document.getElementById('answered-count').textContent = answered;
+  document.getElementById('submit-modal').classList.add('open');
+}
+function closeSubmitModal(){ document.getElementById('submit-modal').classList.remove('open'); }
+
+// Agree checkbox toggles start button
+document.getElementById('agree-check').addEventListener('change', function(){
+  const btn = document.getElementById('start-btn');
+  btn.style.opacity = this.checked ? '1' : '.5';
+  btn.style.pointerEvents = this.checked ? 'auto' : 'none';
+});
+
+// ── Start exam ──
+function startExam(){
+  closeRulesModal();
+  document.getElementById('pre-exam-state').style.display = 'none';
+  document.getElementById('exam-state').style.display = 'block';
+  examActive = true;
+  buildNavigator();
+  renderQuestion(0);
+  startTimer();
+  // Request fullscreen
+  if(document.documentElement.requestFullscreen){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+  showToast('📝 Exam started! Good luck!', 'info', '🚀');
+}
+
+// ── Timer ──
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      examActive = false;
+      showToast('⏰ Time is up! Auto-submitting...', 'error', '⏰');
+      setTimeout(()=>showResult(),1500);
+    }
+    if(timeLeft === 300) showToast('⚠️ Only 5 minutes remaining!', 'error', '⏰');
+    if(timeLeft === 600) showToast('⚠️ 10 minutes remaining!', 'info', '⏰');
+  }, 1000);
+}
+
+function updateTimerDisplay(){
+  const h = Math.floor(timeLeft/3600);
+  const m = Math.floor((timeLeft%3600)/60);
+  const s = timeLeft%60;
+  const str = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const el = document.getElementById('exam-timer');
+  el.textContent = str;
+  el.className = 'exam-timer' + (timeLeft<300?' timer-warn':'');
+}
+
+// ── Build navigator ──
+function buildNavigator(){
+  const nav = document.getElementById('q-navigator');
+  nav.innerHTML = '';
+  for(let i=0;i<50;i++){
+    const box = document.createElement('div');
+    box.className = 'q-nav-box unanswered';
+    box.textContent = i+1;
+    box.id = `nav-${i}`;
+    box.onclick = ()=>renderQuestion(i);
+    nav.appendChild(box);
+  }
+}
+
+function updateNavigator(){
+  for(let i=0;i<50;i++){
+    const box = document.getElementById(`nav-${i}`);
+    if(!box) continue;
+    box.className = 'q-nav-box';
+    if(i===currentQ) box.classList.add('current');
+    else if(answers[i]!==-1) box.classList.add('answered');
+    else box.classList.add('unanswered');
+  }
+}
+
+// ── Render question ──
+function renderQuestion(index){
+  currentQ = index;
+  const q = questions[index % questions.length];
+  document.getElementById('q-num').textContent = index+1;
+  document.getElementById('current-q-display').textContent = index+1;
+  document.getElementById('q-topic').textContent = q.topic;
+  document.getElementById('q-text').textContent = q.q;
+  const area = document.getElementById('options-area');
+  area.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt,i)=>{
+    const card = document.createElement('div');
+    card.className = 'option-card' + (answers[currentQ]===i?' selected':'');
+    card.innerHTML = `<div class="option-letter">${letters[i]}</div><div style="font-size:.9rem;line-height:1.5;">${opt}</div>`;
+    card.onclick = ()=>selectOption(i);
+    area.appendChild(card);
+  });
+  document.getElementById('prev-btn').style.opacity = currentQ===0?'.4':'1';
+  document.getElementById('prev-btn').style.pointerEvents = currentQ===0?'none':'auto';
+  document.getElementById('next-btn').textContent = currentQ===49?'Finish →':'Next →';
+  updateNavigator();
+}
+
+function selectOption(i){
+  answers[currentQ] = i;
+  renderQuestion(currentQ);
+}
+
+function navigate(dir){
+  const next = currentQ + dir;
+  if(next>=0 && next<50) renderQuestion(next);
+  else if(next>=50) openSubmitModal();
+}
+
+// ── Submit ──
+function submitExam(){
+  clearInterval(timerInterval);
+  examActive = false;
+  closeSubmitModal();
+  if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+  showResult();
+}
+
+function showResult(){
+  document.getElementById('exam-state').style.display = 'none';
+  document.getElementById('result-state').style.display = 'block';
+  document.getElementById('result-violations').textContent = violations;
+  if(violations > 0){
+    document.getElementById('violations-summary').innerHTML = `<div style="font-size:.83rem;color:#D63031;">${violations} violation(s) recorded during exam.</div>`;
+  }
+  showToast('🏆 Exam submitted! Check your results.', 'success', '🎉');
+}
+
+// ── Tab switch detection ──
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && examActive){
+    violations++;
+    document.getElementById('violation-count').textContent = violations;
+    showToast('⚠️ Tab switch detected! This has been recorded.', 'error', '⚠️');
+  }
+});
+
+// ── Certificate actions ──
+function downloadCert(){
+  showToast('📥 Certificate PDF downloaded!', 'success', '📥');
+}
+function shareCert(){
+  if(navigator.clipboard) navigator.clipboard.writeText('https://unibolt.in/verify?cert=LVL-SCH-2024-001').catch(()=>{});
+  showToast('🔗 Certificate link copied to clipboard!', 'success', '🔗');
+}
+</script>
+</body>
+</html>

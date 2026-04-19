@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Practice Gym – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter','Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.nav-section-label{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;margin-right:0;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.bento-card.accent-purple{border-color:rgba(108,92,231,.3);}
+.bento-card.accent-teal{border-color:rgba(0,206,201,.3);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:540px;transform:scale(.9) translateY(20px);transition:all .3s;max-height:90vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(110%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes floatXP{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(1.2)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+/* Tab nav */
+.tab-nav{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:4px;}
+.tab-btn{padding:8px 20px;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:rgba(108,92,231,.25);color:#a29bfe;border:1px solid rgba(108,92,231,.3);}
+/* Difficulty filter */
+.diff-filter{display:flex;gap:6px;flex-wrap:wrap;}
+.diff-btn{padding:5px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);transition:all .2s;}
+.diff-btn.active{color:#fff;}
+.diff-btn.beginner.active{background:rgba(0,184,148,.15);border-color:rgba(0,184,148,.3);color:#00B894;}
+.diff-btn.intermediate.active{background:rgba(253,203,110,.15);border-color:rgba(253,203,110,.3);color:#FDCB6E;}
+.diff-btn.advanced.active{background:rgba(214,48,49,.15);border-color:rgba(214,48,49,.3);color:#D63031;}
+.diff-btn.all.active{background:rgba(108,92,231,.15);border-color:rgba(108,92,231,.3);color:#a29bfe;}
+/* Challenge card */
+.challenge-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;transition:all .2s;position:relative;overflow:hidden;}
+.challenge-card:hover{border-color:rgba(108,92,231,.3);background:rgba(108,92,231,.06);}
+.challenge-card.done{opacity:.7;}
+.done-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;border-radius:16px;pointer-events:none;}
+/* Quiz option */
+.quiz-option{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1.5px solid rgba(255,255,255,.1);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:8px;background:rgba(255,255,255,.02);}
+.quiz-option:hover{border-color:rgba(108,92,231,.5);background:rgba(108,92,231,.08);}
+.quiz-option.selected{border-color:#6C5CE7;background:rgba(108,92,231,.15);}
+.quiz-option.correct{border-color:#00B894;background:rgba(0,184,148,.12);}
+.quiz-option.wrong{border-color:#D63031;background:rgba(214,48,49,.12);animation:shake .4s;}
+/* Code block */
+.code-block{background:#0a0a1a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;font-family:'Courier New',monospace;font-size:.83rem;line-height:1.8;overflow-x:auto;}
+.code-line{display:flex;gap:12px;padding:2px 6px;border-radius:4px;cursor:pointer;transition:background .15s;}
+.code-line:hover{background:rgba(255,255,255,.05);}
+.code-line.selected-line{background:rgba(214,48,49,.15);border:1px solid rgba(214,48,49,.3);}
+.code-line.correct-line{background:rgba(0,184,148,.15);border:1px solid rgba(0,184,148,.3);}
+.line-num{color:rgba(255,255,255,.2);min-width:28px;text-align:right;user-select:none;}
+.xp-float{position:fixed;font-size:1.4rem;font-weight:800;color:#FDCB6E;pointer-events:none;animation:floatXP 1.4s ease forwards;z-index:9999;text-shadow:0 2px 12px rgba(253,203,110,.5);}
+.xp-counter{font-size:1.8rem;font-weight:800;color:#FDCB6E;animation:pulse 2s infinite;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%)}.app-main{margin-left:0}.bento-grid{grid-template-columns:1fr 1fr}.b-col-3,.b-col-4{grid-column:span 6}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12}}
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="sidebar-logo">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">⚡</div>
+    <span style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">lvlBase</span>
+  </div>
+  <div style="padding:12px;margin:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;" id="sidebar-avatar">S</div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;" id="sidebar-name">Student</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);">🎓 Student</div>
+      </div>
+    </div>
+  </div>
+  <nav style="flex:1;padding:8px 0;overflow-y:auto;">
+    <div class="nav-section-label">Main</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span> Quest Map</a>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span> Profile</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span> Analytics</a>
+    <div class="nav-section-label">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span> Arena<span style="font-size:9px;background:#D63031;color:#fff;padding:2px 6px;border-radius:6px;font-weight:700;margin-left:4px;">LIVE</span></a>
+    <a href="/app/student/arena/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <a href="/app/student/exam-portal.html" class="nav-item"><span class="nav-icon">📝</span> Exam Portal</a>
+    <div class="nav-section-label">Learn</div>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🤖</span> Sage AI</a>
+    <a href="/app/student/ai/notes.html" class="nav-item"><span class="nav-icon">📝</span> AI Notes</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span> Code Studio</a>
+    <a href="/app/student/practice-gym.html" class="nav-item active"><span class="nav-icon">🏋️</span> Practice Gym</a>
+    <div class="nav-section-label">Rewards</div>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span> Backpack</a>
+    <a href="/app/student/certificates.html" class="nav-item"><span class="nav-icon">🎓</span> Certificates</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span> Support</a>
+  </nav>
+  <div style="padding:16px;">
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;padding:10px;background:rgba(214,48,49,.1);border:1px solid rgba(214,48,49,.2);border-radius:10px;color:rgba(255,255,255,.6);cursor:pointer;font-size:.82rem;font-weight:600;">Sign Out</button>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="app-main">
+  <div class="app-header">
+    <div class="header-title">🏋️ Practice Gym — App Development Track</div>
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.2);border-radius:10px;padding:6px 12px;">
+      <span style="font-size:.78rem;color:rgba(255,255,255,.5);">Session XP:</span>
+      <span class="xp-counter" id="session-xp" style="font-size:1rem;">0</span>
+      <span style="font-size:.78rem;color:#FDCB6E;">XP</span>
+    </div>
+  </div>
+
+  <div class="app-content">
+    <div class="bento-grid fade-in">
+
+      <!-- Stats row -->
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2rem;font-weight:800;color:#a29bfe;">18</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">Challenges Done</div>
+          <div style="font-size:1.2rem;margin-top:8px;">💪</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2rem;font-weight:800;color:#FDCB6E;">2,400</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">XP Earned</div>
+          <div style="font-size:1.2rem;margin-top:8px;">⚡</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2rem;font-weight:800;color:#00CEC9;">5</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">Current Streak</div>
+          <div style="font-size:1.2rem;margin-top:8px;">🔥</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:1.8rem;font-weight:800;color:#FDCB6E;">Gold 🥇</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:4px;">Current Rank</div>
+          <div style="font-size:1.2rem;margin-top:8px;">🏆</div>
+        </div>
+      </div>
+
+      <!-- Tabs + Content -->
+      <div class="b-col-12">
+        <div class="bento-card" style="padding:0;overflow:visible;">
+          <!-- Tab navigation -->
+          <div style="padding:20px 20px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:16px;">
+              <div class="tab-nav">
+                <button class="tab-btn active" id="quiz-tab-btn" onclick="switchTab('quiz')">📱 Dart/Flutter Quiz</button>
+                <button class="tab-btn" id="bug-tab-btn" onclick="switchTab('bug')">🐛 Bug Hunt</button>
+              </div>
+              <div class="diff-filter" id="diff-filter">
+                <button class="diff-btn all active" onclick="filterDiff('all')">All</button>
+                <button class="diff-btn beginner" onclick="filterDiff('beginner')">🟢 Beginner</button>
+                <button class="diff-btn intermediate" onclick="filterDiff('intermediate')">🟡 Intermediate</button>
+                <button class="diff-btn advanced" onclick="filterDiff('advanced')">🔴 Advanced</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Tab -->
+          <div id="quiz-panel" style="padding:20px;">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;" id="challenge-grid"></div>
+          </div>
+
+          <!-- Bug Hunt Tab (hidden) -->
+          <div id="bug-panel" style="padding:20px;display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+              <!-- Bug Hunt 1 -->
+              <div class="bento-card accent-teal" style="background:rgba(0,206,201,.05);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <div style="font-weight:700;font-size:.95rem;">🐛 Bug #1 — Null Pointer</div>
+                  <span class="badge badge-warning">+75 XP</span>
+                </div>
+                <p style="font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:12px;">Find and click the buggy line in this Dart code:</p>
+                <div class="code-block" id="bug1-code">
+                  <div class="code-line" onclick="selectBugLine(this,1,1)" data-line="1"><span class="line-num">1</span><span style="color:#a29bfe;">void</span> <span style="color:#FDCB6E;">getUserData</span><span style="color:#fff;">(String? name) {</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,1,2)" data-line="2"><span class="line-num">2</span><span style="color:#fff;">  </span><span style="color:#a29bfe;">String</span> <span style="color:#00CEC9;">fullName</span> = name;</div>
+                  <div class="code-line" onclick="selectBugLine(this,1,3)" data-line="3"><span class="line-num">3</span><span style="color:#fff;">  print(</span><span style="color:#00B894;">"Hello, $fullName"</span><span style="color:#fff;">);</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,1,4)" data-line="4"><span class="line-num">4</span><span style="color:#fff;">}</span></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                  <button class="btn btn-primary btn-sm" id="check-bug1" onclick="checkBug(1,2)" style="flex:1;justify-content:center;">Check Answer</button>
+                  <button class="btn btn-dark btn-sm" onclick="resetBug(1)" style="justify-content:center;">↺ Reset</button>
+                </div>
+                <div id="bug1-hint" style="display:none;margin-top:10px;font-size:.75rem;padding:8px 12px;background:rgba(253,203,110,.08);border-radius:8px;color:#FDCB6E;line-height:1.5;"></div>
+              </div>
+
+              <!-- Bug Hunt 2 -->
+              <div class="bento-card accent-purple" style="background:rgba(108,92,231,.05);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <div style="font-weight:700;font-size:.95rem;">🐛 Bug #2 — Wrong Loop</div>
+                  <span class="badge badge-warning">+75 XP</span>
+                </div>
+                <p style="font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:12px;">Find and click the buggy line in this Dart code:</p>
+                <div class="code-block" id="bug2-code">
+                  <div class="code-line" onclick="selectBugLine(this,2,1)" data-line="1"><span class="line-num">1</span><span style="color:#a29bfe;">List</span><span style="color:#fff;">&lt;</span><span style="color:#a29bfe;">int</span><span style="color:#fff;">&gt; numbers = [1, 2, 3, 4, 5];</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,2,2)" data-line="2"><span class="line-num">2</span><span style="color:#a29bfe;">int</span> <span style="color:#00CEC9;">sum</span> = 0;</div>
+                  <div class="code-line" onclick="selectBugLine(this,2,3)" data-line="3"><span class="line-num">3</span><span style="color:#a29bfe;">for</span><span style="color:#fff;"> (</span><span style="color:#a29bfe;">int</span> i = 0; i &lt;= numbers.length; i++) {</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,2,4)" data-line="4"><span class="line-num">4</span><span style="color:#fff;">  sum += numbers[i];</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,2,5)" data-line="5"><span class="line-num">5</span><span style="color:#fff;">}</span></div>
+                  <div class="code-line" onclick="selectBugLine(this,2,6)" data-line="6"><span class="line-num">6</span><span style="color:#fff;">print(sum);</span></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                  <button class="btn btn-primary btn-sm" id="check-bug2" onclick="checkBug(2,3)" style="flex:1;justify-content:center;">Check Answer</button>
+                  <button class="btn btn-dark btn-sm" onclick="resetBug(2)" style="justify-content:center;">↺ Reset</button>
+                </div>
+                <div id="bug2-hint" style="display:none;margin-top:10px;font-size:.75rem;padding:8px 12px;background:rgba(253,203,110,.08);border-radius:8px;color:#FDCB6E;line-height:1.5;"></div>
+              </div>
+
+              <!-- Bug Hunt 3 -->
+              <div class="bento-card" style="border-color:rgba(253,121,168,.3);background:rgba(253,121,168,.04);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                  <div style="font-weight:700;font-size:.95rem;">🐛 Bug #3 — Widget Tree</div>
+                  <span class="badge badge-warning">+100 XP</span>
+                </div>
+                <p style="font-size:.78rem;color:rgba(255,255,255,.55);margin-bottom:12px;">Find and click the buggy line in this Flutter code:</p>
+                <div class="code-block" id="bug3-code">
+                  <div class="code-line" onclick="selectBugLine(this,3,1)" data-line="1"><span class="line-num">1</span><span style="color:#a29bfe;">Widget</span> <span style="color:#FDCB6E;">build</span>(BuildContext context) {</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,2)" data-line="2"><span class="line-num">2</span>  <span style="color:#a29bfe;">return</span> <span style="color:#FDCB6E;">Scaffold</span>(</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,3)" data-line="3"><span class="line-num">3</span>    body: <span style="color:#FDCB6E;">Column</span>(</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,4)" data-line="4"><span class="line-num">4</span>      children: [</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,5)" data-line="5"><span class="line-num">5</span>        <span style="color:#FDCB6E;">Text</span>(<span style="color:#00B894;">"Hello Flutter"</span>),</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,6)" data-line="6"><span class="line-num">6</span>        <span style="color:#FDCB6E;">Image</span>.network(<span style="color:#a29bfe;">null</span>),</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,7)" data-line="7"><span class="line-num">7</span>      ],</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,8)" data-line="8"><span class="line-num">8</span>    ),</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,9)" data-line="9"><span class="line-num">9</span>  );</div>
+                  <div class="code-line" onclick="selectBugLine(this,3,10)" data-line="10"><span class="line-num">10</span>}</div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                  <button class="btn btn-primary btn-sm" id="check-bug3" onclick="checkBug(3,6)" style="flex:1;justify-content:center;">Check Answer</button>
+                  <button class="btn btn-dark btn-sm" onclick="resetBug(3)" style="justify-content:center;">↺ Reset</button>
+                </div>
+                <div id="bug3-hint" style="display:none;margin-top:10px;font-size:.75rem;padding:8px 12px;background:rgba(253,203,110,.08);border-radius:8px;color:#FDCB6E;line-height:1.5;"></div>
+              </div>
+
+              <!-- Bug Hunt leaderboard -->
+              <div class="bento-card" style="padding:24px;">
+                <div style="font-weight:700;font-size:.95rem;margin-bottom:16px;">🏆 Bug Hunter Board</div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.15);border-radius:10px;">
+                    <span style="font-size:1.2rem;">🥇</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700;font-size:.85rem;">Arjun S.</div>
+                      <div style="font-size:.7rem;color:rgba(255,255,255,.4);">28 bugs found</div>
+                    </div>
+                    <span style="font-weight:700;color:#FDCB6E;font-size:.85rem;">3,400 XP</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;">
+                    <span style="font-size:1.2rem;">🥈</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700;font-size:.85rem;">Priya M.</div>
+                      <div style="font-size:.7rem;color:rgba(255,255,255,.4);">24 bugs found</div>
+                    </div>
+                    <span style="font-weight:700;color:rgba(255,255,255,.6);font-size:.85rem;">2,900 XP</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;">
+                    <span style="font-size:1.2rem;">🥉</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700;font-size:.85rem;">Rohit K.</div>
+                      <div style="font-size:.7rem;color:rgba(255,255,255,.4);">19 bugs found</div>
+                    </div>
+                    <span style="font-weight:700;color:rgba(255,255,255,.6);font-size:.85rem;">2,250 XP</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.2);border-radius:10px;">
+                    <span style="font-size:1.2rem;">4️⃣</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700;font-size:.85rem;">You</div>
+                      <div style="font-size:.7rem;color:rgba(255,255,255,.4);">14 bugs found</div>
+                    </div>
+                    <span style="font-weight:700;color:#a29bfe;font-size:.85rem;">1,750 XP</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- end app-main -->
+
+<!-- ── QUIZ MODAL ── -->
+<div class="modal-overlay" id="quiz-modal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div class="modal-title" id="quiz-modal-title">🏋️ Flutter Widgets 101</div>
+      <span class="badge badge-success" id="quiz-xp-badge">+50 XP</span>
+    </div>
+    <div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:18px;">Question <span id="quiz-q-num">1</span> of <span id="quiz-q-total">5</span></div>
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:16px;margin-bottom:18px;">
+      <p id="quiz-q-text" style="font-size:.95rem;line-height:1.6;font-weight:600;">Loading question...</p>
+    </div>
+    <div id="quiz-options"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+      <button class="btn btn-dark btn-sm" onclick="closeQuizModal()">✕ Close</button>
+      <button class="btn btn-primary btn-sm" id="next-q-btn" onclick="nextQuizQuestion()" style="display:none;">Next Question →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['student']);</script>
+<script>
+// ── Toast ──
+function showToast(msg, type='info', icon='ℹ️'){
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:1.1rem">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>t.classList.add('show')); });
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },3500);
+}
+
+// ── XP ──
+let sessionXP = 0;
+function addXP(amount, x, y){
+  sessionXP += amount;
+  document.getElementById('session-xp').textContent = sessionXP;
+  // Float XP animation
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = `+${amount} XP`;
+  el.style.left = (x || window.innerWidth/2 - 30) + 'px';
+  el.style.top = (y || 200) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1400);
+}
+
+// ── Challenge data ──
+const challenges = [
+  {id:0,icon:'🧩',title:'Flutter Widgets 101',diff:'beginner',xp:50,done:true,
+   questions:[
+     {q:'Which widget creates a scrollable list in Flutter?',opts:['Column','ListView','Stack','Row'],correct:1,explanation:'ListView is the standard scrollable list widget.'},
+     {q:'Which widget is used for simple text display?',opts:['Label','TextWidget','Text','PrintWidget'],correct:2,explanation:'Text is Flutter\'s widget for displaying text.'},
+     {q:'What widget wraps the entire screen in a Material app?',opts:['Container','Surface','Scaffold','AppScreen'],correct:2,explanation:'Scaffold provides the basic Material app structure.'},
+     {q:'Which widget adds padding around its child?',opts:['Margin','Spacer','Padding','Container'],correct:2,explanation:'Padding is the dedicated widget for adding padding.'},
+     {q:'What does SizedBox do?',opts:['Scales widgets','Creates a fixed-size empty box','Adds color','Handles events'],correct:1,explanation:'SizedBox creates a box with a specific size.'},
+   ]},
+  {id:1,icon:'⚡',title:'State Management',diff:'intermediate',xp:100,done:false,
+   questions:[
+     {q:'What method triggers UI rebuild in a StatefulWidget?',opts:['rebuild()','refresh()','setState()','update()'],correct:2,explanation:'setState() notifies Flutter to rebuild the widget.'},
+     {q:'Which package is commonly used for state management in Flutter?',opts:['bloc','http','provider','sqflite'],correct:2,explanation:'Provider is a popular and recommended state management solution.'},
+     {q:'What does InheritedWidget allow?',opts:['Network requests','Efficient data sharing down the widget tree','Animation control','State persistence'],correct:1,explanation:'InheritedWidget allows data to be accessed by descendants efficiently.'},
+     {q:'When should you use a StatefulWidget?',opts:['Never','When UI needs to change based on state','For static text only','For images'],correct:1,explanation:'StatefulWidgets are needed when the UI changes dynamically.'},
+     {q:'What is a "side effect" in state management?',opts:['A bug','Operations outside the build method like API calls','A performance issue','A rendering problem'],correct:1,explanation:'Side effects include operations like API calls, storage writes, etc.'},
+   ]},
+  {id:2,icon:'🗺️',title:'Navigation & Routes',diff:'intermediate',xp:75,done:false,
+   questions:[
+     {q:'Which method pushes a new route onto the navigation stack?',opts:['Navigator.open()','Navigator.push()','Navigator.go()','Router.push()'],correct:1,explanation:'Navigator.push() adds a new route to the navigation stack.'},
+     {q:'How do you pass data to the next screen?',opts:['Global variables only','Via route arguments or constructor params','Using SharedPreferences','Not possible'],correct:1,explanation:'Data is passed via constructor parameters or route arguments.'},
+     {q:'What does Navigator.pop() do?',opts:['Opens a modal','Removes the top route from the stack','Reloads the app','Clears all routes'],correct:1,explanation:'pop() removes the current route from the navigation stack.'},
+     {q:'Which widget declares named routes?',opts:['MaterialApp','Scaffold','Route','Navigator'],correct:0,explanation:'MaterialApp\'s routes parameter declares named routes.'},
+     {q:'What is a named route?',opts:['A route with an ID','A route identified by a string name like \'/home\'','A route with animations','A protected route'],correct:1,explanation:'Named routes use string identifiers like \'/home\' for navigation.'},
+   ]},
+  {id:3,icon:'🎯',title:'Dart OOP Basics',diff:'beginner',xp:60,done:true,
+   questions:[
+     {q:'Which keyword creates a class in Dart?',opts:['struct','class','object','type'],correct:1,explanation:'The class keyword defines a class in Dart.'},
+     {q:'What is a constructor in Dart?',opts:['A method that deletes objects','A special method called when creating an object','A static method','An abstract method'],correct:1,explanation:'Constructors initialize new instances of a class.'},
+     {q:'What does "extends" do in Dart?',opts:['Creates an interface','Imports a package','Inherits from another class','Exports a class'],correct:2,explanation:'extends enables class inheritance in Dart.'},
+     {q:'What are mixins used for in Dart?',opts:['Database access','Adding reusable functionality without inheritance','Network requests','UI layout'],correct:1,explanation:'Mixins allow code reuse across class hierarchies.'},
+     {q:'Which keyword defines an abstract class?',opts:['interface','virtual','abstract','base'],correct:2,explanation:'abstract prevents direct instantiation of a class.'},
+   ]},
+  {id:4,icon:'🔥',title:'Firebase Integration',diff:'advanced',xp:150,done:false,
+   questions:[
+     {q:'Which Firebase service handles user authentication?',opts:['Firestore','Firebase Auth','Firebase Storage','Firebase Functions'],correct:1,explanation:'Firebase Auth manages user sign-in and accounts.'},
+     {q:'What type of database is Firestore?',opts:['SQL relational','Key-value store','NoSQL document database','Graph database'],correct:2,explanation:'Firestore is a NoSQL document-oriented cloud database.'},
+     {q:'How do you listen to real-time Firestore updates?',opts:['.get()','snapshots() stream','.read()','.watch()'],correct:1,explanation:'snapshots() returns a Stream for real-time database updates.'},
+     {q:'What is a Firestore "collection"?',opts:['A single document','A group of documents','A field in a document','A database backup'],correct:1,explanation:'Collections are containers for Firestore documents.'},
+     {q:'Which method adds a document with an auto-generated ID?',opts:['.set()','add()','insert()','create()'],correct:1,explanation:'add() creates a document with an auto-generated ID in Firestore.'},
+   ]},
+  {id:5,icon:'✨',title:'Custom Animations',diff:'advanced',xp:200,done:false,
+   questions:[
+     {q:'Which class controls animations in Flutter?',opts:['AnimationManager','AnimationController','AnimationTimer','AnimationRunner'],correct:1,explanation:'AnimationController drives animation playback.'},
+     {q:'What does a Tween define?',opts:['Animation duration','A range of interpolated values','Frame rate','Easing curve'],correct:1,explanation:'Tween defines the begin and end values for an interpolation.'},
+     {q:'Which widget automatically rebuilds when animation value changes?',opts:['StatefulWidget','FutureBuilder','AnimatedBuilder','StreamBuilder'],correct:2,explanation:'AnimatedBuilder efficiently rebuilds only the animated portion.'},
+     {q:'What is the vsync parameter for?',opts:['Sound synchronization','Syncing animation ticks to screen refresh','Network sync','Database sync'],correct:1,explanation:'vsync prevents off-screen animation from consuming resources.'},
+     {q:'Which pre-built widget creates a fade animation?',opts:['FadeWidget','FadeTransition','AnimatedFade','FadeIn'],correct:1,explanation:'FadeTransition animates the opacity of its child widget.'},
+   ]},
+];
+
+let completedChallenges = new Set([0, 3]);
+let currentDiff = 'all';
+
+// ── Render challenges ──
+function renderChallenges(){
+  const grid = document.getElementById('challenge-grid');
+  grid.innerHTML = '';
+  const filtered = currentDiff==='all' ? challenges : challenges.filter(c=>c.diff===currentDiff);
+  filtered.forEach(c=>{
+    const done = completedChallenges.has(c.id);
+    const diffConfig = {
+      beginner:{label:'🟢 Beginner',color:'#00B894',bg:'rgba(0,184,148,.15)'},
+      intermediate:{label:'🟡 Intermediate',color:'#FDCB6E',bg:'rgba(253,203,110,.15)'},
+      advanced:{label:'🔴 Advanced',color:'#D63031',bg:'rgba(214,48,49,.15)'},
+    }[c.diff];
+    const card = document.createElement('div');
+    card.className = 'challenge-card' + (done?' done':'');
+    card.innerHTML = `
+      <div style="font-size:2rem;margin-bottom:10px;">${c.icon}</div>
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:8px;line-height:1.3;">${c.title}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+        <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:${diffConfig.bg};color:${diffConfig.color};font-weight:700;">${diffConfig.label}</span>
+        <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(253,203,110,.12);color:#FDCB6E;font-weight:700;">+${c.xp} XP</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="startChallenge(${c.id})" style="width:100%;justify-content:center;">${done?'🔄 Redo':'▶ Start Challenge'}</button>
+      ${done?'<div class="done-overlay"><span style="font-size:1.8rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))">✅</span></div>':''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── Difficulty filter ──
+function filterDiff(diff){
+  currentDiff = diff;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.diff-btn.${diff}`).classList.add('active');
+  renderChallenges();
+}
+
+// ── Tab switching ──
+function switchTab(tab){
+  const isQuiz = tab==='quiz';
+  document.getElementById('quiz-panel').style.display = isQuiz?'block':'none';
+  document.getElementById('bug-panel').style.display = isQuiz?'none':'block';
+  document.getElementById('diff-filter').style.display = isQuiz?'flex':'none';
+  document.getElementById('quiz-tab-btn').classList.toggle('active', isQuiz);
+  document.getElementById('bug-tab-btn').classList.toggle('active', !isQuiz);
+}
+
+// ── Quiz state ──
+let activeChallenge = null;
+let quizQIndex = 0;
+let answered = false;
+
+function startChallenge(id){
+  activeChallenge = challenges[id];
+  quizQIndex = 0;
+  answered = false;
+  document.getElementById('quiz-modal-title').textContent = `${activeChallenge.icon} ${activeChallenge.title}`;
+  document.getElementById('quiz-xp-badge').textContent = `+${activeChallenge.xp} XP`;
+  document.getElementById('quiz-q-total').textContent = activeChallenge.questions.length;
+  renderQuizQuestion();
+  document.getElementById('quiz-modal').classList.add('open');
+}
+
+function renderQuizQuestion(){
+  const q = activeChallenge.questions[quizQIndex];
+  answered = false;
+  document.getElementById('quiz-q-num').textContent = quizQIndex+1;
+  document.getElementById('quiz-q-text').textContent = q.q;
+  document.getElementById('next-q-btn').style.display = 'none';
+  const opts = document.getElementById('quiz-options');
+  opts.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const el = document.createElement('div');
+    el.className = 'quiz-option';
+    el.innerHTML = `<div style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">${letters[i]}</div><span style="font-size:.88rem;line-height:1.4;">${opt}</span>`;
+    el.onclick = ()=>selectAnswer(i, q.correct, q.explanation, el);
+    opts.appendChild(el);
+  });
+}
+
+function selectAnswer(idx, correct, explanation, el){
+  if(answered) return;
+  answered = true;
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o=>o.style.pointerEvents='none');
+  const rect = el.getBoundingClientRect();
+  if(idx===correct){
+    el.classList.add('correct');
+    addXP(activeChallenge.xp, rect.left, rect.top);
+    completedChallenges.add(activeChallenge.id);
+    showToast(`✅ Correct! +${activeChallenge.xp} XP earned!`, 'success', '✅');
+  } else {
+    el.classList.add('wrong');
+    opts[correct].classList.add('correct');
+    showToast(`❌ Incorrect. ${explanation}`, 'error', '❌');
+  }
+  // Show explanation
+  const expEl = document.createElement('div');
+  expEl.style.cssText = 'margin-top:10px;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:10px;font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.5;';
+  expEl.innerHTML = `<strong style="color:#a29bfe;">💡 Explanation:</strong> ${explanation}`;
+  document.getElementById('quiz-options').appendChild(expEl);
+  // Show next button
+  const isLast = quizQIndex >= activeChallenge.questions.length - 1;
+  const nextBtn = document.getElementById('next-q-btn');
+  nextBtn.style.display = 'inline-flex';
+  nextBtn.textContent = isLast ? '✅ Finish' : 'Next Question →';
+}
+
+function nextQuizQuestion(){
+  quizQIndex++;
+  if(quizQIndex >= activeChallenge.questions.length){
+    closeQuizModal();
+    renderChallenges();
+    showToast(`🎉 Challenge complete! Great work!`, 'success', '🏆');
+    return;
+  }
+  renderQuizQuestion();
+}
+
+function closeQuizModal(){
+  document.getElementById('quiz-modal').classList.remove('open');
+  renderChallenges();
+}
+
+// ── Bug Hunt ──
+const selectedBugLines = {1:null, 2:null, 3:null};
+const bugHints = {
+  1:'Line 2 assigns a nullable String? to a non-nullable String — this causes a null safety error. Use: String fullName = name ?? "Unknown";',
+  2:'Line 3 uses i <= numbers.length which causes an index out of bounds error. Should be i < numbers.length.',
+  3:'Line 6 passes null to Image.network() — a URL String is required. Use a valid URL string instead.',
+};
+
+function selectBugLine(el, bugId, lineNum){
+  // Deselect previous
+  const code = document.getElementById(`bug${bugId}-code`);
+  code.querySelectorAll('.code-line').forEach(l=>l.classList.remove('selected-line'));
+  el.classList.add('selected-line');
+  selectedBugLines[bugId] = lineNum;
+}
+
+function checkBug(bugId, correctLine){
+  const selected = selectedBugLines[bugId];
+  const hint = document.getElementById(`bug${bugId}-hint`);
+  if(selected === null){
+    showToast('👆 Click on the line you think has the bug first!', 'info', '👆');
+    return;
+  }
+  const code = document.getElementById(`bug${bugId}-code`);
+  if(selected === correctLine){
+    // Mark correct
+    code.querySelectorAll('.code-line').forEach(l=>{
+      if(parseInt(l.dataset.line)===correctLine) l.classList.add('correct-line');
+      l.classList.remove('selected-line');
+    });
+    const xpReward = bugId===3?100:75;
+    addXP(xpReward, window.innerWidth/2, 300);
+    showToast(`🐛 Bug found! +${xpReward} XP`, 'success', '🐛');
+    hint.style.display = 'block';
+    hint.innerHTML = `<strong>✅ Correct!</strong> ${bugHints[bugId]}`;
+    hint.style.background = 'rgba(0,184,148,.08)';
+    hint.style.color = '#00B894';
+    document.getElementById(`check-bug${bugId}`).style.display = 'none';
+  } else {
+    showToast('❌ That\'s not the bug. Try again!', 'error', '❌');
+    hint.style.display = 'block';
+    hint.innerHTML = `<strong>💡 Hint:</strong> Look more carefully at the logic. The bug causes a runtime error.`;
+    hint.style.background = 'rgba(253,203,110,.08)';
+    hint.style.color = '#FDCB6E';
+  }
+}
+
+function resetBug(bugId){
+  selectedBugLines[bugId] = null;
+  const code = document.getElementById(`bug${bugId}-code`);
+  code.querySelectorAll('.code-line').forEach(l=>{
+    l.classList.remove('selected-line','correct-line');
+  });
+  const hint = document.getElementById(`bug${bugId}-hint`);
+  hint.style.display = 'none';
+  document.getElementById(`check-bug${bugId}`).style.display = 'inline-flex';
+}
+
+// ── Init ──
+renderChallenges();
+</script>
+</body>
+</html>
