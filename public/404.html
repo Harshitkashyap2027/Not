@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Page Not Found — lvlBase</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/core/css/base.css">
+<style>
+.error-page{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;position:relative;overflow:hidden;}
+.error-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(108,92,231,.15),transparent 70%);}
+.error-inner{position:relative;z-index:1;max-width:480px;}
+.error-code{font-size:clamp(6rem,20vw,10rem);font-weight:900;line-height:1;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0;}
+.error-title{font-size:1.8rem;font-weight:800;margin:8px 0 12px;}
+.error-desc{color:rgba(255,255,255,.6);font-size:1rem;line-height:1.7;margin-bottom:32px;}
+.error-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div class="error-page">
+  <div class="error-inner">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Quest Not Found</h1>
+    <p class="error-desc">Looks like this page went on an adventure without you. The dungeon you're looking for doesn't exist — or it has been moved.</p>
+    <div class="error-actions">
+      <a href="/public/index.html" class="btn btn-primary">🏠 Back to Home</a>
+      <a href="javascript:history.back()" class="btn btn-secondary">← Go Back</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

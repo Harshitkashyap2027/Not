@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verify Certificate — lvlBase</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/core/css/base.css">
+<style>
+.cert-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden;}
+.cert-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,rgba(108,92,231,.18),transparent 70%);}
+.cert-inner{position:relative;z-index:1;width:100%;max-width:600px;}
+.cert-header{text-align:center;margin-bottom:40px;}
+.cert-logo{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.cert-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:36px;}
+.cert-field{margin-bottom:20px;}
+.cert-field label{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-bottom:6px;}
+.cert-field p{font-size:1.05rem;font-weight:600;color:#fff;margin:0;}
+.cert-badge{display:flex;align-items:center;gap:14px;padding:18px 22px;border-radius:16px;margin-bottom:28px;}
+.cert-badge.valid{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);}
+.cert-badge.invalid{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);}
+.cert-badge.loading{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);}
+.cert-badge-icon{font-size:2rem;}
+.cert-badge-text strong{display:block;font-size:1rem;font-weight:800;margin-bottom:2px;}
+.cert-badge-text span{font-size:.85rem;color:rgba(255,255,255,.6);}
+.lookup-form{display:flex;gap:10px;}
+.lookup-form input{flex:1;}
+#cert-details{display:none;}
+</style>
+</head>
+<body>
+<div class="cert-page">
+  <div class="cert-inner">
+    <div class="cert-header">
+      <div class="cert-logo">lvlBase</div>
+      <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:8px;">Certificate Verification</h1>
+      <p style="color:rgba(255,255,255,.55);font-size:.95rem;">Enter a certificate ID to verify its authenticity.</p>
+    </div>
+
+    <div class="cert-card">
+      <div class="cert-field">
+        <label>Certificate ID</label>
+        <div class="lookup-form">
+          <input type="text" id="cert-id-input" class="form-input" placeholder="e.g. CERT-1700000000000-ABCD1234" />
+          <button class="btn btn-primary" onclick="verifyCert()">Verify</button>
+        </div>
+      </div>
+
+      <div id="cert-status" class="cert-badge loading" style="display:none;">
+        <div class="cert-badge-icon" id="status-icon">⏳</div>
+        <div class="cert-badge-text">
+          <strong id="status-title">Checking…</strong>
+          <span id="status-sub">Please wait</span>
+        </div>
+      </div>
+
+      <div id="cert-details">
+        <div class="cert-field">
+          <label>Student</label>
+          <p id="cert-student">—</p>
+        </div>
+        <div class="cert-field">
+          <label>Course / Achievement</label>
+          <p id="cert-course">—</p>
+        </div>
+        <div class="cert-field">
+          <label>School</label>
+          <p id="cert-school">—</p>
+        </div>
+        <div class="cert-field">
+          <label>Issued On</label>
+          <p id="cert-date">—</p>
+        </div>
+        <div class="cert-field">
+          <label>Certificate ID</label>
+          <p id="cert-id-display" style="font-family:monospace;font-size:.9rem;color:rgba(255,255,255,.7);">—</p>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center;margin-top:20px;font-size:.8rem;color:rgba(255,255,255,.3);">
+      Certificates are issued and verified by lvlBase. For disputes contact <a href="mailto:support@lvlbase.app" style="color:#8B7CF8;">support@lvlbase.app</a>
+    </p>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script>
+(function () {
+  // Pre-fill from URL param
+  const params = new URLSearchParams(window.location.search);
+  const idParam = params.get('id');
+  if (idParam) {
+    document.getElementById('cert-id-input').value = idParam;
+    verifyCert();
+  }
+})();
+
+async function verifyCert() {
+  const certId = document.getElementById('cert-id-input').value.trim();
+  if (!certId) return;
+
+  const statusEl  = document.getElementById('cert-status');
+  const detailsEl = document.getElementById('cert-details');
+  const iconEl    = document.getElementById('status-icon');
+  const titleEl   = document.getElementById('status-title');
+  const subEl     = document.getElementById('status-sub');
+
+  // Show loading state
+  statusEl.className = 'cert-badge loading';
+  statusEl.style.display = 'flex';
+  iconEl.textContent  = '⏳';
+  titleEl.textContent = 'Checking…';
+  subEl.textContent   = 'Fetching certificate from database';
+  detailsEl.style.display = 'none';
+
+  try {
+    const { db } = window.LvlFire;
+    const snap = await db.collection('certificates').doc(certId).get();
+
+    if (!snap.exists) {
+      statusEl.className = 'cert-badge invalid';
+      iconEl.textContent  = '❌';
+      titleEl.textContent = 'Certificate Not Found';
+      subEl.textContent   = 'This ID does not match any certificate in our records.';
+      return;
+    }
+
+    const cert = snap.data();
+
+    // Fetch student name
+    let studentName = cert.studentId;
+    try {
+      const userSnap = await db.collection('users').doc(cert.studentId).get();
+      if (userSnap.exists) studentName = userSnap.data().name || cert.studentId;
+    } catch (_) { /* ignore */ }
+
+    // Fetch school name
+    let schoolName = cert.schoolId || '—';
+    try {
+      const schoolSnap = await db.collection('schools').doc(cert.schoolId).get();
+      if (schoolSnap.exists) schoolName = schoolSnap.data().name || cert.schoolId;
+    } catch (_) { /* ignore */ }
+
+    statusEl.className = 'cert-badge valid';
+    iconEl.textContent  = '✅';
+    titleEl.textContent = 'Certificate Verified';
+    subEl.textContent   = 'This certificate is authentic and was issued by lvlBase.';
+
+    document.getElementById('cert-student').textContent     = studentName;
+    document.getElementById('cert-course').textContent      = cert.courseName || '—';
+    document.getElementById('cert-school').textContent      = schoolName;
+    document.getElementById('cert-id-display').textContent  = cert.certId || certId;
+
+    const issuedAt = cert.issuedAt?.toDate?.();
+    document.getElementById('cert-date').textContent = issuedAt
+      ? issuedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '—';
+
+    detailsEl.style.display = 'block';
+  } catch (err) {
+    statusEl.className = 'cert-badge invalid';
+    iconEl.textContent  = '⚠️';
+    titleEl.textContent = 'Verification Error';
+    subEl.textContent   = 'Could not complete verification. Please try again.';
+    console.error('[CertVerify]', err);
+  }
+}
+</script>
+</body>
+</html>
