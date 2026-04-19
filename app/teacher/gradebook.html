@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gradebook – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.controls-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.select-ctrl{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;color:#fff;font-size:13px;outline:none;cursor:pointer;}
+.select-ctrl:focus{border-color:#6C5CE7;}
+.search-ctrl{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;color:#fff;font-size:13px;outline:none;flex:1;min-width:200px;}
+.search-ctrl::placeholder{color:rgba(255,255,255,.3);}
+.search-ctrl:focus{border-color:#6C5CE7;}
+.summary-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.summary-chip{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 18px;display:flex;flex-direction:column;align-items:center;min-width:100px;}
+.summary-val{font-size:20px;font-weight:800;}
+.summary-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.grade-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:auto;}
+.grade-table{width:100%;border-collapse:collapse;min-width:900px;}
+.grade-table th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.06);background:#12122A;position:sticky;top:0;white-space:nowrap;}
+.grade-table td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;}
+.grade-table tbody tr:hover{background:rgba(108,92,231,.05);}
+.grade-table tfoot td{padding:10px 16px;font-size:12px;font-weight:700;color:rgba(255,255,255,.6);border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);}
+.student-cell{display:flex;align-items:center;gap:10px;}
+.student-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.grade-input{width:54px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 6px;color:#fff;font-size:13px;text-align:center;outline:none;}
+.grade-input:focus{border-color:#6C5CE7;background:rgba(108,92,231,.1);}
+.grade-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;}
+.grade-a{background:rgba(0,184,148,.15);color:#00b894;}
+.grade-b{background:rgba(108,92,231,.15);color:#a29bfe;}
+.grade-c{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.grade-d{background:rgba(253,121,168,.15);color:#FD79A8;}
+.grade-missing{background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);}
+.export-btn{padding:8px 16px;background:rgba(0,206,201,.15);border:1px solid rgba(0,206,201,.25);border-radius:10px;color:#00CEC9;font-size:13px;cursor:pointer;transition:opacity .2s;}
+.export-btn:hover{opacity:.8;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item active"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📋</span>
+    <span class="header-title">Gradebook</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">Math — Period 3 · 24 students</div>
+    <button class="export-btn">📥 Export CSV</button>
+  </header>
+  <div class="app-content">
+
+    <div class="controls-bar">
+      <select class="select-ctrl" id="classSelect" onchange="switchClass()">
+        <option>Math — Period 3</option>
+        <option>Science — Period 1</option>
+        <option>English — Period 2</option>
+        <option>History — Period 5</option>
+        <option>CS — Period 6</option>
+        <option>Physics — Period 4</option>
+      </select>
+      <select class="select-ctrl" id="termSelect">
+        <option>Semester 1 — Fall 2024</option>
+        <option>Semester 2 — Spring 2024</option>
+        <option>All Terms</option>
+      </select>
+      <input class="search-ctrl" placeholder="🔍 Search student…" oninput="filterStudents(this.value)" />
+      <button onclick="saveGrades()" style="padding:8px 18px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">💾 Save Grades</button>
+    </div>
+
+    <div class="summary-row" id="summaryRow">
+      <div class="summary-chip"><div class="summary-val" style="color:#6C5CE7">24</div><div class="summary-lbl">Students</div></div>
+      <div class="summary-chip"><div class="summary-val" style="color:#00b894">82%</div><div class="summary-lbl">Class Avg</div></div>
+      <div class="summary-chip"><div class="summary-val" style="color:#FDCB6E">14</div><div class="summary-lbl">A's</div></div>
+      <div class="summary-chip"><div class="summary-val" style="color:#a29bfe">7</div><div class="summary-lbl">B's</div></div>
+      <div class="summary-chip"><div class="summary-val" style="color:#FD79A8">3</div><div class="summary-lbl">C & below</div></div>
+      <div class="summary-chip"><div class="summary-val" style="color:#FD79A8">2</div><div class="summary-lbl">Missing</div></div>
+    </div>
+
+    <div class="grade-card">
+      <table class="grade-table">
+        <thead>
+          <tr>
+            <th style="min-width:160px">Student</th>
+            <th>HW1<br><span style="color:rgba(255,255,255,.2);font-size:10px">/40</span></th>
+            <th>Quiz1<br><span style="color:rgba(255,255,255,.2);font-size:10px">/50</span></th>
+            <th>Lab Rpt<br><span style="color:rgba(255,255,255,.2);font-size:10px">/80</span></th>
+            <th>Midterm<br><span style="color:rgba(255,255,255,.2);font-size:10px">/100</span></th>
+            <th>HW2<br><span style="color:rgba(255,255,255,.2);font-size:10px">/40</span></th>
+            <th>Project<br><span style="color:rgba(255,255,255,.2);font-size:10px">/120</span></th>
+            <th>Final<br><span style="color:rgba(255,255,255,.2);font-size:10px">/100</span></th>
+            <th>Avg %</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
+        <tbody id="gradeBody"></tbody>
+        <tfoot id="gradeFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+const students = [
+  {name:'Alex Rivera',color:'#6C5CE7',grades:[38,47,74,92,39,115,88]},
+  {name:'Maya Patel',color:'#00CEC9',grades:[40,49,78,96,40,118,94]},
+  {name:'Jordan Lee',color:'#FD79A8',grades:[35,42,65,78,36,102,81]},
+  {name:'Sam Nguyen',color:'#FDCB6E',grades:[32,38,60,72,30,96,74]},
+  {name:'Priya Singh',color:'#00b894',grades:[39,48,76,95,38,116,91]},
+  {name:'Carlos Diaz',color:'#a29bfe',grades:[37,45,71,88,37,110,86]},
+  {name:'Emma Wilson',color:'#6C5CE7',grades:[40,50,80,98,40,119,96]},
+  {name:'Liam Brooks',color:'#00CEC9',grades:[33,40,62,75,34,98,77]},
+  {name:'Sophia Chen',color:'#FD79A8',grades:[36,44,68,84,35,106,83]},
+  {name:'Noah Kim',color:'#FDCB6E',grades:[29,35,55,68,28,88,69]},
+  {name:'Ava Martinez',color:'#00b894',grades:[38,46,73,90,38,113,89]},
+  {name:'Ethan Park',color:'#a29bfe',grades:[41,null,77,93,39,115,90]},
+  {name:'Isabella Thomas',color:'#6C5CE7',grades:[34,41,64,79,33,100,78]},
+  {name:'Oliver Johnson',color:'#00CEC9',grades:[26,32,51,65,25,83,64]},
+  {name:'Mia Williams',color:'#FD79A8',grades:[39,48,76,94,39,117,93]},
+  {name:'James Anderson',color:'#FDCB6E',grades:[37,45,70,87,36,109,85]},
+  {name:'Charlotte Davis',color:'#00b894',grades:[36,43,67,83,35,105,82]},
+  {name:'Benjamin Garcia',color:'#a29bfe',grades:[31,37,59,71,30,93,72]},
+  {name:'Amelia Rodriguez',color:'#6C5CE7',grades:[40,49,79,97,40,118,95]},
+  {name:'Lucas White',color:'#00CEC9',grades:[35,42,66,80,34,103,80]},
+  {name:'Harper Lewis',color:'#FD79A8',grades:[38,47,74,91,38,114,90]},
+  {name:'Elijah Walker',color:'#FDCB6E',grades:[27,33,53,66,26,85,65]},
+  {name:'Abigail Hall',color:'#00b894',grades:[39,47,75,93,39,116,92]},
+  {name:'Daniel Allen',color:'#a29bfe',grades:[36,44,69,85,36,107,84]},
+];
+
+const maxes = [40,50,80,100,40,120,100];
+const totMax = maxes.reduce((a,b)=>a+b,0);
+
+function calcAvg(g) {
+  const scored = g.filter(v=>v!==null);
+  const maxScored = maxes.filter((_,i)=>g[i]!==null);
+  const s = scored.reduce((a,b)=>a+b,0);
+  const m = maxScored.reduce((a,b)=>a+b,0);
+  return m > 0 ? Math.round(s/m*100) : 0;
+}
+
+function letterGrade(pct) {
+  if(pct>=90) return {l:'A',cls:'grade-a'};
+  if(pct>=80) return {l:'B',cls:'grade-b'};
+  if(pct>=70) return {l:'C',cls:'grade-c'};
+  return {l:'D',cls:'grade-d'};
+}
+
+function renderGradebook() {
+  const tbody = document.getElementById('gradeBody');
+  tbody.innerHTML = '';
+  students.forEach((s,si) => {
+    const avg = calcAvg(s.grades);
+    const lg = letterGrade(avg);
+    const initials = s.name.split(' ').map(n=>n[0]).join('');
+    let cells = s.grades.map((g,gi) => {
+      if(g === null) return `<td><input class="grade-input" style="border-color:rgba(253,121,168,.3)" value="" placeholder="—" data-si="${si}" data-gi="${gi}" onchange="updateGrade(this)"/></td>`;
+      const pct = Math.round(g/maxes[gi]*100);
+      const col = pct>=90?'#00b894':pct>=75?'#a29bfe':pct>=60?'#FDCB6E':'#FD79A8';
+      return `<td><input class="grade-input" value="${g}" style="color:${col}" data-si="${si}" data-gi="${gi}" onchange="updateGrade(this)"/></td>`;
+    }).join('');
+    tbody.innerHTML += `<tr>
+      <td><div class="student-cell">
+        <div class="student-avatar" style="background:linear-gradient(135deg,${s.color},${s.color}88)">${initials}</div>
+        <span style="font-weight:600">${s.name}</span>
+      </div></td>
+      ${cells}
+      <td style="font-weight:700;color:${avg>=85?'#00b894':avg>=75?'#FDCB6E':'#FD79A8'}">${avg}%</td>
+      <td><span class="grade-badge ${lg.cls}">${lg.l}</span></td>
+    </tr>`;
+  });
+
+  // Footer averages
+  const tfoot = document.getElementById('gradeFoot');
+  const colAvgs = maxes.map((_,gi) => {
+    const vals = students.map(s=>s.grades[gi]).filter(v=>v!==null);
+    return vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : '—';
+  });
+  const overallAvg = Math.round(students.map(s=>calcAvg(s.grades)).reduce((a,b)=>a+b,0)/students.length);
+  tfoot.innerHTML = `<tr>
+    <td>Class Average</td>
+    ${colAvgs.map(v=>`<td style="color:#00CEC9">${v}</td>`).join('')}
+    <td style="color:#00CEC9">${overallAvg}%</td>
+    <td><span class="grade-badge grade-b">B</span></td>
+  </tr>`;
+}
+
+function updateGrade(input) {
+  const si = +input.dataset.si, gi = +input.dataset.gi;
+  const val = parseInt(input.value);
+  if (!isNaN(val) && val >= 0 && val <= maxes[gi]) {
+    students[si].grades[gi] = val;
+    renderGradebook();
+  }
+}
+
+function filterStudents(query) {
+  const rows = document.querySelectorAll('#gradeBody tr');
+  rows.forEach(row => {
+    const name = row.querySelector('.student-cell span')?.textContent.toLowerCase() || '';
+    row.style.display = name.includes(query.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function saveGrades() {
+  const btn = event.target;
+  btn.textContent = '✅ Saved!';
+  btn.style.background = 'linear-gradient(135deg,#00b894,#00CEC9)';
+  setTimeout(() => { btn.textContent = '💾 Save Grades'; btn.style.background = 'linear-gradient(135deg,#6C5CE7,#a29bfe)'; }, 2000);
+}
+
+function switchClass() {
+  renderGradebook();
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  renderGradebook();
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

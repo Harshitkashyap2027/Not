@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Assignment Builder – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.two-col{display:grid;grid-template-columns:5fr 7fr;gap:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;display:block;font-weight:500;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
+.form-input:focus{border-color:#6C5CE7;background:rgba(108,92,231,.05);}
+.form-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;resize:vertical;min-height:90px;transition:border .2s;}
+.form-textarea:focus{border-color:#6C5CE7;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.type-option{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;font-size:13px;}
+.type-option:hover{border-color:#6C5CE7;background:rgba(108,92,231,.1);}
+.type-option.selected{border-color:#6C5CE7;background:rgba(108,92,231,.15);color:#a29bfe;}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.assign-table{width:100%;border-collapse:collapse;}
+.assign-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.assign-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;}
+.assign-table tr:last-child td{border-bottom:none;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;}
+.status-active{background:rgba(0,184,148,.15);color:#00b894;}
+.status-draft{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
+.status-closed{background:rgba(253,121,168,.15);color:#FD79A8;}
+.status-grading{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.action-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-size:11px;transition:all .2s;margin-left:4px;}
+.action-btn:hover{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+.filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .2s;}
+.filter-btn:hover,.filter-btn.active{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+@media(max-width:1050px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item active"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📝</span>
+    <span class="header-title">Assignment Builder</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">32 total · 8 active</div>
+  </header>
+  <div class="app-content">
+    <div class="two-col">
+
+      <!-- Builder Form -->
+      <div class="card" style="position:sticky;top:88px;align-self:start;">
+        <div class="card-title">📝 New Assignment</div>
+        <div class="form-group">
+          <label class="form-label">Assignment Title *</label>
+          <input class="form-input" id="assignTitle" placeholder="e.g. Unit 4 Functions Quiz" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description / Instructions</label>
+          <textarea class="form-textarea" id="assignDesc" placeholder="Provide clear instructions for students…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select class="form-input" id="assignSubject" style="cursor:pointer;">
+              <option>Mathematics</option><option>Science</option><option>English</option>
+              <option>History</option><option>Computer Science</option><option>Physics</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Class</label>
+            <select class="form-input" id="assignClass" style="cursor:pointer;">
+              <option>Math — Period 3</option><option>Science — Period 1</option>
+              <option>English — Period 2</option><option>History — Period 5</option>
+              <option>CS — Period 6</option><option>All Classes</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input class="form-input" id="assignDue" type="date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Points</label>
+            <input class="form-input" id="assignPoints" type="number" placeholder="100" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assignment Type</label>
+          <div class="type-grid" id="typeGrid">
+            <div class="type-option selected" onclick="selectType(this)">📝 Written</div>
+            <div class="type-option" onclick="selectType(this)">🧪 Lab / Project</div>
+            <div class="type-option" onclick="selectType(this)">❓ Quiz / Test</div>
+            <div class="type-option" onclick="selectType(this)">💬 Discussion</div>
+            <div class="type-option" onclick="selectType(this)">💻 Coding Task</div>
+            <div class="type-option" onclick="selectType(this)">📚 Reading</div>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:16px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">XP Reward</label>
+            <input class="form-input" type="number" placeholder="150" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Attempts Allowed</label>
+            <select class="form-input" style="cursor:pointer;"><option>1</option><option>2</option><option>3</option><option>Unlimited</option></select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="createAssignment()">🚀 Publish Assignment</button>
+        <button style="width:100%;margin-top:8px;padding:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;">💾 Save as Draft</button>
+      </div>
+
+      <!-- Assignment List -->
+      <div>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="setFilter(this,'all')">All (32)</button>
+          <button class="filter-btn" onclick="setFilter(this,'active')">Active (8)</button>
+          <button class="filter-btn" onclick="setFilter(this,'draft')">Drafts (5)</button>
+          <button class="filter-btn" onclick="setFilter(this,'grading')">Needs Grading (6)</button>
+          <button class="filter-btn" onclick="setFilter(this,'closed')">Closed (13)</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 All Assignments</div>
+          <table class="assign-table">
+            <thead><tr>
+              <th>Title</th><th>Class</th><th>Due</th><th>Submitted</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="assignTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const assignments = [
+  {title:'Algebra Unit 4 Test',class:'Math P3',due:'Nov 11',submitted:'22/24',status:'active',pts:100},
+  {title:'Chemistry Lab Report',class:'Science P1',due:'Nov 12',submitted:'18/22',status:'active',pts:80},
+  {title:'Essay: Causes of WWI',class:'History P5',due:'Nov 14',submitted:'10/26',status:'active',pts:120},
+  {title:'Python To-Do App',class:'CS P6',due:'Nov 15',submitted:'15/20',status:'active',pts:150},
+  {title:'Reading Quiz Ch.8-10',class:'English P2',due:'Nov 10',submitted:'24/28',status:'grading',pts:50},
+  {title:'Physics Forces WS',class:'Physics P4',due:'Nov 9',submitted:'22/22',status:'grading',pts:60},
+  {title:'Quadratic Functions HW',class:'Math P3',due:'Nov 5',submitted:'24/24',status:'grading',pts:40},
+  {title:'Periodic Table Quiz',class:'Science P1',due:'Nov 3',submitted:'22/22',status:'closed',pts:60},
+  {title:'Short Story Analysis',class:'English P2',due:'Oct 30',submitted:'28/28',status:'closed',pts:80},
+  {title:'WWI Timeline',class:'History P5',due:'Oct 28',submitted:'25/26',status:'closed',pts:50},
+  {title:'HTML/CSS Landing Page',class:'CS P6',due:'Oct 25',submitted:'19/20',status:'closed',pts:100},
+  {title:'Midterm Review Packet',class:'Math P3',due:'Oct 20',submitted:'24/24',status:'closed',pts:30},
+  {title:'Atom Structure Poster',class:'Science P1',due:'Nov 18',submitted:'0/22',status:'draft',pts:70},
+  {title:'Creative Writing Prompt',class:'English P2',due:'Nov 20',submitted:'0/28',status:'draft',pts:90},
+];
+
+const statusConfig = {
+  active:{cls:'status-active',label:'Active'},
+  draft:{cls:'status-draft',label:'Draft'},
+  closed:{cls:'status-closed',label:'Closed'},
+  grading:{cls:'status-grading',label:'Needs Grading'},
+};
+
+function renderTable(data) {
+  const tbody = document.getElementById('assignTable');
+  tbody.innerHTML = '';
+  data.forEach(a => {
+    const s = statusConfig[a.status];
+    tbody.innerHTML += `<tr>
+      <td><div style="font-weight:600">${a.title}</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">${a.pts} pts</div></td>
+      <td style="color:rgba(255,255,255,.5)">${a.class}</td>
+      <td style="color:rgba(255,255,255,.5)">${a.due}</td>
+      <td><span style="font-weight:700;color:#00CEC9">${a.submitted}</span></td>
+      <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+      <td>
+        <button class="action-btn">✏️ Edit</button>
+        <button class="action-btn">📊 View</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function setFilter(btn, filter) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = filter === 'all' ? assignments : assignments.filter(a => a.status === filter);
+  renderTable(filtered);
+}
+
+function selectType(el) {
+  document.querySelectorAll('.type-option').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function createAssignment() {
+  const title = document.getElementById('assignTitle').value.trim();
+  if (!title) { alert('Please enter an assignment title.'); return; }
+  alert(`Assignment "${title}" published successfully! Students will be notified.`);
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  const today = new Date(); today.setDate(today.getDate() + 7);
+  document.getElementById('assignDue').value = today.toISOString().split('T')[0];
+  renderTable(assignments);
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

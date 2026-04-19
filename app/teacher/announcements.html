@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Announcements – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.two-col{display:grid;grid-template-columns:5fr 7fr;gap:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;display:block;font-weight:500;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
+.form-input:focus{border-color:#6C5CE7;background:rgba(108,92,231,.05);}
+.form-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;resize:vertical;min-height:100px;transition:border .2s;}
+.form-textarea:focus{border-color:#6C5CE7;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.priority-row{display:flex;gap:8px;margin-top:4px;}
+.pri-btn{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.pri-btn:hover{border-color:#6C5CE7;}
+.pri-btn.sel-low{border-color:#00b894;background:rgba(0,184,148,.15);color:#00b894;}
+.pri-btn.sel-normal{border-color:#6C5CE7;background:rgba(108,92,231,.15);color:#a29bfe;}
+.pri-btn.sel-high{border-color:#FDCB6E;background:rgba(253,203,110,.15);color:#FDCB6E;}
+.pri-btn.sel-urgent{border-color:#FD79A8;background:rgba(253,121,168,.15);color:#FD79A8;}
+.char-count{font-size:11px;color:rgba(255,255,255,.3);text-align:right;margin-top:4px;}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.preview-box{background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.2);border-radius:12px;padding:16px;margin-top:12px;display:none;}
+.preview-box.show{display:block;}
+.preview-title{font-size:15px;font-weight:700;margin-bottom:8px;}
+.preview-body{font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:10px;}
+.preview-meta{font-size:11px;color:rgba(255,255,255,.4);}
+.filter-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.flt{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .2s;}
+.flt:hover,.flt.active{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+.announce-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px 20px;margin-bottom:12px;transition:border-color .2s;}
+.announce-card:hover{border-color:rgba(108,92,231,.3);}
+.announce-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.announce-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+.announce-title-wrap{flex:1;}
+.announce-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.announce-body{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5;margin-bottom:12px;}
+.announce-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pri-badge{font-size:11px;padding:2px 10px;border-radius:8px;font-weight:600;}
+.pri-low{background:rgba(0,184,148,.15);color:#00b894;}
+.pri-normal{background:rgba(108,92,231,.15);color:#a29bfe;}
+.pri-high{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.pri-urgent{background:rgba(253,121,168,.2);color:#FD79A8;}
+.target-badge{font-size:11px;padding:2px 10px;border-radius:8px;background:rgba(0,206,201,.1);color:#00CEC9;}
+.meta-text{font-size:11px;color:rgba(255,255,255,.3);}
+.announce-actions{display:flex;gap:6px;margin-left:auto;}
+.ann-btn{padding:4px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;transition:all .2s;}
+.ann-btn:hover{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+.reads-row{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.35);}
+.read-dot{width:5px;height:5px;border-radius:50%;background:#00b894;}
+@media(max-width:1050px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item active"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📢</span>
+    <span class="header-title">Announcements</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">18 sent · 142 recipients</div>
+  </header>
+  <div class="app-content">
+    <div class="two-col">
+
+      <!-- Compose Form -->
+      <div class="card" style="position:sticky;top:88px;align-self:start;">
+        <div class="card-title">📢 New Announcement</div>
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input class="form-input" id="annTitle" placeholder="Brief, clear subject line…" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message *</label>
+          <textarea class="form-textarea" id="annMessage" placeholder="Write your announcement here…" oninput="updateCharCount(this)"></textarea>
+          <div class="char-count" id="charCount">0 / 500 characters</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Target Audience</label>
+            <select class="form-input" id="annTarget" style="cursor:pointer;">
+              <option value="all">📢 All My Students (142)</option>
+              <option value="Math P3">Math — Period 3 (24)</option>
+              <option value="Science P1">Science — Period 1 (22)</option>
+              <option value="English P2">English — Period 2 (28)</option>
+              <option value="History P5">History — Period 5 (26)</option>
+              <option value="CS P6">CS — Period 6 (20)</option>
+              <option value="Physics P4">Physics — Period 4 (22)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Scheduled Send</label>
+            <input class="form-input" id="annSchedule" type="datetime-local" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <div class="priority-row">
+            <div class="pri-btn sel-normal" onclick="setPri(this,'normal')">🔵 Normal</div>
+            <div class="pri-btn" onclick="setPri(this,'low')">🟢 Low</div>
+            <div class="pri-btn" onclick="setPri(this,'high')">🟡 High</div>
+            <div class="pri-btn" onclick="setPri(this,'urgent')">🔴 Urgent</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Options</label>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;"><input type="checkbox" checked style="cursor:pointer;" /> Send push notification</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;"><input type="checkbox" style="cursor:pointer;" /> Require read confirmation</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;"><input type="checkbox" style="cursor:pointer;" /> Pin to top of feed</label>
+          </div>
+        </div>
+        <div style="height:16px;"></div>
+        <div style="display:flex;gap:8px;">
+          <button style="flex:1;padding:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;" onclick="previewAnn()">👁️ Preview</button>
+          <button class="btn-primary" style="flex:2;" onclick="sendAnnouncement()">📢 Send Now</button>
+        </div>
+        <div class="preview-box" id="previewBox">
+          <div class="preview-title" id="previewTitle">—</div>
+          <div class="preview-body" id="previewBody">—</div>
+          <div class="preview-meta" id="previewMeta">—</div>
+        </div>
+      </div>
+
+      <!-- Announcement List -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <h2 style="font-size:15px;font-weight:700;">📋 Sent Announcements</h2>
+          <input style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 12px;color:#fff;font-size:12px;outline:none;width:180px;" placeholder="🔍 Search…" oninput="filterAnn(this.value)" />
+        </div>
+        <div class="filter-bar">
+          <button class="flt active" onclick="filterByType(this,'all')">All (18)</button>
+          <button class="flt" onclick="filterByType(this,'urgent')">🔴 Urgent (2)</button>
+          <button class="flt" onclick="filterByType(this,'high')">🟡 High (5)</button>
+          <button class="flt" onclick="filterByType(this,'normal')">🔵 Normal (9)</button>
+          <button class="flt" onclick="filterByType(this,'low')">🟢 Low (2)</button>
+        </div>
+        <div id="annList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const announcements = [
+  {title:'⚠️ Test Date Changed — Algebra Unit 4',body:'The Unit 4 test has been rescheduled to November 15th due to the school assembly. Please make sure to review chapters 9–11, including the quadratic formula and completing the square. Study guides are available on the platform.',target:'Math P3',priority:'urgent',time:'Today 10:32 AM',reads:22,total:24,sent:true},
+  {title:'Chemistry Lab Safety Reminder 🔬',body:'Before our next lab session on Friday, please review the safety protocols in Chapter 2. All students must have their safety goggles and lab coat. Students without proper equipment will not be permitted to participate.',target:'Science P1',priority:'high',time:'Today 8:15 AM',reads:20,total:22,sent:true},
+  {title:'📚 Extra Credit Opportunity — History Essay',body:'I\'m offering an optional 10-point extra credit assignment. Write a 300-word reflection on the economic causes of WWI from a civilian perspective. Due by November 20th. This can raise your overall grade by up to 5%.',target:'History P5',priority:'normal',time:'Yesterday 3:45 PM',reads:24,total:26,sent:true},
+  {title:'📢 Parent-Teacher Conferences — Sign Up Now',body:'Parent-teacher conferences are scheduled for November 18th and 19th. Slots are available on the school portal. Please check your email for the link and sign up for a 15-minute meeting slot before November 12th.',target:'all',priority:'high',time:'Yesterday 9:00 AM',reads:118,total:142,sent:true},
+  {title:'🎉 Congratulations — Top Performers This Month!',body:'I\'m incredibly proud of this month\'s top performers! Emma Wilson, Maya Patel, and Priya Singh each earned over 4,500 XP this month. This kind of dedication is exactly what lvlBase is about. Keep it up, everyone!',target:'all',priority:'low',time:'Nov 8, 2:20 PM',reads:130,total:142,sent:true},
+  {title:'📝 Assignment 3 Extension Granted',body:'Due to the network issues on Tuesday, I\'m granting a 48-hour extension on the Chemistry Lab Report. The new deadline is November 10th at midnight. Please submit through the platform as usual.',target:'Science P1',priority:'high',time:'Nov 7, 4:55 PM',reads:22,total:22,sent:true},
+  {title:'💻 New Quest Available — Python Functions',body:'A new quest "Function Forge" is now live in your Quest Map! This quest covers function creation, parameters, and return values. Complete it by November 14th for bonus XP. Good luck!',target:'CS P6',priority:'normal',time:'Nov 7, 11:30 AM',reads:19,total:20,sent:true},
+  {title:'📖 Reading Assignment Updated',body:'I\'ve updated the reading list for the Shakespeare unit. Please make sure you\'re reading "A Midsummer Night\'s Dream" Act 2 and 3 by this Thursday. Discussion questions have been posted.',target:'English P2',priority:'normal',time:'Nov 6, 3:00 PM',reads:26,total:28,sent:true},
+  {title:'🔴 URGENT: Tomorrow\'s Class Moved to Room 312',body:'Due to a scheduling conflict, tomorrow\'s Physics class (Period 4) will be held in Room 312 instead of our usual Lab 205. Please bring your textbook and calculator. The lab equipment will be available next week.',target:'Physics P4',priority:'urgent',time:'Nov 5, 5:30 PM',reads:22,total:22,sent:true},
+  {title:'⚡ XP Bonus Weekend — Finish Your Quests!',body:'This weekend only, all completed quests will award 1.5x XP! Log in and complete any pending quests before Sunday midnight. This is a great opportunity to boost your rank before the semester leaderboard resets.',target:'all',priority:'normal',time:'Nov 4, 4:00 PM',reads:135,total:142,sent:true},
+];
+
+const priorityConfig = {
+  urgent:{cls:'pri-urgent',icon:'🔴'},
+  high:{cls:'pri-high',icon:'🟡'},
+  normal:{cls:'pri-normal',icon:'🔵'},
+  low:{cls:'pri-low',icon:'🟢'},
+};
+
+function renderAnnouncements(data) {
+  const list = document.getElementById('annList');
+  list.innerHTML = '';
+  data.forEach((a, i) => {
+    const pc = priorityConfig[a.priority];
+    const readPct = Math.round(a.reads / a.total * 100);
+    list.innerHTML += `<div class="announce-card" id="ann-${i}">
+      <div class="announce-header">
+        <div class="announce-icon">${pc.icon}</div>
+        <div class="announce-title-wrap">
+          <div class="announce-title">${a.title}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span class="pri-badge ${pc.cls}">${a.priority.charAt(0).toUpperCase()+a.priority.slice(1)}</span>
+            <span class="target-badge">📡 ${a.target === 'all' ? 'All Students' : a.target}</span>
+            <span class="meta-text">${a.time}</span>
+          </div>
+        </div>
+      </div>
+      <div class="announce-body">${a.body.length > 180 ? a.body.substring(0,180)+'…' : a.body}</div>
+      <div class="announce-footer">
+        <div class="reads-row">
+          <div class="read-dot"></div>
+          <span>${a.reads}/${a.total} read (${readPct}%)</span>
+          <div style="width:60px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-left:4px;">
+            <div style="height:100%;width:${readPct}%;background:#00b894;border-radius:2px;"></div>
+          </div>
+        </div>
+        <div class="announce-actions">
+          <button class="ann-btn">✏️ Edit</button>
+          <button class="ann-btn">📋 Details</button>
+          <button class="ann-btn" style="color:rgba(253,121,168,.6);border-color:rgba(253,121,168,.2);" onclick="deleteAnn(${i})">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+function filterByType(btn, type) {
+  document.querySelectorAll('.flt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type === 'all' ? announcements : announcements.filter(a => a.priority === type);
+  renderAnnouncements(filtered);
+}
+
+function filterAnn(query) {
+  const filtered = announcements.filter(a =>
+    a.title.toLowerCase().includes(query.toLowerCase()) ||
+    a.body.toLowerCase().includes(query.toLowerCase())
+  );
+  renderAnnouncements(filtered);
+}
+
+function setPri(el, p) {
+  document.querySelectorAll('.pri-btn').forEach(b => {
+    b.className = 'pri-btn';
+  });
+  el.classList.add('sel-' + p);
+}
+
+function updateCharCount(textarea) {
+  const len = textarea.value.length;
+  const el = document.getElementById('charCount');
+  el.textContent = `${len} / 500 characters`;
+  el.style.color = len > 450 ? '#FD79A8' : 'rgba(255,255,255,.3)';
+}
+
+function previewAnn() {
+  const title = document.getElementById('annTitle').value || 'Untitled Announcement';
+  const msg = document.getElementById('annMessage').value || 'No message yet.';
+  const target = document.getElementById('annTarget');
+  const box = document.getElementById('previewBox');
+  document.getElementById('previewTitle').textContent = title;
+  document.getElementById('previewBody').textContent = msg;
+  document.getElementById('previewMeta').textContent = `To: ${target.options[target.selectedIndex].text} · Priority: Normal`;
+  box.classList.add('show');
+}
+
+function sendAnnouncement() {
+  const title = document.getElementById('annTitle').value.trim();
+  const msg = document.getElementById('annMessage').value.trim();
+  if (!title || !msg) { alert('Please fill in both the title and message fields.'); return; }
+  const btn = event.target;
+  btn.textContent = '⏳ Sending…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✅ Sent!';
+    btn.style.background = 'linear-gradient(135deg,#00b894,#00CEC9)';
+    document.getElementById('annTitle').value = '';
+    document.getElementById('annMessage').value = '';
+    document.getElementById('charCount').textContent = '0 / 500 characters';
+    setTimeout(() => { btn.textContent = '📢 Send Now'; btn.style.background = ''; btn.disabled = false; }, 2500);
+  }, 1200);
+}
+
+function deleteAnn(i) {
+  if (confirm('Delete this announcement?')) {
+    const el = document.getElementById('ann-' + i);
+    if (el) { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }
+  }
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  renderAnnouncements(announcements);
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

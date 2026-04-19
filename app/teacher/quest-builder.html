@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quest Builder – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.two-col{display:grid;grid-template-columns:5fr 7fr;gap:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;display:block;font-weight:500;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border .2s;}
+.form-input:focus{border-color:#6C5CE7;background:rgba(108,92,231,.05);}
+.form-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;resize:vertical;min-height:80px;transition:border .2s;}
+.form-textarea:focus{border-color:#6C5CE7;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.diff-row{display:flex;gap:8px;margin-top:4px;}
+.diff-btn{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.diff-btn:hover{border-color:#6C5CE7;}
+.diff-btn.sel-easy{border-color:#00b894;background:rgba(0,184,148,.15);color:#00b894;}
+.diff-btn.sel-medium{border-color:#FDCB6E;background:rgba(253,203,110,.15);color:#FDCB6E;}
+.diff-btn.sel-hard{border-color:#FD79A8;background:rgba(253,121,168,.15);color:#FD79A8;}
+.diff-btn.sel-epic{border-color:#6C5CE7;background:rgba(108,92,231,.2);color:#a29bfe;}
+.task-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.task-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;}
+.task-item-text{flex:1;font-size:13px;color:rgba(255,255,255,.8);}
+.task-remove{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:16px;padding:0 4px;transition:color .2s;}
+.task-remove:hover{color:#FD79A8;}
+.task-add-row{display:flex;gap:8px;margin-top:8px;}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.quest-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;margin-bottom:12px;transition:border-color .2s;}
+.quest-card:hover{border-color:rgba(108,92,231,.4);}
+.quest-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.quest-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.quest-info{flex:1;}
+.quest-name{font-size:14px;font-weight:700;margin-bottom:4px;}
+.quest-meta{font-size:12px;color:rgba(255,255,255,.4);}
+.quest-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:8px;}
+.status-live{background:rgba(0,184,148,.15);color:#00b894;}
+.status-draft{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
+.status-ended{background:rgba(253,121,168,.15);color:#FD79A8;}
+.quest-tasks{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.quest-task-row{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);}
+.quest-footer{display:flex;justify-content:space-between;align-items:center;}
+.xp-chip{font-size:12px;font-weight:700;color:#FDCB6E;background:rgba(253,203,110,.1);padding:3px 10px;border-radius:8px;}
+.quest-actions{display:flex;gap:6px;}
+.q-btn{padding:5px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-size:11px;transition:all .2s;}
+.q-btn:hover{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.flt{padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .2s;}
+.flt:hover,.flt.active{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+@media(max-width:1050px){.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item active"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">⚔️</span>
+    <span class="header-title">Quest Builder</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">18 quests · 11 active</div>
+  </header>
+  <div class="app-content">
+    <div class="two-col">
+
+      <!-- Form -->
+      <div class="card" style="position:sticky;top:88px;align-self:start;">
+        <div class="card-title">⚔️ Create New Quest</div>
+        <div class="form-group">
+          <label class="form-label">Quest Title *</label>
+          <input class="form-input" id="qTitle" placeholder="e.g. Algebra Awakening" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="qDesc" placeholder="Describe the quest objective and what students will learn…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select class="form-input" id="qSubject" style="cursor:pointer;">
+              <option>Mathematics</option><option>Science</option><option>English</option>
+              <option>History</option><option>Computer Science</option><option>Physics</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign to Class</label>
+            <select class="form-input" id="qClass" style="cursor:pointer;">
+              <option>All Classes</option>
+              <option>Math — Period 3</option><option>Science — Period 1</option>
+              <option>English — Period 2</option><option>History — Period 5</option>
+              <option>CS — Period 6</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty</label>
+          <div class="diff-row">
+            <div class="diff-btn sel-easy" onclick="setDiff(this,'easy')">🟢 Easy</div>
+            <div class="diff-btn" onclick="setDiff(this,'medium')">🟡 Medium</div>
+            <div class="diff-btn" onclick="setDiff(this,'hard')">🔴 Hard</div>
+            <div class="diff-btn" onclick="setDiff(this,'epic')">⚡ Epic</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quest Tasks</label>
+          <div class="task-list" id="taskList"></div>
+          <div class="task-add-row">
+            <input class="form-input" id="taskInput" placeholder="Add a task step…" style="flex:1;" onkeydown="if(event.key==='Enter')addTask()" />
+            <button onclick="addTask()" style="padding:10px 16px;background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.3);border-radius:10px;color:#a29bfe;cursor:pointer;font-size:13px;">+</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">XP Reward</label>
+            <input class="form-input" id="qXP" type="number" placeholder="200" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Time Limit (min)</label>
+            <input class="form-input" type="number" placeholder="No limit" />
+          </div>
+        </div>
+        <div style="height:16px;"></div>
+        <button class="btn-primary" onclick="publishQuest()">⚔️ Publish Quest</button>
+        <button style="width:100%;margin-top:8px;padding:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;">💾 Save Draft</button>
+      </div>
+
+      <!-- Quest List -->
+      <div>
+        <div class="filter-row">
+          <button class="flt active" onclick="filterQ(this,'all')">All (18)</button>
+          <button class="flt" onclick="filterQ(this,'live')">Live (11)</button>
+          <button class="flt" onclick="filterQ(this,'draft')">Drafts (4)</button>
+          <button class="flt" onclick="filterQ(this,'ended')">Ended (3)</button>
+        </div>
+        <div id="questList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const quests = [
+  {title:'Algebra Awakening',subject:'Mathematics',class:'Math P3',diff:'medium',tasks:['Watch intro video','Complete 10 practice problems','Pass the checkpoint quiz','Solve the bonus challenge'],xp:200,status:'live',emoji:'🔢',color:'#6C5CE7',completions:18,total:24},
+  {title:'Chemistry Spark',subject:'Science',class:'Science P1',diff:'hard',tasks:['Read Chapter 8 atoms','Complete element flashcards','Lab safety quiz','Balance 5 equations'],xp:350,status:'live',emoji:'🔬',color:'#00CEC9',completions:12,total:22},
+  {title:'Function Forge',subject:'Computer Science',class:'CS P6',diff:'medium',tasks:['Learn function syntax','Write 3 basic functions','Debug given code snippet','Build a mini calculator'],xp:250,status:'live',emoji:'💻',color:'#00b894',completions:17,total:20},
+  {title:'Hero\'s Essay',subject:'English',class:'English P2',diff:'easy',tasks:['Choose a hero theme','Create an outline','Write first draft','Peer review exchange','Final submission'],xp:150,status:'live',emoji:'📖',color:'#FD79A8',completions:22,total:28},
+  {title:'WWI Timeline Quest',subject:'History',class:'History P5',diff:'medium',tasks:['Research key events','Place 20 events on timeline','Identify causes & effects','Write reflection paragraph'],xp:180,status:'live',emoji:'📜',color:'#FDCB6E',completions:19,total:26},
+  {title:'Force & Motion Explorer',subject:'Physics',class:'Physics P4',diff:'hard',tasks:['Newton\'s Laws notes','Simulation activity','Problem set A','Lab report submission'],xp:300,status:'live',emoji:'⚛️',color:'#a29bfe',completions:8,total:22},
+  {title:'Quadratic Quest',subject:'Mathematics',class:'Math P3',diff:'easy',tasks:['Factor 10 expressions','Graph parabolas','Word problem set','Self-assessment quiz'],xp:120,status:'draft',emoji:'📐',color:'#6C5CE7',completions:0,total:24},
+  {title:'Periodic Table Blitz',subject:'Science',class:'Science P1',diff:'epic',tasks:['Memorize first 20 elements','Element trivia game','Write element haiku','Design element card'],xp:500,status:'draft',emoji:'⚗️',color:'#00CEC9',completions:0,total:22},
+  {title:'Hello World!',subject:'Computer Science',class:'CS P6',diff:'easy',tasks:['Install Python','Write first program','Variables exercise','Submit screenshot'],xp:100,status:'ended',emoji:'🌍',color:'#00b894',completions:20,total:20},
+];
+
+let currentFilter = 'all';
+const tasks = [];
+
+function renderQuests() {
+  const list = document.getElementById('questList');
+  const filtered = currentFilter === 'all' ? quests : quests.filter(q => q.status === currentFilter);
+  list.innerHTML = '';
+  filtered.forEach(q => {
+    const diffColors = {easy:'#00b894',medium:'#FDCB6E',hard:'#FD79A8',epic:'#a29bfe'};
+    const col = diffColors[q.diff] || '#fff';
+    const progress = q.total > 0 ? Math.round(q.completions / q.total * 100) : 0;
+    list.innerHTML += `<div class="quest-card">
+      <div class="quest-header">
+        <div class="quest-icon" style="background:${q.color}22">${q.emoji}</div>
+        <div class="quest-info">
+          <div class="quest-name">${q.title}</div>
+          <div class="quest-meta">${q.subject} · ${q.class}</div>
+        </div>
+        <div>
+          <span class="quest-status status-${q.status}">${q.status === 'live' ? '🟢 Live' : q.status === 'draft' ? '⚪ Draft' : '🔴 Ended'}</span><br>
+          <span style="font-size:11px;color:${col};margin-top:4px;display:inline-block;text-transform:capitalize">⚡ ${q.diff}</span>
+        </div>
+      </div>
+      <div class="quest-tasks">
+        ${q.tasks.slice(0,3).map(t => `<div class="quest-task-row">✓ ${t}</div>`).join('')}
+        ${q.tasks.length > 3 ? `<div class="quest-task-row" style="color:rgba(255,255,255,.3)">+${q.tasks.length - 3} more tasks…</div>` : ''}
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:5px;"><span>Completions</span><span style="color:${q.color}">${q.completions}/${q.total}</span></div>
+        <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${progress}%;background:linear-gradient(90deg,${q.color},${q.color}88);border-radius:3px;"></div></div>
+      </div>
+      <div class="quest-footer">
+        <span class="xp-chip">⚡ ${q.xp} XP</span>
+        <div class="quest-actions">
+          <button class="q-btn">✏️ Edit</button>
+          <button class="q-btn">📊 Stats</button>
+          ${q.status === 'live' ? '<button class="q-btn" style="color:#FD79A8;border-color:rgba(253,121,168,.3)">⏹ End</button>' : ''}
+          ${q.status === 'draft' ? '<button class="q-btn" style="color:#00b894;border-color:rgba(0,184,148,.3)">🚀 Publish</button>' : ''}
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+function filterQ(btn, f) {
+  document.querySelectorAll('.flt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = f;
+  renderQuests();
+}
+
+function setDiff(el, d) {
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.className = 'diff-btn';
+  });
+  el.classList.add('sel-' + d);
+}
+
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const val = input.value.trim();
+  if (!val) return;
+  tasks.push(val);
+  const list = document.getElementById('taskList');
+  const item = document.createElement('div');
+  item.className = 'task-item';
+  item.innerHTML = `<span style="color:#00CEC9">✓</span><span class="task-item-text">${val}</span><button class="task-remove" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(item);
+  input.value = '';
+  input.focus();
+}
+
+function publishQuest() {
+  const title = document.getElementById('qTitle').value.trim();
+  if (!title) { alert('Please enter a quest title.'); return; }
+  alert(`Quest "${title}" published! Students can now begin this quest.`);
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  renderQuests();
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>
