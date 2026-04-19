@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reports – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-teal{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+/* Child selector tabs */
+.tab-row{display:flex;gap:8px;margin-bottom:24px;align-items:center;}
+.tab-btn{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:linear-gradient(135deg,#00CEC9,#6C5CE7);color:#fff;border-color:transparent;}
+/* Downloadable report cards */
+.report-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.report-dl-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;transition:all .2s;}
+.report-dl-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-2px);}
+.report-dl-icon{font-size:32px;margin-bottom:4px;}
+.report-dl-title{font-size:15px;font-weight:700;}
+.report-dl-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;}
+.report-dl-meta{font-size:11px;color:rgba(0,206,201,.7);}
+/* Report card table */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.06);}
+.data-table td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.85);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(255,255,255,.02);}
+.data-table .total-row td{background:rgba(108,92,231,.08);font-weight:700;color:#fff;}
+/* Trend arrows */
+.trend-up{color:#00B894;font-weight:700;}
+.trend-same{color:#FDCB6E;font-weight:700;}
+/* Stats summary row */
+.summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px;}
+.sum-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;text-align:center;}
+.sum-stat-val{font-size:24px;font-weight:800;margin-bottom:4px;}
+.sum-stat-lbl{font-size:11px;color:rgba(255,255,255,.4);}
+/* Grade chips */
+.grade-chip{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/reports.html" class="nav-item active"><span class="nav-icon">📋</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">P</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Parent</div>
+        <div class="user-role-sm" style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">📋</span>
+    <h1 class="header-title">Reports &amp; Certificates</h1>
+    <span style="font-size:12px;color:rgba(255,255,255,.4);">Academic records &amp; downloads</span>
+    <button class="btn btn-primary" onclick="alert('Generating report…')">+ Generate New Report</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">P</div>
+  </header>
+
+  <div class="app-content">
+
+    <!-- Child Selector -->
+    <div class="tab-row">
+      <span style="font-size:13px;color:rgba(255,255,255,.4);margin-right:4px;">Viewing reports for:</span>
+      <button class="tab-btn active" onclick="document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">👦 Ethan Johnson</button>
+      <button class="tab-btn" onclick="document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">👧 Lily Johnson</button>
+    </div>
+
+    <!-- Downloadable Reports -->
+    <h2 style="font-size:14px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;">📥 Downloadable Reports</h2>
+    <div class="report-cards-grid">
+      <div class="report-dl-card">
+        <div class="report-dl-icon">📊</div>
+        <div class="report-dl-title">Monthly Progress Report</div>
+        <div class="report-dl-desc">Full academic summary including subject scores, XP earned, quests completed, and teacher notes for November 2024.</div>
+        <div class="report-dl-meta">📅 Generated: Nov 1, 2024 &nbsp;·&nbsp; 4 pages</div>
+        <button class="btn btn-primary" style="margin-top:auto;" onclick="alert('Downloading PDF…')">⬇ Download PDF</button>
+      </div>
+      <div class="report-dl-card">
+        <div class="report-dl-icon">📅</div>
+        <div class="report-dl-title">Attendance Report</div>
+        <div class="report-dl-desc">Detailed attendance records for Oct–Nov 2024, including dates present, late arrivals, absences, and school notes.</div>
+        <div class="report-dl-meta">📅 Generated: Nov 5, 2024 &nbsp;·&nbsp; 2 pages</div>
+        <button class="btn btn-teal" style="margin-top:auto;" onclick="alert('Downloading PDF…')">⬇ Download PDF</button>
+      </div>
+      <div class="report-dl-card">
+        <div class="report-dl-icon">🏆</div>
+        <div class="report-dl-title">Achievement Certificate</div>
+        <div class="report-dl-desc">Official certificate awarded for completing a 10-quest streak without interruption. Signed by the platform director.</div>
+        <div class="report-dl-meta">📅 Issued: Oct 28, 2024 &nbsp;·&nbsp; 1 page</div>
+        <button class="btn" style="margin-top:auto;background:linear-gradient(135deg,#FDCB6E,#e17055);color:#fff;" onclick="alert('Downloading Certificate…')">⬇ Download PDF</button>
+      </div>
+    </div>
+
+    <!-- Report Card Section -->
+    <div class="card">
+      <div class="card-title">
+        <span>📝 Ethan Johnson — Q2 2024 Report Card</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="alert('Printing…')">🖨 Print</button>
+          <button class="btn btn-primary" onclick="alert('Downloading…')">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:20px;padding:16px;background:rgba(108,92,231,.08);border-radius:12px;margin-bottom:20px;border:1px solid rgba(108,92,231,.2);">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0;">E</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;">Ethan Johnson</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);">Student ID: STU-2847 &nbsp;·&nbsp; Grade 8 &nbsp;·&nbsp; Academic Year 2024–2025 &nbsp;·&nbsp; Quarter 2</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;">Overall GPA</div>
+          <div style="font-size:28px;font-weight:800;color:#00B894;">3.8</div>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Q1 Grade</th>
+            <th>Q2 Grade</th>
+            <th>Q1 Score</th>
+            <th>Q2 Score</th>
+            <th>Trend</th>
+            <th>Teacher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;">📐 Mathematics</td>
+            <td><span class="grade-chip" style="background:rgba(108,92,231,.2);color:#a29bfe;">A</span></td>
+            <td><span class="grade-chip" style="background:rgba(0,184,148,.2);color:#00B894;">A+</span></td>
+            <td style="color:rgba(255,255,255,.6);">93%</td>
+            <td style="color:#00B894;font-weight:700;">97%</td>
+            <td class="trend-up">↑ +4%</td>
+            <td style="color:rgba(255,255,255,.5);">Mr. Adams</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">🔬 Science</td>
+            <td><span class="grade-chip" style="background:rgba(253,203,110,.15);color:#FDCB6E;">B+</span></td>
+            <td><span class="grade-chip" style="background:rgba(108,92,231,.2);color:#a29bfe;">A</span></td>
+            <td style="color:rgba(255,255,255,.6);">87%</td>
+            <td style="color:#00B894;font-weight:700;">92%</td>
+            <td class="trend-up">↑ +5%</td>
+            <td style="color:rgba(255,255,255,.5);">Ms. Rivera</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">📚 English</td>
+            <td><span class="grade-chip" style="background:rgba(253,203,110,.15);color:#FDCB6E;">B</span></td>
+            <td><span class="grade-chip" style="background:rgba(253,203,110,.15);color:#FDCB6E;">B+</span></td>
+            <td style="color:rgba(255,255,255,.6);">83%</td>
+            <td style="color:#FDCB6E;font-weight:700;">88%</td>
+            <td class="trend-up">↑ +5%</td>
+            <td style="color:rgba(255,255,255,.5);">Mrs. Thompson</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">🗺 History</td>
+            <td><span class="grade-chip" style="background:rgba(214,48,49,.15);color:#D63031;">C+</span></td>
+            <td><span class="grade-chip" style="background:rgba(253,203,110,.15);color:#FDCB6E;">B</span></td>
+            <td style="color:rgba(255,255,255,.6);">77%</td>
+            <td style="color:#FDCB6E;font-weight:700;">84%</td>
+            <td class="trend-up">↑ +7%</td>
+            <td style="color:rgba(255,255,255,.5);">Mr. Foster</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">💻 Coding</td>
+            <td><span class="grade-chip" style="background:rgba(0,184,148,.2);color:#00B894;">A+</span></td>
+            <td><span class="grade-chip" style="background:rgba(0,184,148,.2);color:#00B894;">A+</span></td>
+            <td style="color:rgba(255,255,255,.6);">99%</td>
+            <td style="color:#00B894;font-weight:700;">100%</td>
+            <td class="trend-same">→ Steady</td>
+            <td style="color:rgba(255,255,255,.5);">Mr. Lee</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">🎨 Art</td>
+            <td><span class="grade-chip" style="background:rgba(108,92,231,.2);color:#a29bfe;">A</span></td>
+            <td><span class="grade-chip" style="background:rgba(0,184,148,.2);color:#00B894;">A+</span></td>
+            <td style="color:rgba(255,255,255,.6);">92%</td>
+            <td style="color:#00B894;font-weight:700;">96%</td>
+            <td class="trend-up">↑ +4%</td>
+            <td style="color:rgba(255,255,255,.5);">Ms. Park</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="3" style="font-weight:700;">📊 Overall GPA / Average</td>
+            <td style="color:rgba(255,255,255,.6);">3.4 / 88.5%</td>
+            <td style="color:#00B894;font-weight:700;">3.8 / 92.8%</td>
+            <td class="trend-up">↑ +0.4 GPA</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Summary Stats -->
+      <div class="summary-stats">
+        <div class="sum-stat">
+          <div class="sum-stat-val" style="color:#00B894;">3.8</div>
+          <div class="sum-stat-lbl">Current GPA</div>
+        </div>
+        <div class="sum-stat">
+          <div class="sum-stat-val" style="color:#00CEC9;">+0.4</div>
+          <div class="sum-stat-lbl">GPA Improvement</div>
+        </div>
+        <div class="sum-stat">
+          <div class="sum-stat-val" style="color:#6C5CE7;">💻 Coding</div>
+          <div class="sum-stat-lbl">Best Subject</div>
+        </div>
+        <div class="sum-stat">
+          <div class="sum-stat-val" style="color:#FDCB6E;">🗺 History</div>
+          <div class="sum-stat-lbl">Most Improved</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certificates row -->
+    <div style="margin-top:24px;padding:20px;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="font-size:36px;">🎓</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Academic Excellence Certificate</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);">Awarded for maintaining a GPA above 3.5 for two consecutive quarters. Issued November 2024.</div>
+        </div>
+      </div>
+      <button class="btn btn-teal" onclick="alert('Downloading certificate…')">⬇ Download Certificate</button>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+LvlAuth.requireAuth(['parent']);
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Parent';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('headerAvatar').textContent = name.charAt(0).toUpperCase();
+  }
+});
+</script>
+</body>
+</html>

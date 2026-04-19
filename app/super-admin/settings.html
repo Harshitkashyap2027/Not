@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Platform Settings – lvlBase Super Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(108,92,231,.15);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(108,92,231,.2);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-danger{background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+.btn-sm{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+/* Tabs */
+.tab-bar{display:flex;gap:4px;margin-bottom:24px;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:5px;}
+.tab-btn{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.45);transition:all .2s;}
+.tab-btn.active{background:rgba(108,92,231,.25);color:#a29bfe;}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);}
+.tab-section{display:none;}
+.tab-section.active{display:block;}
+/* Feature Flags */
+.flag-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.flag-row:last-child{border-bottom:none;}
+.flag-info{flex:1;}
+.flag-name{font-size:14px;font-weight:600;color:#fff;margin-bottom:3px;}
+.flag-desc{font-size:12px;color:rgba(255,255,255,.4);}
+.toggle{width:46px;height:26px;border-radius:13px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:linear-gradient(135deg,#6C5CE7,#a29bfe);}
+.toggle.off{background:rgba(255,255,255,.12);}
+.toggle-knob{width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:3px;transition:left .2s;}
+.toggle.on .toggle-knob{left:23px;}
+.toggle.off .toggle-knob{left:3px;}
+/* Pricing cards */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.plan-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;}
+.plan-card.featured{border-color:rgba(108,92,231,.4);background:rgba(108,92,231,.06);}
+.plan-price{font-size:28px;font-weight:800;color:#a29bfe;margin:8px 0;}
+.plan-limit{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;}
+.plan-feature{font-size:12px;color:rgba(255,255,255,.6);padding:4px 0;display:flex;align-items:center;gap:6px;}
+/* API Keys */
+.key-table{width:100%;border-collapse:collapse;}
+.key-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;padding:0 0 12px;letter-spacing:.5px;}
+.key-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.75);vertical-align:middle;}
+.key-table tr:last-child td{border-bottom:none;}
+.key-mono{font-family:monospace;font-size:13px;background:rgba(255,255,255,.05);padding:4px 10px;border-radius:6px;color:#a29bfe;letter-spacing:.5px;}
+/* Maintenance toggle */
+.maint-toggle{display:flex;align-items:center;gap:16px;padding:20px;background:rgba(214,48,49,.04);border:1px solid rgba(214,48,49,.15);border-radius:12px;margin-bottom:16px;}
+.maint-toggle-big{width:64px;height:34px;border-radius:17px;background:rgba(255,255,255,.1);cursor:pointer;position:relative;flex-shrink:0;}
+.maint-toggle-big .knob{width:26px;height:26px;border-radius:50%;background:#636e72;position:absolute;top:4px;left:4px;transition:all .2s;}
+/* Announcement */
+.ann-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;resize:vertical;min-height:80px;outline:none;font-family:'Segoe UI',sans-serif;}
+.ann-textarea:focus{border-color:rgba(108,92,231,.4);}
+.field-label{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:6px;display:block;}
+.field-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:rgba(255,255,255,.7);font-size:13px;outline:none;cursor:pointer;width:100%;}
+.field-select option{background:#12122A;}
+.ann-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.ann-item:last-child{border-bottom:none;}
+.warn-note{background:rgba(253,203,110,.07);border:1px solid rgba(253,203,110,.2);border-radius:10px;padding:10px 16px;font-size:12px;color:#FDCB6E;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Super Admin</div>
+    <a href="/app/super-admin/dashboard.html" class="nav-item"><span class="nav-icon">🏛️</span>Dashboard</a>
+    <a href="/app/super-admin/schools.html" class="nav-item"><span class="nav-icon">🏫</span>Schools</a>
+    <a href="/app/super-admin/users.html" class="nav-item"><span class="nav-icon">👥</span>Users</a>
+    <a href="/app/super-admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/super-admin/settings.html" class="nav-item active"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Super Admin</div>
+        <div style="font-size:11px;color:#6C5CE7;">Platform Administrator</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">⚙️ Platform Settings</div>
+    <span style="font-size:12px;color:rgba(255,255,255,.35);">Changes saved automatically</span>
+  </header>
+  <main class="app-content">
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showTab('flags')">🚩 Feature Flags</button>
+      <button class="tab-btn" onclick="showTab('pricing')">💳 Pricing</button>
+      <button class="tab-btn" onclick="showTab('email')">📧 Email Templates</button>
+      <button class="tab-btn" onclick="showTab('apikeys')">🔑 API Keys</button>
+      <button class="tab-btn" onclick="showTab('system')">🖥️ System</button>
+      <button class="tab-btn" onclick="showTab('announce')">📢 Announcements</button>
+    </div>
+
+    <!-- FEATURE FLAGS -->
+    <div class="tab-section active" id="tab-flags">
+      <div class="card">
+        <div class="card-title">🚩 Feature Flags
+          <span style="font-size:12px;color:rgba(255,255,255,.3);font-weight:400;">8 features</span>
+        </div>
+        <div class="warn-note">⚠️ Changes to feature flags affect ALL schools immediately</div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">🗡️ Quest System</div>
+            <div class="flag-desc">Core learning quests — primary engagement driver</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">🤖 AI Sage Chat</div>
+            <div class="flag-desc">AI tutoring assistant powered by LLM</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">⚔️ Arena PvP Mode</div>
+            <div class="flag-desc">Real-time student competitions and battles</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">🛡️ Guild System</div>
+            <div class="flag-desc">Team collaboration and group quests</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">🎯 Focus Mode</div>
+            <div class="flag-desc">Distraction-free deep learning sessions</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">👨‍👩‍👧 Parent Portal</div>
+            <div class="flag-desc">Parent access to progress and communication</div>
+          </div>
+          <div class="toggle on" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">💻 Web Studio</div>
+            <div class="flag-desc">In-browser code workspace for CS courses</div>
+          </div>
+          <div class="toggle off" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="flag-row">
+          <div class="flag-info">
+            <div class="flag-name">🧪 Beta Features</div>
+            <div class="flag-desc">Experimental features not yet production-ready</div>
+          </div>
+          <div class="toggle off" onclick="toggleFlag(this)"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div class="tab-section" id="tab-pricing">
+      <div class="card">
+        <div class="card-title">💳 Pricing Plans</div>
+        <div class="plan-grid">
+          <div class="plan-card">
+            <div style="font-size:14px;font-weight:700;">🟢 Starter</div>
+            <div class="plan-price">$149<span style="font-size:14px;color:rgba(255,255,255,.4);font-weight:400;">/mo</span></div>
+            <div class="plan-limit">Up to 500 students</div>
+            <div class="plan-feature">✓ Quest System</div>
+            <div class="plan-feature">✓ Basic Analytics</div>
+            <div class="plan-feature">✓ Email Support</div>
+            <div class="plan-feature" style="color:rgba(255,255,255,.25);">✗ AI Sage</div>
+            <div class="plan-feature" style="color:rgba(255,255,255,.25);">✗ Arena PvP</div>
+            <button class="btn btn-outline" style="margin-top:16px;width:100%;font-size:12px;">Edit Plan</button>
+          </div>
+          <div class="plan-card featured">
+            <div style="font-size:14px;font-weight:700;color:#a29bfe;">🔵 Professional</div>
+            <div class="plan-price">$490<span style="font-size:14px;color:rgba(255,255,255,.4);font-weight:400;">/mo</span></div>
+            <div class="plan-limit">Up to 1,000 students</div>
+            <div class="plan-feature">✓ All Starter features</div>
+            <div class="plan-feature">✓ AI Sage Chat</div>
+            <div class="plan-feature">✓ Arena PvP</div>
+            <div class="plan-feature">✓ Priority Support</div>
+            <div class="plan-feature" style="color:rgba(255,255,255,.25);">✗ Custom branding</div>
+            <button class="btn btn-primary" style="margin-top:16px;width:100%;font-size:12px;">Edit Plan</button>
+          </div>
+          <div class="plan-card">
+            <div style="font-size:14px;font-weight:700;color:#FD79A8;">🟣 Enterprise</div>
+            <div class="plan-price">$890<span style="font-size:14px;color:rgba(255,255,255,.4);font-weight:400;">/mo</span></div>
+            <div class="plan-limit">Unlimited students</div>
+            <div class="plan-feature">✓ All Pro features</div>
+            <div class="plan-feature">✓ Custom branding</div>
+            <div class="plan-feature">✓ SSO / SAML</div>
+            <div class="plan-feature">✓ Dedicated CSM</div>
+            <div class="plan-feature">✓ SLA 99.9%</div>
+            <button class="btn btn-outline" style="margin-top:16px;width:100%;font-size:12px;">Edit Plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL TEMPLATES -->
+    <div class="tab-section" id="tab-email">
+      <div class="card">
+        <div class="card-title">📧 Email Templates</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div><div style="font-weight:600;font-size:13px;">Welcome — New School Signup</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Sent when a school completes registration</div></div>
+            <button class="btn btn-outline" style="font-size:12px;">Edit</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div><div style="font-weight:600;font-size:13px;">Trial Expiring — 7 Days</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Sent 7 days before trial ends</div></div>
+            <button class="btn btn-outline" style="font-size:12px;">Edit</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div><div style="font-weight:600;font-size:13px;">Payment Failed</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Triggered on failed billing attempt</div></div>
+            <button class="btn btn-outline" style="font-size:12px;">Edit</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div><div style="font-weight:600;font-size:13px;">Monthly Digest — Admins</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">School performance summary</div></div>
+            <button class="btn btn-outline" style="font-size:12px;">Edit</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;">
+            <div><div style="font-weight:600;font-size:13px;">Student Level Up Notification</div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Celebrate student achievements</div></div>
+            <button class="btn btn-outline" style="font-size:12px;">Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API KEYS -->
+    <div class="tab-section" id="tab-apikeys">
+      <div class="card">
+        <div class="card-title">🔑 API Keys
+          <button class="btn btn-primary" style="font-size:12px;">+ Generate New Key</button>
+        </div>
+        <table class="key-table">
+          <thead>
+            <tr>
+              <th>Key Name</th>
+              <th>Key</th>
+              <th>Created</th>
+              <th>Last Used</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;color:#fff;">Production API Key</td>
+              <td><span class="key-mono">sk-live-••••••••4f2a</span></td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Jan 15, 2024</td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">2h ago</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">Regenerate</button>
+                  <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Revoke</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#fff;">Webhooks Secret</td>
+              <td><span class="key-mono">wh-••••••••9c3b</span></td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Mar 8, 2024</td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Yesterday</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">Regenerate</button>
+                  <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Revoke</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#fff;">Analytics Key</td>
+              <td><span class="key-mono">ak-••••••••7e1d</span></td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Apr 2, 2024</td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">3d ago</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">Regenerate</button>
+                  <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Revoke</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:#fff;">Dev / Sandbox Key</td>
+              <td><span class="key-mono">sk-test-••••••••2a8f</span></td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Jun 20, 2024</td>
+              <td style="color:rgba(255,255,255,.45);font-size:12px;">Today</td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">Regenerate</button>
+                  <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Revoke</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SYSTEM -->
+    <div class="tab-section" id="tab-system">
+      <!-- Maintenance Mode -->
+      <div class="card" style="border:1px solid rgba(214,48,49,.2);margin-bottom:20px;">
+        <div class="card-title" style="color:#D63031;">🔴 Maintenance Mode</div>
+        <div class="maint-toggle">
+          <div class="maint-toggle-big" id="maintToggle" onclick="toggleMaintenance()">
+            <div class="knob" id="maintKnob"></div>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px;">Maintenance Mode — <span id="maintStatus" style="color:#636e72;">OFF</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;">Enabling this will show a maintenance page to all users and block all logins. Only super admins can access the dashboard.</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+          <div>
+            <label class="field-label">Scheduled Start</label>
+            <input type="datetime-local" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <label class="field-label">Estimated End</label>
+            <input type="datetime-local" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup & Restore -->
+      <div class="card">
+        <div class="card-title">💾 Backup &amp; Restore</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(0,184,148,.06);border:1px solid rgba(0,184,148,.15);border-radius:10px;margin-bottom:20px;">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Last Backup</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:3px;">Nov 9, 2024 at 03:00 AM UTC · Auto snapshot</div>
+          </div>
+          <span class="badge badge-success">✓ Successful</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" style="font-size:12px;">▶ Run Manual Backup</button>
+          <button class="btn btn-outline" style="font-size:12px;">⬇ Download Latest Backup</button>
+          <button class="btn btn-danger" style="font-size:12px;">⚠️ Restore from Backup</button>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(214,48,49,.06);border:1px solid rgba(214,48,49,.15);border-radius:8px;font-size:12px;color:rgba(214,48,49,.8);">
+          ⚠️ <strong>Danger Zone:</strong> Restoring from backup will overwrite all current data. This action cannot be undone. A confirmation dialog will appear.
+        </div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="tab-section" id="tab-announce">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">📢 Compose Announcement</div>
+        <div style="margin-bottom:14px;">
+          <label class="field-label">Message</label>
+          <textarea class="ann-textarea" placeholder="Write your announcement to all users..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:flex-end;">
+          <div>
+            <label class="field-label">Target Audience</label>
+            <select class="field-select">
+              <option>All Users</option>
+              <option>All Admins</option>
+              <option>All Teachers</option>
+              <option>All Students</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="height:38px;">📢 Publish</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Announcements</div>
+        <div class="ann-item">
+          <div>
+            <div style="font-weight:600;font-size:13px;">🎉 New AI Sage features now available!</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;">Sent to: All Users · Nov 5, 2024</div>
+          </div>
+          <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);flex-shrink:0;">Dismiss</button>
+        </div>
+        <div class="ann-item">
+          <div>
+            <div style="font-weight:600;font-size:13px;">⚙️ Scheduled maintenance: Nov 12 at 2 AM UTC</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;">Sent to: All Admins · Nov 3, 2024</div>
+          </div>
+          <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);flex-shrink:0;">Dismiss</button>
+        </div>
+        <div class="ann-item">
+          <div>
+            <div style="font-weight:600;font-size:13px;">📊 Q3 Platform Report is ready for download</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;">Sent to: All Admins · Oct 31, 2024</div>
+          </div>
+          <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);flex-shrink:0;">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>LvlAuth.requireAuth(['superAdmin']);</script>
+<script>
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+  }
+});
+
+function showTab(id) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function toggleFlag(el) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+
+let maintOn = false;
+function toggleMaintenance() {
+  maintOn = !maintOn;
+  const t = document.getElementById('maintToggle');
+  const k = document.getElementById('maintKnob');
+  const s = document.getElementById('maintStatus');
+  if (maintOn) {
+    t.style.background = 'rgba(214,48,49,.5)';
+    k.style.left = '34px';
+    k.style.background = '#D63031';
+    s.textContent = 'ON';
+    s.style.color = '#D63031';
+  } else {
+    t.style.background = 'rgba(255,255,255,.1)';
+    k.style.left = '4px';
+    k.style.background = '#636e72';
+    s.textContent = 'OFF';
+    s.style.color = '#636e72';
+  }
+}
+</script>
+</body>
+</html>

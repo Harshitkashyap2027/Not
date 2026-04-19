@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Announcements – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.form-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.form-field label{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;width:100%;}
+.form-input:focus{border-color:#6C5CE7;}
+.form-input::placeholder{color:rgba(255,255,255,.25);}
+.form-textarea{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;outline:none;resize:vertical;min-height:120px;width:100%;font-family:'Segoe UI',sans-serif;transition:border-color .2s;}
+.form-textarea:focus{border-color:#6C5CE7;}
+.form-textarea::placeholder{color:rgba(255,255,255,.25);}
+.form-select{background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;width:100%;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.priority-opts{display:flex;gap:10px;}
+.priority-opt{flex:1;padding:10px;border-radius:10px;border:2px solid rgba(255,255,255,.08);cursor:pointer;text-align:center;font-size:13px;font-weight:600;transition:all .2s;}
+.priority-opt.sel-normal{border-color:#6C5CE7;background:rgba(108,92,231,.15);color:#a29bfe;}
+.priority-opt.sel-urgent{border-color:#D63031;background:rgba(214,48,49,.15);color:#D63031;}
+.priority-opt:hover{border-color:rgba(255,255,255,.2);}
+.audience-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.aud-chip{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);transition:all .2s;}
+.aud-chip.active{border-color:#00CEC9;background:rgba(0,206,201,.15);color:#00CEC9;}
+.preview-box{background:rgba(108,92,231,.06);border:1px dashed rgba(108,92,231,.3);border-radius:12px;padding:16px;min-height:80px;margin-top:4px;}
+.preview-title{font-size:16px;font-weight:700;margin-bottom:8px;color:#fff;}
+.preview-body{font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;}
+.anm-list{display:flex;flex-direction:column;gap:12px;}
+.anm-card{background:#0D0D1A;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px;transition:border-color .2s;}
+.anm-card:hover{border-color:rgba(255,255,255,.12);}
+.anm-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.anm-title-wrap{flex:1;}
+.anm-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.anm-body{font-size:13px;color:rgba(255,255,255,.55);line-height:1.5;margin-bottom:12px;}
+.anm-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.anm-badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;}
+.badge-normal{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-urgent{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-info{background:rgba(0,206,201,.15);color:#00CEC9;}
+.read-stat{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.4);}
+.anm-actions{display:flex;gap:8px;flex-shrink:0;}
+.act-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;}
+.act-btn:hover{background:rgba(108,92,231,.2);color:#a29bfe;border-color:#6C5CE7;}
+.act-del{color:#D63031;}
+.act-del:hover{background:rgba(214,48,49,.15);border-color:#D63031;}
+.stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.smi{background:#0D0D1A;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center;}
+.smi-val{font-size:22px;font-weight:800;}
+.smi-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;}
+.char-count{font-size:11px;color:rgba(255,255,255,.35);text-align:right;margin-top:4px;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Admin</div>
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏫</span>Dashboard</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👥</span>User Management</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Class Management</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📊</span>Reports</a>
+    <div class="nav-section-title">Communication</div>
+    <a href="/app/admin/announcements.html" class="nav-item active"><span class="nav-icon">📣</span>Announcements</a>
+    <div class="nav-section-title">Account</div>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">💳</span>Billing</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Admin</div>
+        <div class="user-role-sm">School Administrator</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📣</span>
+    <span class="header-title">Announcements</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">Reach your school community</div>
+    <button onclick="LvlAuth.signOut()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;border:none;">Sign Out</button>
+    <div class="user-avatar-sm" id="headerAvatar" style="width:36px;height:36px;font-size:15px;">A</div>
+  </header>
+  <div class="app-content">
+
+    <div class="layout">
+      <!-- Compose Form -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <div style="font-size:16px;font-weight:700;margin-bottom:20px;">✍️ Create Announcement</div>
+
+          <div class="form-field">
+            <label>Title</label>
+            <input class="form-input" id="anmTitle" type="text" placeholder="e.g. Finals Week Schedule Update" oninput="updatePreview()">
+          </div>
+
+          <div class="form-field">
+            <label>Message Body</label>
+            <textarea class="form-textarea" id="anmBody" placeholder="Write your announcement here…&#10;&#10;Supports plain text. Keep it clear and concise for best engagement." oninput="updatePreview();updateCharCount()"></textarea>
+            <div class="char-count" id="charCount">0 / 500 characters</div>
+          </div>
+
+          <div class="form-row" style="margin-bottom:16px;">
+            <div class="form-field" style="margin-bottom:0;">
+              <label>Target Audience</label>
+              <select class="form-select" id="anmAudience">
+                <option value="all">🌐 Everyone</option>
+                <option value="students">👨‍🎓 Students Only</option>
+                <option value="teachers">👩‍🏫 Teachers Only</option>
+                <option value="parents">👪 Parents Only</option>
+                <option value="class9">📚 Grade 9 Only</option>
+                <option value="class10">📚 Grade 10 Only</option>
+                <option value="class11">📚 Grade 11 &amp; 12</option>
+              </select>
+            </div>
+            <div class="form-field" style="margin-bottom:0;">
+              <label>Category</label>
+              <select class="form-select" id="anmCategory">
+                <option>📢 General</option>
+                <option>📅 Event / Schedule</option>
+                <option>🎓 Academic</option>
+                <option>🏆 Achievement</option>
+                <option>⚠️ Important Notice</option>
+                <option>💡 Tips &amp; Resources</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Priority</label>
+            <div class="priority-opts">
+              <div class="priority-opt sel-normal" id="opt-normal" onclick="setPriority('normal')">📢 Normal</div>
+              <div class="priority-opt" id="opt-urgent" onclick="setPriority('urgent')">🚨 Urgent</div>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-bottom:16px;">
+            <div class="form-field" style="margin-bottom:0;">
+              <label>Schedule Send (Optional)</label>
+              <input class="form-input" id="anmSchedule" type="datetime-local">
+            </div>
+            <div class="form-field" style="margin-bottom:0;">
+              <label>Expires At (Optional)</label>
+              <input class="form-input" id="anmExpiry" type="datetime-local">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button onclick="sendAnnouncement()" class="btn btn-primary" style="flex:1;">📣 Send Announcement</button>
+            <button onclick="saveDraft()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);">💾 Save Draft</button>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:rgba(255,255,255,.6);">👁 Live Preview</div>
+          <div class="preview-box">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <span style="font-size:20px;">📣</span>
+              <div class="preview-title" id="previewTitle" style="font-size:15px;">Your title will appear here</div>
+            </div>
+            <div class="preview-body" id="previewBody">Your message body will appear here. Keep it clear and engaging for your audience.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sent Announcements -->
+      <div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-size:16px;font-weight:700;">📬 Sent Announcements</div>
+            <select style="background:#1a1a35;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:6px 12px;border-radius:8px;font-size:12px;outline:none;">
+              <option>All</option><option>This Month</option><option>Urgent</option><option>Drafts</option>
+            </select>
+          </div>
+
+          <div class="stats-mini">
+            <div class="smi"><div class="smi-val" style="color:#6C5CE7;">24</div><div class="smi-lbl">Sent This Month</div></div>
+            <div class="smi"><div class="smi-val" style="color:#00CEC9;">91%</div><div class="smi-lbl">Avg Read Rate</div></div>
+            <div class="smi"><div class="smi-val" style="color:#FDCB6E;">3</div><div class="smi-lbl">Drafts</div></div>
+          </div>
+
+          <div class="anm-list" id="anmList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+const ANNOUNCEMENTS = [
+  {title:'🏆 Finals Week XP Bonus — 2× Multiplier Active!', body:'We\'re activating a 2× XP multiplier for all quests completed during finals week (Nov 18–22). Keep grinding and level up your scores! 🚀', audience:'All Students', priority:'urgent', category:'Academic', date:'Nov 14, 2024', reads:342, total:348, readPct:98},
+  {title:'📅 Parent-Teacher Conference — Nov 20', body:'Reminder: Parent-teacher conferences are scheduled for Wednesday, Nov 20 from 3 PM to 7 PM. Please check the school calendar for your time slot.', audience:'Everyone', priority:'normal', category:'Event / Schedule', date:'Nov 12, 2024', reads:291, total:372, readPct:78},
+  {title:'🆕 New Feature: AI Sage Enhanced Mode', body:'We\'ve upgraded AI Sage with enhanced tutoring capabilities. The new version can now help with multi-step math problems and essay feedback. Try it today!', audience:'All Students', priority:'normal', category:'General', date:'Nov 10, 2024', reads:318, total:348, readPct:91},
+  {title:'⚠️ System Maintenance — Sunday 2 AM', body:'lvlBase will undergo scheduled maintenance on Sunday, Nov 17 from 2:00 AM to 4:00 AM. The platform will be temporarily unavailable during this window.', audience:'Everyone', priority:'urgent', category:'Important Notice', date:'Nov 8, 2024', reads:356, total:372, readPct:96},
+  {title:'📊 Q2 Progress Reports Available', body:'Quarterly progress reports for Q2 are now available in the Reports section of your dashboard. Students and parents can view detailed performance breakdowns by subject.', audience:'Teachers & Parents', priority:'normal', category:'Academic', date:'Nov 5, 2024', reads:48, total:52, readPct:92},
+  {title:'🎮 Arena Season 4 — Registration Open', body:'Arena Season 4 kicks off next Monday! Register your team in the Guilds section and compete for the Season Champion title. Top guild earns exclusive avatar frames!', audience:'All Students', priority:'normal', category:'Achievement', date:'Nov 1, 2024', reads:290, total:348, readPct:83},
+];
+
+let currentPriority = 'normal';
+
+function setPriority(p) {
+  currentPriority = p;
+  document.getElementById('opt-normal').className = `priority-opt${p === 'normal' ? ' sel-normal' : ''}`;
+  document.getElementById('opt-urgent').className = `priority-opt${p === 'urgent' ? ' sel-urgent' : ''}`;
+}
+
+function updatePreview() {
+  const t = document.getElementById('anmTitle').value || 'Your title will appear here';
+  const b = document.getElementById('anmBody').value || 'Your message body will appear here. Keep it clear and engaging for your audience.';
+  document.getElementById('previewTitle').textContent = t;
+  document.getElementById('previewBody').textContent = b;
+}
+
+function updateCharCount() {
+  const len = document.getElementById('anmBody').value.length;
+  const el = document.getElementById('charCount');
+  el.textContent = `${len} / 500 characters`;
+  el.style.color = len > 450 ? '#D63031' : len > 350 ? '#FDCB6E' : 'rgba(255,255,255,.35)';
+}
+
+function sendAnnouncement() {
+  const title = document.getElementById('anmTitle').value.trim();
+  if (!title) { alert('Please enter an announcement title.'); return; }
+  alert('✅ Announcement sent successfully to ' + document.getElementById('anmAudience').options[document.getElementById('anmAudience').selectedIndex].text);
+  document.getElementById('anmTitle').value = '';
+  document.getElementById('anmBody').value = '';
+  updatePreview();
+  updateCharCount();
+}
+
+function saveDraft() {
+  alert('💾 Draft saved successfully.');
+}
+
+function renderAnnouncements() {
+  const list = document.getElementById('anmList');
+  ANNOUNCEMENTS.forEach(a => {
+    const priClass = a.priority === 'urgent' ? 'badge-urgent' : 'badge-normal';
+    const priLabel = a.priority === 'urgent' ? '🚨 Urgent' : '📢 Normal';
+    const readBar = Math.round(a.reads / a.total * 100);
+    list.innerHTML += `
+    <div class="anm-card">
+      <div class="anm-header">
+        <div class="anm-title-wrap">
+          <div class="anm-title">${a.title}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;">${a.date} · ${a.audience}</div>
+        </div>
+        <div class="anm-actions">
+          <button class="act-btn">✏️</button>
+          <button class="act-btn act-del">🗑</button>
+        </div>
+      </div>
+      <div class="anm-body">${a.body.substring(0,120)}${a.body.length > 120 ? '…' : ''}</div>
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:5px;">
+          <span>Read rate</span><span style="font-weight:700;color:${readBar > 85 ? '#00b894' : readBar > 60 ? '#FDCB6E' : '#FD79A8'}">${a.reads}/${a.total} (${readBar}%)</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${readBar}%;background:${readBar > 85 ? '#00b894' : readBar > 60 ? '#FDCB6E' : '#FD79A8'};border-radius:3px;"></div>
+        </div>
+      </div>
+      <div class="anm-meta">
+        <span class="anm-badge ${priClass}">${priLabel}</span>
+        <span class="anm-badge badge-info">${a.category}</span>
+        <span class="read-stat">👁 ${a.reads} reads</span>
+      </div>
+    </div>`;
+  });
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['schoolAdmin']);
+  renderAnnouncements();
+}
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) { window.location.href = '/auth/login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0] || 'Admin';
+  document.getElementById('sidebarName').textContent = name;
+  const init = name.charAt(0).toUpperCase();
+  document.getElementById('avatarInitial').textContent = init;
+  document.getElementById('headerAvatar').textContent = init;
+  loadPage();
+});
+
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

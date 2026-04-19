@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Users – lvlBase Super Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(108,92,231,.15);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(108,92,231,.2);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+.btn-sm{padding:5px 11px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 10px 14px 0;}
+.data-table td{padding:12px 10px 12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(108,92,231,.03);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-pink{background:rgba(253,121,168,.15);color:#FD79A8;}
+/* Users-specific */
+.warn-banner{background:rgba(253,203,110,.07);border:1px solid rgba(253,203,110,.2);border-radius:12px;padding:11px 18px;margin-bottom:20px;font-size:13px;color:#FDCB6E;display:flex;align-items:center;gap:8px;}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+.search-input:focus{border-color:rgba(108,92,231,.5);}
+.filter-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:rgba(255,255,255,.7);font-size:13px;outline:none;cursor:pointer;}
+.filter-select option{background:#12122A;color:#fff;}
+.stats-strip{display:flex;gap:20px;margin-bottom:20px;padding:12px 18px;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:12px;flex-wrap:wrap;}
+.strip-stat{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.55);}
+.strip-stat strong{color:#fff;font-size:14px;}
+.strip-sep{width:1px;height:20px;background:rgba(255,255,255,.08);}
+.user-cell{display:flex;align-items:center;gap:10px;}
+.user-ava{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.user-cell-info{display:flex;flex-direction:column;gap:2px;}
+.user-cell-name{font-weight:600;color:#fff;font-size:13px;}
+.user-cell-email{font-size:11px;color:rgba(255,255,255,.35);}
+.action-btns{display:flex;align-items:center;gap:5px;}
+.bulk-bar{display:none;background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.25);border-radius:10px;padding:10px 18px;margin-bottom:16px;align-items:center;gap:12px;font-size:13px;color:rgba(255,255,255,.7);}
+.bulk-bar.visible{display:flex;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">lvlBase</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Super Admin</div>
+    <a href="/app/super-admin/dashboard.html" class="nav-item"><span class="nav-icon">🏛️</span>Dashboard</a>
+    <a href="/app/super-admin/schools.html" class="nav-item"><span class="nav-icon">🏫</span>Schools</a>
+    <a href="/app/super-admin/users.html" class="nav-item active"><span class="nav-icon">👥</span>Users</a>
+    <a href="/app/super-admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/super-admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Super Admin</div>
+        <div style="font-size:11px;color:#6C5CE7;">Platform Administrator</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">👥 User Management</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.35);">130,881 total users</div>
+  </header>
+
+  <main class="app-content">
+
+    <!-- Warning Banner -->
+    <div class="warn-banner">
+      ⚡ Impersonation logs are saved for security compliance
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input class="search-input" type="text" placeholder="🔍  Search users by name or email...">
+      <select class="filter-select">
+        <option>All Roles</option>
+        <option>Student</option>
+        <option>Teacher</option>
+        <option>Admin</option>
+        <option>Parent</option>
+      </select>
+      <select class="filter-select">
+        <option>All Status</option>
+        <option>Active</option>
+        <option>Inactive</option>
+        <option>Suspended</option>
+      </select>
+      <button class="btn btn-outline" onclick="document.getElementById('bulkBar').classList.toggle('visible')">Bulk Actions ▾</button>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-bar" id="bulkBar">
+      <span>0 users selected</span>
+      <button class="btn-sm" style="background:rgba(0,184,148,.15);color:#00B894;border:1px solid rgba(0,184,148,.2);">✓ Activate Selected</button>
+      <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⏸ Deactivate Selected</button>
+      <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">⬇ Export Selected</button>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip">
+      <div class="strip-stat"><strong style="color:#00CEC9;">84,320</strong> Students</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#a29bfe;">6,847</strong> Teachers</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#FD79A8;">1,247</strong> Admins</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#FDCB6E;">38,420</strong> Parents</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#00B894;">147</strong> Super Admins</div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:32px;"><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></th>
+            <th>User</th>
+            <th>School</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Last Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 1 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#00CEC9,#81ecec);">AM</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Alex Martinez</span>
+                  <span class="user-cell-email">alex.m@westview.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Westview Academy</td>
+            <td><span class="badge badge-teal">Student</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">5min ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Suspend</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 2 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">SC</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Sarah Chen</span>
+                  <span class="user-cell-email">s.chen@westview.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Westview Academy</td>
+            <td><span class="badge badge-purple">Teacher</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">1h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 3 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#FD79A8,#fdcfe0);">PD</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Principal Davis</span>
+                  <span class="user-cell-email">p.davis@sunrise.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Sunrise Elementary</td>
+            <td><span class="badge badge-pink">Admin</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">Today</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 4 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#00CEC9,#00b894);">MJ</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Marcus Johnson</span>
+                  <span class="user-cell-email">m.j@techprep.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Tech Prep High</td>
+            <td><span class="badge badge-teal">Student</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">2h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Suspend</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 5 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#6C5CE7,#FD79A8);">EW</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Emma Williams</span>
+                  <span class="user-cell-email">e.williams@lincoln.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Lincoln Middle</td>
+            <td><span class="badge badge-purple">Teacher</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">3h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 6 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#FDCB6E,#fd9a4a);">RP</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Robert Park</span>
+                  <span class="user-cell-email">r.park@oakpark.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Oak Park K-8</td>
+            <td><span class="badge badge-warning">Parent</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">Yesterday</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 7 -->
+          <tr style="background:rgba(253,203,110,.02);">
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#636e72,#b2bec3);">LT</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Lisa Torres</span>
+                  <span class="user-cell-email">l.torres@riverside.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Riverside Elementary</td>
+            <td><span class="badge badge-purple">Teacher</span></td>
+            <td><span class="badge badge-warning">Inactive</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">5d ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(0,184,148,.12);color:#00B894;border:1px solid rgba(0,184,148,.2);">Activate</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 8 -->
+          <tr style="background:rgba(214,48,49,.02);">
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#D63031,#ff7675);">KB</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Kevin Brown</span>
+                  <span class="user-cell-email">k.brown@jeffprep.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Jefferson Prep</td>
+            <td><span class="badge badge-teal">Student</span></td>
+            <td><span class="badge badge-danger">Suspended</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">7d ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(0,184,148,.12);color:#00B894;border:1px solid rgba(0,184,148,.2);">Activate</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.2);">🔴</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 9 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#FD79A8,#6C5CE7);">AL</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Dr. Amanda Lee</span>
+                  <span class="user-cell-email">a.lee@harbor.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Harbor View High</td>
+            <td><span class="badge badge-pink">Admin</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">30min ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 10 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#00b894,#00CEC9);">JW</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">James Wilson</span>
+                  <span class="user-cell-email">j.wilson@pine.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Pine Ridge Academy</td>
+            <td><span class="badge badge-teal">Student</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">10min ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Suspend</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 11 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#a29bfe,#6C5CE7);">MG</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Maria Garcia</span>
+                  <span class="user-cell-email">m.garcia@meadow.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Meadow Creek MS</td>
+            <td><span class="badge badge-purple">Teacher</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">2h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+              </div>
+            </td>
+          </tr>
+          <!-- 12 -->
+          <tr>
+            <td><input type="checkbox" style="accent-color:#6C5CE7;cursor:pointer;"></td>
+            <td>
+              <div class="user-cell">
+                <div class="user-ava" style="background:linear-gradient(135deg,#00CEC9,#a29bfe);">TS</div>
+                <div class="user-cell-info">
+                  <span class="user-cell-name">Tyler Smith</span>
+                  <span class="user-cell-email">t.smith@techprep.edu</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:12px;color:rgba(255,255,255,.55);">Tech Prep High</td>
+            <td><span class="badge badge-teal">Student</span></td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);font-size:12px;">15min ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚡ Impersonate</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Suspend</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:20px;margin-top:4px;border-top:1px solid rgba(255,255,255,.06);">
+        <span style="font-size:13px;color:rgba(255,255,255,.4);">Showing 1–12 of 130,881 users</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;opacity:.4;cursor:not-allowed;">← Prev</button>
+          <button class="btn" style="background:rgba(108,92,231,.2);color:#a29bfe;font-size:12px;padding:6px 14px;">1</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">2</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">Next →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>LvlAuth.requireAuth(['superAdmin']);</script>
+<script>
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+  }
+});
+</script>
+</body>
+</html>

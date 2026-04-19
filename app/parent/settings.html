@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Settings – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-teal{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+/* Tabs */
+.settings-tabs{display:flex;gap:6px;margin-bottom:28px;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:6px;}
+.stab{flex:1;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;text-align:center;}
+.stab.active{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+/* Settings sections (panels) */
+.settings-panel{display:none;}
+.settings-panel.active{display:block;}
+/* Form fields */
+.form-group{margin-bottom:18px;}
+.form-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;font-family:'Segoe UI',sans-serif;outline:none;transition:border .2s;}
+.form-input:focus{border-color:#6C5CE7;}
+.form-select{width:100%;background:#1a1a3e;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;outline:none;cursor:pointer;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+/* Profile avatar section */
+.profile-avatar-section{display:flex;align-items:center;gap:24px;margin-bottom:28px;padding:24px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);}
+.profile-avatar-big{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;position:relative;}
+.avatar-edit-btn{position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;background:#6C5CE7;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid #0D0D1A;}
+/* Children rows */
+.child-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);margin-bottom:10px;}
+.child-row-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;}
+.child-row-info{flex:1;}
+.child-row-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.child-row-meta{font-size:12px;color:rgba(255,255,255,.4);}
+.add-child-form{display:flex;gap:10px;margin-top:14px;}
+.add-child-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;outline:none;}
+.add-child-input:focus{border-color:#00CEC9;}
+/* Toggle switches */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-label-group{display:flex;flex-direction:column;gap:3px;}
+.toggle-label{font-size:14px;font-weight:600;}
+.toggle-desc{font-size:12px;color:rgba(255,255,255,.4);}
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;border-radius:24px;background:rgba(255,255,255,.15);transition:background .2s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;}
+.toggle-switch input:checked + .toggle-slider{background:#00CEC9;}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(20px);}
+/* Radio */
+.radio-group{display:flex;flex-direction:column;gap:10px;}
+.radio-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.06);cursor:pointer;}
+.radio-option input[type=radio]{margin-top:2px;accent-color:#6C5CE7;}
+.radio-option-text{font-size:13px;font-weight:600;}
+.radio-option-desc{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+/* Danger zone */
+.danger-zone{border:1px solid rgba(214,48,49,.25);border-radius:12px;padding:20px;background:rgba(214,48,49,.05);}
+.danger-title{font-size:14px;font-weight:700;color:#D63031;margin-bottom:8px;}
+.danger-desc{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.6;}
+.notif-section-title{font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 8px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📋</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/settings.html" class="nav-item active"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">P</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Parent</div>
+        <div class="user-role-sm" style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">⚙️</span>
+    <h1 class="header-title">Parent Settings</h1>
+    <span style="font-size:12px;color:rgba(255,255,255,.4);">Manage your account &amp; preferences</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">P</div>
+  </header>
+
+  <div class="app-content">
+
+    <!-- Tab bar -->
+    <div class="settings-tabs">
+      <button class="stab active" onclick="switchTab('profile',this)">👤 Profile</button>
+      <button class="stab" onclick="switchTab('children',this)">👶 Children</button>
+      <button class="stab" onclick="switchTab('notifications',this)">🔔 Notifications</button>
+      <button class="stab" onclick="switchTab('privacy',this)">🔒 Privacy</button>
+    </div>
+
+    <!-- PROFILE PANEL -->
+    <div class="settings-panel active" id="panel-profile">
+      <div class="card">
+        <div class="card-title">👤 Profile Information</div>
+
+        <div class="profile-avatar-section">
+          <div class="profile-avatar-big" id="bigAvatar">
+            SJ
+            <div class="avatar-edit-btn" onclick="alert('Upload photo')">✏️</div>
+          </div>
+          <div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:4px;" id="profileName">Sarah Johnson</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:10px;">Parent Account &nbsp;·&nbsp; Member since Aug 2023</div>
+            <button class="btn btn-outline" style="font-size:12px;" onclick="alert('Upload new photo')">📷 Change Photo</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input class="form-input" type="text" value="Sarah Johnson" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" type="email" value="sarah.j@email.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" type="tel" value="+1 (555) 234-5678" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Timezone</label>
+            <select class="form-select">
+              <option selected>Eastern Time (UTC-5)</option>
+              <option>Central Time (UTC-6)</option>
+              <option>Mountain Time (UTC-7)</option>
+              <option>Pacific Time (UTC-8)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Preferred Language</label>
+            <select class="form-select">
+              <option selected>English</option>
+              <option>Spanish</option>
+              <option>French</option>
+              <option>Mandarin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Relationship to Children</label>
+            <select class="form-select">
+              <option selected>Mother</option>
+              <option>Father</option>
+              <option>Guardian</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="alert('Changes saved!')">💾 Save Changes</button>
+          <button class="btn btn-outline" onclick="alert('Resetting…')">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title">🔑 Change Password</div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input class="form-input" type="password" placeholder="Enter current password" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input class="form-input" type="password" placeholder="Minimum 8 characters" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input class="form-input" type="password" placeholder="Repeat new password" />
+          </div>
+        </div>
+        <button class="btn btn-teal" onclick="alert('Password updated!')">🔒 Update Password</button>
+      </div>
+    </div>
+
+    <!-- CHILDREN PANEL -->
+    <div class="settings-panel" id="panel-children">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">👶 Linked Children <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.4);">2 accounts linked</span></div>
+
+        <div class="child-row">
+          <div class="child-row-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">E</div>
+          <div class="child-row-info">
+            <div class="child-row-name">Ethan Johnson</div>
+            <div class="child-row-meta">Student ID: STU-2847 &nbsp;·&nbsp; Grade 8 &nbsp;·&nbsp; 🥈 Silver Explorer</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="/app/parent/child-progress.html"><button class="btn btn-teal" style="font-size:12px;">View Progress</button></a>
+            <button class="btn" style="background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);font-size:12px;" onclick="confirm('Remove Ethan from your account?')">Remove</button>
+          </div>
+        </div>
+
+        <div class="child-row">
+          <div class="child-row-avatar" style="background:linear-gradient(135deg,#FD79A8,#e84393);">L</div>
+          <div class="child-row-info">
+            <div class="child-row-name">Lily Johnson</div>
+            <div class="child-row-meta">Student ID: STU-3102 &nbsp;·&nbsp; Grade 5 &nbsp;·&nbsp; 🥉 Bronze Learner</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <a href="/app/parent/child-progress.html"><button class="btn btn-teal" style="font-size:12px;">View Progress</button></a>
+            <button class="btn" style="background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);font-size:12px;" onclick="confirm('Remove Lily from your account?')">Remove</button>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">➕ Add a Child by Student ID</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;">Ask your child's school admin for their Student ID to link their account.</div>
+          <div class="add-child-form">
+            <input class="add-child-input" type="text" placeholder="Enter Student ID (e.g. STU-4521)" id="addChildInput" />
+            <button class="btn btn-primary" onclick="alert('Sending link request for: ' + document.getElementById('addChildInput').value)">Add Child</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Viewing Permissions</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:16px;">Control what information you can see for each child.</div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">View Grades & Reports</div><div class="toggle-desc">Access to academic grades and downloadable reports</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">View XP & Game Progress</div><div class="toggle-desc">See quests completed, XP earned, and rank</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">View Attendance Records</div><div class="toggle-desc">Access to daily attendance history</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">View Teacher Messages (Child's)</div><div class="toggle-desc">Read messages sent to your child from teachers</div></div>
+          <label class="toggle-switch"><input type="checkbox" /><div class="toggle-slider"></div></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS PANEL -->
+    <div class="settings-panel" id="panel-notifications">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">📧 Email Notifications</div>
+        <div class="notif-section-title">Academic Updates</div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">New grades posted</div><div class="toggle-desc">Notified when a teacher publishes a new grade</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Assignment due reminders</div><div class="toggle-desc">24-hour reminder before assignment deadlines</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Badge earned notifications</div><div class="toggle-desc">Celebrate when your child earns a new badge</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="notif-section-title">Communication</div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Teacher message notifications</div><div class="toggle-desc">Email when a teacher sends you a direct message</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Weekly progress summary</div><div class="toggle-desc">Receive a weekly digest every Sunday morning</div></div>
+          <label class="toggle-switch"><input type="checkbox" /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">School event announcements</div><div class="toggle-desc">Newsletters, event reminders, and school news</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📱 SMS Alerts</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px;">Sending to +1 (555) 234-5678 &nbsp;·&nbsp; <span style="color:#00CEC9;cursor:pointer;">Change number</span></div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Low grade alert</div><div class="toggle-desc">SMS when a grade falls below 70%</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Absence notification</div><div class="toggle-desc">SMS on the same day as an unexcused absence</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Emergency school alerts</div><div class="toggle-desc">Critical safety and emergency notifications</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked /><div class="toggle-slider"></div></label>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="alert('Notification settings saved!')">💾 Save Preferences</button>
+          <button class="btn btn-outline" onclick="alert('Test notification sent!')">🔔 Send Test Notification</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIVACY PANEL -->
+    <div class="settings-panel" id="panel-privacy">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">🔒 Data Sharing Preferences</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:18px;">Choose how your and your children's data is used on the platform.</div>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="data-share" value="full" checked />
+            <div>
+              <div class="radio-option-text">✅ Full Sharing (Recommended)</div>
+              <div class="radio-option-desc">Allow platform to use anonymized data to improve personalized learning recommendations for your children.</div>
+            </div>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="data-share" value="limited" />
+            <div>
+              <div class="radio-option-text">⚠️ Limited Sharing</div>
+              <div class="radio-option-desc">Only essential data is shared. Some personalization features may be reduced.</div>
+            </div>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="data-share" value="none" />
+            <div>
+              <div class="radio-option-text">🚫 No Sharing</div>
+              <div class="radio-option-desc">Opt out of all non-essential data usage. Core platform features remain available.</div>
+            </div>
+          </label>
+        </div>
+        <div class="toggle-row" style="margin-top:16px;">
+          <div class="toggle-label-group"><div class="toggle-label">Allow research participation</div><div class="toggle-desc">Anonymized data may be used for educational research studies</div></div>
+          <label class="toggle-switch"><input type="checkbox" /><div class="toggle-slider"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label-group"><div class="toggle-label">Personalized advertising</div><div class="toggle-desc">Show relevant educational content suggestions based on progress</div></div>
+          <label class="toggle-switch"><input type="checkbox" /><div class="toggle-slider"></div></label>
+        </div>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="alert('Privacy preferences saved!')">💾 Save Privacy Settings</button>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">📦 Your Data</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:16px;line-height:1.6;">You have the right to access and download all data associated with your account and your children's accounts. Your data export will include profile info, activity logs, grades, and messages.</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-teal" onclick="alert('Preparing data export — you will receive an email within 24 hours.')">⬇ Download My Data</button>
+          <button class="btn btn-outline" onclick="alert('Privacy policy opened.')">📄 Privacy Policy</button>
+        </div>
+      </div>
+
+      <div class="danger-zone">
+        <div class="danger-title">⚠️ Danger Zone — Account Deletion</div>
+        <div class="danger-desc">Permanently deleting your account will remove all your data, unlink all children's accounts, and cancel any active subscriptions. This action <strong style="color:#D63031;">cannot be undone</strong>. Your children's student accounts will not be deleted — only this parent portal account.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn" style="background:rgba(214,48,49,.2);color:#D63031;border:1px solid rgba(214,48,49,.4);" onclick="confirm('Are you absolutely sure you want to delete your account? This cannot be undone.') && alert('Account deletion request submitted. Check your email to confirm.')">🗑 Delete My Account</button>
+          <button class="btn btn-outline" onclick="alert('Deactivation keeps your data but hides your profile.')">⏸ Deactivate Account</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+LvlAuth.requireAuth(['parent']);
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Parent';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('headerAvatar').textContent = name.charAt(0).toUpperCase();
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('bigAvatar').childNodes[0].textContent = initials;
+    document.getElementById('profileName').textContent = name;
+  }
+});
+function switchTab(id, btn) {
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Schools – lvlBase Super Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(108,92,231,.15);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(108,92,231,.2);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-danger{background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+.btn-sm{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 12px 14px 0;}
+.data-table td{padding:13px 12px 13px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:rgba(108,92,231,.04);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-pink{background:rgba(253,121,168,.15);color:#FD79A8;}
+/* Schools-specific */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+.search-input:focus{border-color:rgba(108,92,231,.5);}
+.filter-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:rgba(255,255,255,.7);font-size:13px;outline:none;cursor:pointer;}
+.filter-select option{background:#12122A;color:#fff;}
+.stats-strip{display:flex;gap:24px;margin-bottom:20px;padding:14px 20px;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:12px;}
+.strip-stat{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.6);}
+.strip-stat strong{color:#fff;font-size:15px;}
+.strip-sep{width:1px;height:24px;background:rgba(255,255,255,.08);}
+.action-btns{display:flex;align-items:center;gap:6px;}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding-top:20px;margin-top:4px;border-top:1px solid rgba(255,255,255,.06);}
+.page-info{font-size:13px;color:rgba(255,255,255,.4);}
+.page-btns{display:flex;gap:8px;}
+.school-name-cell{display:flex;flex-direction:column;gap:2px;}
+.school-name-main{font-weight:600;color:#fff;font-size:13px;}
+.school-id{font-size:11px;color:rgba(255,255,255,.3);}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">lvlBase</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Super Admin</div>
+    <a href="/app/super-admin/dashboard.html" class="nav-item"><span class="nav-icon">🏛️</span>Dashboard</a>
+    <a href="/app/super-admin/schools.html" class="nav-item active"><span class="nav-icon">🏫</span>Schools</a>
+    <a href="/app/super-admin/users.html" class="nav-item"><span class="nav-icon">👥</span>Users</a>
+    <a href="/app/super-admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/super-admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Super Admin</div>
+        <div style="font-size:11px;color:#6C5CE7;">Platform Administrator</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">🏫 School Management</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.35);">147 schools on platform</div>
+  </header>
+
+  <main class="app-content">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input class="search-input" type="text" placeholder="🔍  Search schools...">
+      <select class="filter-select">
+        <option>All Plans</option>
+        <option>Starter</option>
+        <option>Professional</option>
+        <option>Enterprise</option>
+      </select>
+      <select class="filter-select">
+        <option>All Status</option>
+        <option>Active</option>
+        <option>Trial</option>
+        <option>Suspended</option>
+      </select>
+      <button class="btn btn-primary" style="margin-left:auto;">+ Add School</button>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip">
+      <div class="strip-stat"><strong>147</strong> Total</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#00B894;">128</strong> Active</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#FDCB6E;">12</strong> Trial</div>
+      <div class="strip-sep"></div>
+      <div class="strip-stat"><strong style="color:#D63031;">7</strong> Suspended</div>
+    </div>
+
+    <!-- Schools Table -->
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>School Name</th>
+            <th>Plan</th>
+            <th>Students</th>
+            <th>Teachers</th>
+            <th>MRR</th>
+            <th>Status</th>
+            <th>Last Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 1 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Westview Academy</span>
+                <span class="school-id">#SCH-001</span>
+              </div>
+            </td>
+            <td><span class="badge badge-pink">Enterprise</span></td>
+            <td>1,240</td>
+            <td>98</td>
+            <td style="color:#00B894;font-weight:600;">$890</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">2h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+                <button class="btn-sm" style="background:rgba(253,203,110,.12);color:#FDCB6E;border:1px solid rgba(253,203,110,.2);">⚠️</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 2 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Sunrise Elementary</span>
+                <span class="school-id">#SCH-002</span>
+              </div>
+            </td>
+            <td><span class="badge badge-teal">Starter</span></td>
+            <td>318</td>
+            <td>22</td>
+            <td style="color:#00B894;font-weight:600;">$149</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">1h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 3 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Tech Prep High</span>
+                <span class="school-id">#SCH-003</span>
+              </div>
+            </td>
+            <td><span class="badge badge-purple">Professional</span></td>
+            <td>784</td>
+            <td>56</td>
+            <td style="color:#00B894;font-weight:600;">$490</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">3h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 4 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Lincoln Middle School</span>
+                <span class="school-id">#SCH-004</span>
+              </div>
+            </td>
+            <td><span class="badge badge-pink">Enterprise</span></td>
+            <td>1,098</td>
+            <td>87</td>
+            <td style="color:#00B894;font-weight:600;">$890</td>
+            <td><span class="badge badge-warning">Trial</span></td>
+            <td style="color:rgba(255,255,255,.45);">Today</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 5 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Oak Park K-8</span>
+                <span class="school-id">#SCH-005</span>
+              </div>
+            </td>
+            <td><span class="badge badge-teal">Starter</span></td>
+            <td>276</td>
+            <td>19</td>
+            <td style="color:#00B894;font-weight:600;">$149</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">Yesterday</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 6 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Riverside Elementary</span>
+                <span class="school-id">#SCH-006</span>
+              </div>
+            </td>
+            <td><span class="badge badge-purple">Professional</span></td>
+            <td>542</td>
+            <td>38</td>
+            <td style="color:#00B894;font-weight:600;">$490</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">4h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 7 -->
+          <tr style="background:rgba(214,48,49,.03);">
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Jefferson Prep</span>
+                <span class="school-id">#SCH-007</span>
+              </div>
+            </td>
+            <td><span class="badge badge-pink">Enterprise</span></td>
+            <td>1,312</td>
+            <td>104</td>
+            <td style="color:#D63031;font-weight:600;">$890</td>
+            <td><span class="badge badge-danger">Suspended</span></td>
+            <td style="color:rgba(255,255,255,.45);">3d ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+                <button class="btn-sm" style="background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.2);">🔴</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 8 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Meadow Creek MS</span>
+                <span class="school-id">#SCH-008</span>
+              </div>
+            </td>
+            <td><span class="badge badge-teal">Starter</span></td>
+            <td>198</td>
+            <td>14</td>
+            <td style="color:#00B894;font-weight:600;">$149</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">Today</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 9 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Harbor View High</span>
+                <span class="school-id">#SCH-009</span>
+              </div>
+            </td>
+            <td><span class="badge badge-purple">Professional</span></td>
+            <td>921</td>
+            <td>71</td>
+            <td style="color:#00B894;font-weight:600;">$490</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">1h ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+          <!-- Row 10 -->
+          <tr>
+            <td>
+              <div class="school-name-cell">
+                <span class="school-name-main">Pine Ridge Academy</span>
+                <span class="school-id">#SCH-010</span>
+              </div>
+            </td>
+            <td><span class="badge badge-pink">Enterprise</span></td>
+            <td>1,456</td>
+            <td>115</td>
+            <td style="color:#00B894;font-weight:600;">$890</td>
+            <td><span class="badge badge-success">Active</span></td>
+            <td style="color:rgba(255,255,255,.45);">30min ago</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-sm" style="background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.2);">View</button>
+                <button class="btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);">Edit</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <span class="page-info">Showing 1–10 of 147 schools</span>
+        <div class="page-btns">
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;opacity:.4;cursor:not-allowed;">← Prev</button>
+          <button class="btn" style="background:rgba(108,92,231,.2);color:#a29bfe;font-size:12px;padding:6px 14px;">1</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">2</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">3</button>
+          <span style="color:rgba(255,255,255,.3);padding:0 4px;">…</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">15</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 14px;">Next →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>LvlAuth.requireAuth(['superAdmin']);</script>
+<script>
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+  }
+});
+</script>
+</body>
+</html>
