@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Schedule – lvlBase Parent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(0,206,201,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(0,206,201,.5);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Page-specific */
+.child-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.child-tab{padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);transition:all .2s;}
+.child-tab.active{background:rgba(0,206,201,.15);border-color:rgba(0,206,201,.4);color:#00CEC9;}
+.period-card{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);margin-bottom:10px;transition:all .2s;cursor:default;}
+.period-card:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);}
+.period-card.current{background:rgba(0,206,201,.1);border-color:rgba(0,206,201,.35);box-shadow:0 0 0 1px rgba(0,206,201,.15);}
+.period-card.break-period{background:rgba(253,203,110,.07);border-color:rgba(253,203,110,.15);}
+.period-time{font-size:12px;font-weight:700;color:rgba(255,255,255,.5);width:80px;flex-shrink:0;text-align:center;}
+.period-card.current .period-time{color:#00CEC9;}
+.period-subject{font-size:15px;font-weight:700;flex:1;}
+.period-meta{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;}
+.period-room{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);padding:4px 10px;border-radius:8px;}
+.weekly-table{width:100%;border-collapse:collapse;}
+.weekly-table th{padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);text-align:center;border-bottom:1px solid rgba(255,255,255,.08);}
+.weekly-table th.today-col{color:#00CEC9;background:rgba(0,206,201,.08);border-radius:8px 8px 0 0;}
+.weekly-table td{padding:8px 10px;font-size:12px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+.weekly-table tr:last-child td{border-bottom:none;}
+.wk-cell{background:rgba(255,255,255,.04);border-radius:8px;padding:6px 8px;}
+.wk-cell.current-col{background:rgba(0,206,201,.1);}
+.wk-cell-sub{font-weight:600;font-size:12px;margin-bottom:2px;}
+.wk-cell-teacher{font-size:10px;color:rgba(255,255,255,.4);}
+.event-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);margin-bottom:10px;transition:all .2s;}
+.event-item:hover{background:rgba(255,255,255,.06);}
+.event-date-box{min-width:44px;height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/parent/schedule.html" class="nav-item active"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/teacher-contact.html" class="nav-item"><span class="nav-icon">👩‍🏫</span>Teachers</a>
+    <a href="/app/parent/fee-payment.html" class="nav-item"><span class="nav-icon">💳</span>Fee &amp; Payment</a>
+    <a href="/app/parent/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">P</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Parent</div>
+        <div style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">📅</span>
+    <h1 class="header-title">Child's Schedule</h1>
+    <button class="btn btn-dark btn-sm" onclick="downloadTimetable()">📄 Download Timetable</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">P</div>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Child Selector -->
+    <div class="child-tabs">
+      <button class="child-tab active" onclick="selectChild(0,this)">👦 Arjun (Class 9-A)</button>
+      <button class="child-tab" onclick="selectChild(1,this)">👧 Priya (Class 7-B)</button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Classes Today</div>
+        <div style="font-size:32px;font-weight:800;color:#00CEC9;">6</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Periods scheduled</div>
+        <div class="badge badge-teal" style="margin-top:8px;">Full Day</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Free Periods</div>
+        <div style="font-size:32px;font-weight:800;color:#6C5CE7;">1</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Period 4 free today</div>
+        <div class="badge badge-purple" style="margin-top:8px;">Library</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Next Class</div>
+        <div style="font-size:18px;font-weight:800;color:#FDCB6E;">Math</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Starts in 35 min</div>
+        <div class="badge badge-warning" style="margin-top:8px;">Room 201</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">School Hours</div>
+        <div style="font-size:18px;font-weight:800;color:#00B894;">8AM–3PM</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Mon–Sat</div>
+        <div class="badge badge-success" style="margin-top:8px;">7 Hours</div>
+      </div>
+    </div>
+
+    <div class="bento-grid">
+
+      <!-- Today's Schedule -->
+      <div class="bento-card b-col-6">
+        <div class="card-title">
+          <span>📚 Today's Schedule</span>
+          <span id="todayDate" style="font-size:12px;font-weight:400;color:rgba(255,255,255,.4);"></span>
+        </div>
+        <div id="todaySchedule"></div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div class="bento-card b-col-6">
+        <div class="card-title"><span>🗓️ Upcoming Events</span></div>
+
+        <div class="event-item">
+          <div class="event-date-box" style="background:rgba(214,48,49,.15);color:#D63031;">
+            <div style="font-size:16px;font-weight:800;">15</div>
+            <div>Nov</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">📝 Mathematics Exam</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">Chapters 1–5 · 2 hours · Room 201</div>
+            <button class="btn btn-dark btn-sm" style="margin-top:8px;" onclick="setReminder('Nov 15','Mathematics Exam')">🔔 Set Reminder</button>
+          </div>
+        </div>
+
+        <div class="event-item">
+          <div class="event-date-box" style="background:rgba(253,203,110,.15);color:#FDCB6E;">
+            <div style="font-size:16px;font-weight:800;">20</div>
+            <div>Nov</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">👩‍🏫 Parent-Teacher Meeting</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">4:00 PM – 6:00 PM · Hall A</div>
+            <button class="btn btn-dark btn-sm" style="margin-top:8px;" onclick="setReminder('Nov 20','Parent-Teacher Meeting')">🔔 Set Reminder</button>
+          </div>
+        </div>
+
+        <div class="event-item">
+          <div class="event-date-box" style="background:rgba(0,184,148,.15);color:#00B894;">
+            <div style="font-size:16px;font-weight:800;">25</div>
+            <div>Nov</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">🎉 Annual Sports Day</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">All day · School Ground</div>
+            <button class="btn btn-dark btn-sm" style="margin-top:8px;" onclick="setReminder('Nov 25','Annual Sports Day')">🔔 Set Reminder</button>
+          </div>
+        </div>
+
+        <div class="event-item">
+          <div class="event-date-box" style="background:rgba(108,92,231,.15);color:#a29bfe;">
+            <div style="font-size:16px;font-weight:800;">05</div>
+            <div>Dec</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px;">🏖️ Winter Break Begins</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">No school Dec 5 – Dec 25</div>
+            <button class="btn btn-dark btn-sm" style="margin-top:8px;" onclick="setReminder('Dec 5','Winter Break')">🔔 Set Reminder</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);">
+          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Exam Schedule</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;">
+              <span>📐 Mathematics</span><span style="color:#D63031;font-weight:600;">Nov 15</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;">
+              <span>🔬 Science</span><span style="color:#D63031;font-weight:600;">Nov 18</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;">
+              <span>📖 English</span><span style="color:#D63031;font-weight:600;">Nov 21</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:8px;">
+              <span>🌏 Social Studies</span><span style="color:#D63031;font-weight:600;">Nov 25</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Schedule -->
+      <div class="bento-card b-col-12" style="margin-top:0;">
+        <div class="card-title"><span>🗓️ Weekly Timetable</span><span class="badge badge-teal">Week of Nov 11–16</span></div>
+        <div style="overflow-x:auto;">
+          <table class="weekly-table" id="weeklyTable"></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Reminder Modal -->
+<div class="modal-overlay" id="reminderModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">🔔 Set Reminder</div>
+    <div id="reminderContent"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-dark" onclick="closeReminderModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmReminder()">Set Reminder</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const schedules = {
+  0: [ // Arjun
+    {time:'8:00 AM',end:'9:00 AM',subject:'Mathematics',room:'Room 201',teacher:'Mr. Singh',icon:'📐',color:'#00CEC9',current:false},
+    {time:'9:00 AM',end:'10:00 AM',subject:'English',room:'Room 105',teacher:'Ms. Priya',icon:'📖',color:'#a29bfe',current:true},
+    {time:'10:00 AM',end:'11:00 AM',subject:'Science',room:'Lab 3',teacher:'Dr. Khan',icon:'🔬',color:'#00B894',current:false},
+    {time:'11:00 AM',end:'11:15 AM',subject:'Short Break',room:'—',teacher:'—',icon:'☕',color:'#FDCB6E',current:false,isBreak:true},
+    {time:'11:15 AM',end:'12:15 PM',subject:'Hindi',room:'Room 203',teacher:'Ms. Sharma',icon:'🌐',color:'#FD79A8',current:false},
+    {time:'12:15 PM',end:'1:00 PM',subject:'Lunch Break',room:'Cafeteria',teacher:'—',icon:'🍽️',color:'#FDCB6E',current:false,isBreak:true},
+    {time:'1:00 PM',end:'2:00 PM',subject:'Computer Science',room:'Lab 1',teacher:'Mr. Patel',icon:'💻',color:'#6C5CE7',current:false},
+    {time:'2:00 PM',end:'3:00 PM',subject:'Physical Education',room:'Ground',teacher:'Ms. Roy',icon:'⚽',color:'#00B894',current:false},
+  ],
+  1: [ // Priya
+    {time:'8:00 AM',end:'9:00 AM',subject:'English',room:'Room 101',teacher:'Ms. Priya',icon:'📖',color:'#a29bfe',current:false},
+    {time:'9:00 AM',end:'10:00 AM',subject:'Mathematics',room:'Room 202',teacher:'Mr. Singh',icon:'📐',color:'#00CEC9',current:true},
+    {time:'10:00 AM',end:'11:00 AM',subject:'Social Studies',room:'Room 108',teacher:'Mr. Verma',icon:'🌏',color:'#FD79A8',current:false},
+    {time:'11:00 AM',end:'11:15 AM',subject:'Short Break',room:'—',teacher:'—',icon:'☕',color:'#FDCB6E',current:false,isBreak:true},
+    {time:'11:15 AM',end:'12:15 PM',subject:'Science',room:'Lab 2',teacher:'Dr. Khan',icon:'🔬',color:'#00B894',current:false},
+    {time:'12:15 PM',end:'1:00 PM',subject:'Lunch Break',room:'Cafeteria',teacher:'—',icon:'🍽️',color:'#FDCB6E',current:false,isBreak:true},
+    {time:'1:00 PM',end:'2:00 PM',subject:'Art & Craft',room:'Art Room',teacher:'Ms. Meena',icon:'🎨',color:'#FD79A8',current:false},
+    {time:'2:00 PM',end:'3:00 PM',subject:'Hindi',room:'Room 106',teacher:'Ms. Sharma',icon:'🌐',color:'#6C5CE7',current:false},
+  ]
+};
+
+const weeklyData = {
+  0: {
+    Mon:['Math/Mr.Singh','English/Ms.Priya','Science/Dr.Khan','Hindi/Ms.Sharma','CS/Mr.Patel','PE/Ms.Roy'],
+    Tue:['English/Ms.Priya','Math/Mr.Singh','Hindi/Ms.Sharma','Science/Dr.Khan','PE/Ms.Roy','CS/Mr.Patel'],
+    Wed:['Science/Dr.Khan','Hindi/Ms.Sharma','Math/Mr.Singh','CS/Mr.Patel','English/Ms.Priya','PE/Ms.Roy'],
+    Thu:['Hindi/Ms.Sharma','CS/Mr.Patel','English/Ms.Priya','Math/Mr.Singh','Science/Dr.Khan','PE/Ms.Roy'],
+    Fri:['CS/Mr.Patel','Science/Dr.Khan','PE/Ms.Roy','English/Ms.Priya','Hindi/Ms.Sharma','Math/Mr.Singh'],
+    Sat:['Math/Mr.Singh','PE/Ms.Roy','Science/Dr.Khan','Hindi/Ms.Sharma','English/Ms.Priya','—'],
+    Sun:['—','—','—','—','—','—']
+  }
+};
+
+const periods = ['Period 1 (8-9AM)','Period 2 (9-10AM)','Period 3 (10-11AM)','Period 4 (11AM-12)','Period 5 (12-1PM)','Period 6 (1-2PM)'];
+let activeChild = 0;
+
+function selectChild(idx, el) {
+  activeChild = idx;
+  document.querySelectorAll('.child-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderToday();
+  renderWeekly();
+}
+
+function renderToday() {
+  const s = schedules[activeChild];
+  let html = '';
+  s.forEach(p => {
+    html += `<div class="period-card ${p.current?'current':''} ${p.isBreak?'break-period':''}">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${p.icon}</div>
+      <div class="period-time">${p.time}</div>
+      <div style="flex:1;">
+        <div class="period-subject" style="color:${p.isBreak?'rgba(255,255,255,.5)':'#fff'}">${p.subject}</div>
+        <div class="period-meta">${p.isBreak?p.room:`${p.teacher} · ${p.room}`}</div>
+      </div>
+      ${p.current?'<span class="badge badge-teal">Now</span>':''}
+      ${!p.isBreak && !p.current?`<span class="period-room">${p.room}</span>`:''}
+    </div>`;
+  });
+  document.getElementById('todaySchedule').innerHTML = html;
+}
+
+function renderWeekly() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayIdx = 1; // Tuesday highlight
+  let html = `<tr><th>Period</th>${days.map((d,i)=>`<th class="${i===todayIdx?'today-col':''}">${d}${i===todayIdx?' ⬤':''}</th>`).join('')}</tr>`;
+  periods.forEach((p,pi) => {
+    html += `<tr><td style="font-size:11px;color:rgba(255,255,255,.4);font-weight:600;">${p}</td>`;
+    days.forEach((d,di) => {
+      const cell = weeklyData[0][d][pi] || '—';
+      const [sub,teacher] = cell.split('/');
+      html += `<td><div class="wk-cell ${di===todayIdx?'current-col':''}">
+        <div class="wk-cell-sub" style="color:${di===todayIdx?'#00CEC9':'rgba(255,255,255,.8)'}">${sub}</div>
+        ${teacher?`<div class="wk-cell-teacher">${teacher}</div>`:''}
+      </div></td>`;
+    });
+    html += '</tr>';
+  });
+  document.getElementById('weeklyTable').innerHTML = html;
+}
+
+let pendingReminder = '';
+function setReminder(date, event) {
+  pendingReminder = `${event} on ${date}`;
+  document.getElementById('reminderContent').innerHTML = `
+    <p style="color:rgba(255,255,255,.7);font-size:14px;margin-bottom:16px;">Set a reminder for:</p>
+    <div style="background:rgba(0,206,201,.1);border:1px solid rgba(0,206,201,.25);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:24px;">📅</span>
+      <div>
+        <div style="font-size:15px;font-weight:700;">${event}</div>
+        <div style="font-size:13px;color:#00CEC9;">${date}</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Remind me</label>
+      <select class="form-select" id="reminderWhen">
+        <option>1 day before</option>
+        <option>2 days before</option>
+        <option>1 week before</option>
+        <option>On the day</option>
+      </select>
+    </div>
+  `;
+  document.getElementById('reminderModal').classList.add('open');
+}
+function closeReminderModal() { document.getElementById('reminderModal').classList.remove('open'); }
+function confirmReminder() {
+  closeReminderModal();
+  showToast(`🔔 Reminder set for ${pendingReminder}!`, 'success', '🔔');
+}
+function downloadTimetable() {
+  showToast('📄 Timetable PDF downloaded!', 'success', '📄');
+}
+
+// Set today's date
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now = new Date();
+document.getElementById('todayDate').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+
+document.getElementById('reminderModal').addEventListener('click',function(e){ if(e.target===this) closeReminderModal(); });
+
+renderToday();
+renderWeekly();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['parent']);</script>
+</body>
+</html>

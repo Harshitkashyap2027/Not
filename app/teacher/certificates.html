@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Certificates – lvlBase Teacher</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.btn-gold{background:linear-gradient(135deg,#f9ca24,#f0932b);color:#fff;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-gold{background:rgba(249,202,36,.15);color:#f9ca24;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:560px;transform:scale(.9) translateY(20px);transition:all .3s;max-height:90vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(108,92,231,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Cert-specific */
+.stat-val{font-size:32px;font-weight:800;margin:8px 0 4px;}
+.stat-lbl{font-size:12px;color:rgba(255,255,255,.5);}
+.stat-icon-lg{font-size:28px;margin-bottom:4px;}
+.tab-nav{display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;}
+.tab-btn{flex:1;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:#6C5CE7;color:#fff;}
+
+/* Certificate design */
+.cert-preview{background:linear-gradient(135deg,#0a0a1a 0%,#1a1040 50%,#0a0a1a 100%);border:2px solid #f9ca24;border-radius:16px;padding:32px;text-align:center;position:relative;overflow:hidden;}
+.cert-preview::before{content:'';position:absolute;inset:4px;border:1px solid rgba(249,202,36,.3);border-radius:13px;pointer-events:none;}
+.cert-corner{position:absolute;font-size:24px;}
+.cert-seal{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#f9ca24,#f0932b);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;}
+.cert-title{font-size:22px;font-weight:800;color:#f9ca24;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.cert-subtitle{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;}
+.cert-name{font-size:28px;font-weight:700;color:#fff;margin-bottom:8px;}
+.cert-body{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:20px;line-height:1.6;}
+.cert-course{font-size:16px;font-weight:700;color:#a29bfe;margin-bottom:20px;}
+.cert-footer{display:flex;justify-content:space-between;align-items:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid rgba(249,202,36,.2);}
+.qr-placeholder{width:60px;height:60px;background:rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.cert-id-badge{font-size:11px;color:rgba(255,255,255,.4);font-family:monospace;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <a href="/app/teacher/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/teacher/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/resources.html" class="nav-item"><span class="nav-icon">📚</span>Resources</a>
+    <a href="/app/teacher/certificates.html" class="nav-item active"><span class="nav-icon">🎓</span>Certificates</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">T</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Teacher</div>
+        <div style="font-size:11px;color:#00CEC9;">Teacher</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">🎓 Certificates</div>
+    <button class="btn btn-primary btn-sm" onclick="openIssueModal()">+ Issue Certificate</button>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Stats -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">🎓</div>
+        <div class="stat-val" style="color:#f9ca24;">127</div>
+        <div class="stat-lbl">Issued</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">⏳</div>
+        <div class="stat-val" style="color:#FDCB6E;">8</div>
+        <div class="stat-lbl">Pending Review</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">✅</div>
+        <div class="stat-val" style="color:#00B894;">34</div>
+        <div class="stat-lbl">Verified This Month</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div class="stat-icon-lg">🔑</div>
+        <div class="stat-val" style="color:#a29bfe;">127</div>
+        <div class="stat-lbl">Unique QR IDs</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card">
+      <div class="tab-nav" id="tabNav">
+        <button class="tab-btn active" onclick="switchTab('issue',this)">🎓 Issue New</button>
+        <button class="tab-btn" onclick="switchTab('issued',this)">📋 Issued</button>
+        <button class="tab-btn" onclick="switchTab('pending',this)">⏳ Pending</button>
+      </div>
+
+      <!-- Issue Tab -->
+      <div id="tab-issue">
+        <div style="max-width:540px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Student Name</label>
+              <input class="form-input" id="certStudent" placeholder="Search student..." list="studentList"/>
+              <datalist id="studentList">
+                <option value="Aryan Mehta">
+                <option value="Priya Sharma">
+                <option value="Rahul Singh">
+                <option value="Sneha Patel">
+                <option value="Amit Kumar">
+                <option value="Divya Rao">
+                <option value="Karan Joshi">
+                <option value="Neha Gupta">
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Certificate Type</label>
+              <select class="form-select" id="certType">
+                <option>Course Completion</option>
+                <option>Achievement</option>
+                <option>Merit</option>
+                <option>Special Recognition</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Course / Subject</label>
+              <input class="form-input" id="certCourse" placeholder="e.g. Advanced Mathematics" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Issue Date</label>
+              <input class="form-input" type="date" id="certDate" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Grade / Score</label>
+            <input class="form-input" id="certGrade" placeholder="e.g. A+ / 95%" />
+          </div>
+          <button class="btn btn-gold" onclick="generateCertPreview()">🎓 Generate &amp; Preview Certificate</button>
+        </div>
+      </div>
+
+      <!-- Issued Tab -->
+      <div id="tab-issued" style="display:none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Student</th><th>Type</th><th>Certificate ID</th><th>Date</th><th>Track</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="issuedBody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pending Tab -->
+      <div id="tab-pending" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:12px;" id="pendingList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Certificate Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-title">🎓 Certificate Preview
+      <button onclick="closePreviewModal()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div class="cert-preview" id="certPreviewBox">
+      <span class="cert-corner" style="top:12px;left:12px;">✦</span>
+      <span class="cert-corner" style="top:12px;right:12px;">✦</span>
+      <span class="cert-corner" style="bottom:12px;left:12px;">✦</span>
+      <span class="cert-corner" style="bottom:12px;right:12px;">✦</span>
+      <div class="cert-seal">🎓</div>
+      <div class="cert-title">Certificate of Achievement</div>
+      <div class="cert-subtitle">lvlBase Learning Platform</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">This is to certify that</div>
+      <div class="cert-name" id="previewName">—</div>
+      <div class="cert-body">has successfully completed the course and demonstrated exceptional knowledge in</div>
+      <div class="cert-course" id="previewCourse">—</div>
+      <div style="display:flex;justify-content:center;gap:24px;font-size:12px;color:rgba(255,255,255,.5);">
+        <span>Grade: <span id="previewGrade" style="color:#f9ca24;font-weight:700;">—</span></span>
+        <span>Date: <span id="previewDate" style="color:#a29bfe;font-weight:700;">—</span></span>
+      </div>
+      <div class="cert-footer">
+        <div>
+          <div style="font-size:12px;color:#f9ca24;font-weight:700;">LvlBase Teacher</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);">Authorized Instructor</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="qr-placeholder">🔲</div>
+          <div class="cert-id-badge" id="previewCertId">LVL-2024-000000</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;color:#f9ca24;font-weight:700;">lvlBase</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);">Verified Certificate</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-dark" onclick="closePreviewModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="confirmIssue()">✅ Confirm & Issue</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Certificate Modal -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-title">🎓 Certificate
+      <button onclick="document.getElementById('viewModal').classList.remove('open')" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div class="cert-preview" id="viewCertBox"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-dark" onclick="document.getElementById('viewModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="showToast('📥 Certificate downloaded!','success','📥');document.getElementById('viewModal').classList.remove('open')">📥 Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const issuedCerts = [
+  {student:'Aryan Mehta',type:'Course Completion',id:'LVL-2024-100421',date:'2024-12-01',course:'Advanced Mathematics',grade:'A+'},
+  {student:'Priya Sharma',type:'Merit',id:'LVL-2024-100398',date:'2024-11-28',course:'Science',grade:'A'},
+  {student:'Rahul Singh',type:'Achievement',id:'LVL-2024-100375',date:'2024-11-25',course:'English Literature',grade:'A+'},
+  {student:'Sneha Patel',type:'Course Completion',id:'LVL-2024-100350',date:'2024-11-20',course:'Computer Science',grade:'B+'},
+  {student:'Amit Kumar',type:'Special Recognition',id:'LVL-2024-100312',date:'2024-11-15',course:'History',grade:'A'},
+  {student:'Divya Rao',type:'Merit',id:'LVL-2024-100289',date:'2024-11-10',course:'Mathematics',grade:'A+'},
+  {student:'Karan Joshi',type:'Achievement',id:'LVL-2024-100261',date:'2024-11-05',course:'Science',grade:'B+'},
+];
+
+const pendingCerts = [
+  {student:'Neha Gupta',type:'Course Completion',course:'Advanced English',grade:'A',submitted:'2024-12-10'},
+  {student:'Vikram Nair',type:'Merit',course:'Mathematics',grade:'A+',submitted:'2024-12-09'},
+  {student:'Anjali Singh',type:'Achievement',course:'Computer Science',grade:'B+',submitted:'2024-12-08'},
+];
+
+let currentCertId = '';
+
+function genId(){ return 'LVL-2024-' + Math.floor(100000 + Math.random()*900000); }
+
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['issue','issued','pending'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  document.getElementById('tab-'+name).style.display='block';
+  if(name==='issued') renderIssued();
+  if(name==='pending') renderPending();
+}
+
+function renderIssued(){
+  const tb = document.getElementById('issuedBody');
+  tb.innerHTML = issuedCerts.map(c=>`
+    <tr>
+      <td><strong>${c.student}</strong></td>
+      <td><span class="badge badge-purple">${c.type}</span></td>
+      <td><code style="font-size:11px;color:#00CEC9;">${c.id}</code></td>
+      <td style="color:rgba(255,255,255,.5);">${c.date}</td>
+      <td><span class="badge badge-teal">${c.course}</span></td>
+      <td>
+        <button class="btn btn-dark btn-sm" onclick="viewCert(${JSON.stringify(c).replace(/"/g,'&quot;')})">👁 View</button>
+        <button class="btn btn-sm" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);" onclick="revokeCert('${c.id}')">🚫 Revoke</button>
+      </td>
+    </tr>`).join('');
+}
+
+function renderPending(){
+  const pl = document.getElementById('pendingList');
+  pl.innerHTML = pendingCerts.map(p=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:rgba(253,203,110,.06);border:1px solid rgba(253,203,110,.15);border-radius:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;">${p.student}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);">${p.type} · ${p.course} · Grade: ${p.grade}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">Submitted: ${p.submitted}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="approvePending('${p.student}','${p.type}','${p.course}','${p.grade}')">✅ Approve</button>
+      <button class="btn btn-dark btn-sm" onclick="showToast('Request declined','error','❌')">Decline</button>
+    </div>`).join('');
+}
+
+function approvePending(student,type,course,grade){
+  const id = genId();
+  issuedCerts.unshift({student,type,id,date:new Date().toISOString().slice(0,10),course,grade});
+  showToast(`🎓 Certificate issued! ID: ${id}`, 'success', '🎓');
+  renderPending();
+}
+
+function viewCert(c){
+  const box = document.getElementById('viewCertBox');
+  box.innerHTML = `
+    <span class="cert-corner" style="top:12px;left:12px;">✦</span>
+    <span class="cert-corner" style="top:12px;right:12px;">✦</span>
+    <span class="cert-corner" style="bottom:12px;left:12px;">✦</span>
+    <span class="cert-corner" style="bottom:12px;right:12px;">✦</span>
+    <div class="cert-seal">🎓</div>
+    <div class="cert-title">${c.type}</div>
+    <div class="cert-subtitle">lvlBase Learning Platform</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">This is to certify that</div>
+    <div class="cert-name">${c.student}</div>
+    <div class="cert-body">has successfully completed the requirements for</div>
+    <div class="cert-course">${c.course}</div>
+    <div style="display:flex;justify-content:center;gap:24px;font-size:12px;color:rgba(255,255,255,.5);">
+      <span>Grade: <span style="color:#f9ca24;font-weight:700;">${c.grade}</span></span>
+      <span>Date: <span style="color:#a29bfe;font-weight:700;">${c.date}</span></span>
+    </div>
+    <div class="cert-footer">
+      <div><div style="font-size:12px;color:#f9ca24;font-weight:700;">LvlBase Teacher</div><div style="font-size:10px;color:rgba(255,255,255,.4);">Authorized Instructor</div></div>
+      <div style="text-align:center;"><div class="qr-placeholder">🔲</div><div class="cert-id-badge">${c.id}</div></div>
+      <div style="text-align:right;"><div style="font-size:12px;color:#f9ca24;font-weight:700;">lvlBase</div><div style="font-size:10px;color:rgba(255,255,255,.4);">Verified</div></div>
+    </div>`;
+  document.getElementById('viewModal').classList.add('open');
+}
+
+function revokeCert(id){
+  const idx = issuedCerts.findIndex(c=>c.id===id);
+  if(idx>-1) issuedCerts.splice(idx,1);
+  renderIssued();
+  showToast(`Certificate ${id} revoked`, 'error', '🚫');
+}
+
+function generateCertPreview(){
+  const student = document.getElementById('certStudent').value.trim();
+  const course = document.getElementById('certCourse').value.trim();
+  const grade = document.getElementById('certGrade').value.trim();
+  const date = document.getElementById('certDate').value || new Date().toISOString().slice(0,10);
+  const type = document.getElementById('certType').value;
+  if(!student){ showToast('Please enter a student name','error','❌'); return; }
+  if(!course){ showToast('Please enter a course name','error','❌'); return; }
+  currentCertId = genId();
+  document.getElementById('previewName').textContent = student;
+  document.getElementById('previewCourse').textContent = course + (grade ? ` (${grade})` : '');
+  document.getElementById('previewGrade').textContent = grade || 'Pass';
+  document.getElementById('previewDate').textContent = date;
+  document.getElementById('previewCertId').textContent = currentCertId;
+  document.getElementById('certPreviewBox').querySelector('.cert-title').textContent = type;
+  openPreviewModal();
+}
+
+function openPreviewModal(){ document.getElementById('previewModal').classList.add('open'); }
+function closePreviewModal(){ document.getElementById('previewModal').classList.remove('open'); }
+
+function openIssueModal(){ switchTab('issue',document.querySelector('.tab-btn')); }
+
+function confirmIssue(){
+  const student = document.getElementById('certStudent').value.trim();
+  const course = document.getElementById('certCourse').value.trim();
+  const grade = document.getElementById('certGrade').value.trim();
+  const date = document.getElementById('certDate').value || new Date().toISOString().slice(0,10);
+  const type = document.getElementById('certType').value;
+  issuedCerts.unshift({student,type,id:currentCertId,date,course,grade});
+  closePreviewModal();
+  showToast(`🎓 Certificate issued! ID: ${currentCertId}`, 'success', '🎓');
+  document.getElementById('certStudent').value='';
+  document.getElementById('certCourse').value='';
+  document.getElementById('certGrade').value='';
+}
+
+document.getElementById('previewModal').addEventListener('click',function(e){if(e.target===this)closePreviewModal();});
+document.getElementById('viewModal').addEventListener('click',function(e){if(e.target===this)document.getElementById('viewModal').classList.remove('open');});
+
+document.getElementById('certDate').value = new Date().toISOString().slice(0,10);
+renderIssued();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['teacher']);</script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Teachers – lvlBase Parent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(0,206,201,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(0,206,201,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Page-specific */
+.teacher-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:20px;transition:all .25s;}
+.teacher-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.teacher-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.status-available{background:#00B894;box-shadow:0 0 6px rgba(0,184,148,.5);}
+.status-busy{background:#FDCB6E;}
+.status-away{background:rgba(255,255,255,.3);}
+.msg-bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.4;max-width:85%;}
+.msg-received{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px 12px 12px 4px;}
+.msg-sent{background:rgba(0,206,201,.15);border:1px solid rgba(0,206,201,.2);border-radius:12px 12px 4px 12px;margin-left:auto;}
+.slot-btn{padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);transition:all .2s;}
+.slot-btn:hover{background:rgba(0,206,201,.1);border-color:rgba(0,206,201,.3);color:#00CEC9;}
+.slot-btn.selected{background:rgba(0,206,201,.2);border-color:#00CEC9;color:#00CEC9;}
+.slot-btn.unavailable{opacity:.3;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/parent/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/teacher-contact.html" class="nav-item active"><span class="nav-icon">👩‍🏫</span>Teachers</a>
+    <a href="/app/parent/fee-payment.html" class="nav-item"><span class="nav-icon">💳</span>Fee &amp; Payment</a>
+    <a href="/app/parent/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">P</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Parent</div>
+        <div style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">👩‍🏫</span>
+    <h1 class="header-title">Contact Teachers</h1>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">P</div>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">My Child's Teachers</div>
+        <div style="font-size:32px;font-weight:800;color:#fff;">6</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Assigned teachers</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Responded</div>
+        <div style="font-size:32px;font-weight:800;color:#00B894;">4</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Within 24 hours</div>
+        <div class="badge badge-success" style="margin-top:8px;">Active</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Pending Reply</div>
+        <div style="font-size:32px;font-weight:800;color:#FDCB6E;">1</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Awaiting response</div>
+        <div class="badge badge-warning" style="margin-top:8px;">Waiting</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Meetings Scheduled</div>
+        <div style="font-size:32px;font-weight:800;color:#a29bfe;">2</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">This month</div>
+        <div class="badge badge-purple" style="margin-top:8px;">Upcoming</div>
+      </div>
+    </div>
+
+    <!-- Teacher Cards Grid -->
+    <div class="bento-grid" style="margin-bottom:20px;" id="teacherGrid"></div>
+
+    <!-- Recent Conversations -->
+    <div class="bento-card b-col-12" style="grid-column:span 12;">
+      <div class="card-title">
+        <span>💬 Recent Conversations</span>
+        <a href="/app/parent/messages.html" style="font-size:13px;color:#00CEC9;text-decoration:none;font-weight:600;">View All Messages →</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;" id="recentConvos"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Message Modal -->
+<div class="modal-overlay" id="msgModal">
+  <div class="modal">
+    <div class="modal-title" id="msgModalTitle">💬 Send Message</div>
+    <div id="msgModalContent">
+      <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border-radius:12px;padding:14px;margin-bottom:20px;">
+        <div id="msgTeacherAvatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;"></div>
+        <div>
+          <div id="msgTeacherName" style="font-weight:700;font-size:15px;"></div>
+          <div id="msgTeacherSubject" style="font-size:12px;color:rgba(255,255,255,.5);"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-input" rows="5" id="msgText" placeholder="Type your message here... You can ask about your child's progress, assignments, or schedule." style="resize:none;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-dark" onclick="closeMsgModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="sendMessage()">Send Message 💬</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="modal-overlay" id="meetModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" id="meetModalTitle">📅 Schedule Meeting</div>
+
+    <div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border-radius:12px;padding:14px;margin-bottom:20px;">
+      <div id="meetTeacherAvatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;"></div>
+      <div><div id="meetTeacherName" style="font-weight:700;font-size:15px;"></div><div id="meetTeacherSubject" style="font-size:12px;color:rgba(255,255,255,.5);"></div></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Select Date</label>
+      <input type="date" class="form-input" id="meetDate">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Available Time Slots</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;" id="timeSlots"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Meeting Mode</label>
+        <select class="form-select" id="meetMode">
+          <option>In-Person</option>
+          <option>Video Call</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reason</label>
+        <select class="form-select" id="meetReason">
+          <option>Progress Update</option>
+          <option>Concern</option>
+          <option>General</option>
+          <option>Academic Support</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Additional Notes (optional)</label>
+      <textarea class="form-input" rows="2" id="meetNotes" placeholder="Any specific topics you'd like to discuss..." style="resize:none;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-dark" onclick="closeMeetModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmMeeting()">Confirm Meeting 📅</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type, icon) {
+  type = type || 'info'; icon = icon || 'info';
+  var c = document.getElementById('toast-container');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = '<span style="font-size:18px;">' + icon + '</span><span>' + msg + '</span>';
+  c.appendChild(t);
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  setTimeout(function(){ t.style.transform='translateX(120%)'; setTimeout(function(){ t.remove(); },400); }, 3500);
+}
+
+var teachers = [
+  {id:1,name:'Mr. Rajesh Singh',short:'RS',subject:'Mathematics',qual:'M.Sc. Mathematics, B.Ed',status:'available',statusLabel:'Available',color:'#6C5CE7',lastMsg:'Great progress on the algebra chapter!',lastMsgTime:'2h ago',pending:false},
+  {id:2,name:'Ms. Priya Nair',short:'PN',subject:'English Literature',qual:'M.A. English, B.Ed',status:'available',statusLabel:'Available',color:'#FD79A8',lastMsg:'Arjun\'s essay was excellent this week.',lastMsgTime:'1d ago',pending:false},
+  {id:3,name:'Dr. Arif Khan',short:'AK',subject:'Science (Physics & Chem)',qual:'Ph.D. Physics, M.Sc.',status:'busy',statusLabel:'In Class',color:'#00B894',lastMsg:'Please review Chapter 5 before the exam.',lastMsgTime:'3h ago',pending:true},
+  {id:4,name:'Ms. Rekha Sharma',short:'RS',subject:'Hindi',qual:'M.A. Hindi, B.Ed',status:'available',statusLabel:'Available',color:'#FDCB6E',lastMsg:'Good improvement in spoken Hindi!',lastMsgTime:'2d ago',pending:false},
+  {id:5,name:'Mr. Suresh Patel',short:'SP',subject:'Computer Science',qual:'B.Tech CS, M.Tech',status:'away',statusLabel:'Away',color:'#00CEC9',lastMsg:'Programming assignment graded — 94/100!',lastMsgTime:'1d ago',pending:false},
+  {id:6,name:'Ms. Anita Roy',short:'AR',subject:'Physical Education',qual:'B.P.Ed, Certified Coach',status:'available',statusLabel:'Available',color:'#a29bfe',lastMsg:'Arjun shows great sportsmanship.',lastMsgTime:'3d ago',pending:false},
+];
+
+var selectedTeacher = null;
+var selectedSlot = '';
+
+function renderTeachers() {
+  var html = '';
+  teachers.forEach(function(t) {
+    var statusClass = 'status-' + t.status;
+    var statusColor = t.status==='available'?'#00B894': t.status==='busy'?'#FDCB6E':'rgba(255,255,255,.4)';
+    html += '<div class="bento-card b-col-6" style="padding:20px;">' +
+      '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">' +
+        '<div class="teacher-avatar" style="background:' + t.color + '22;color:' + t.color + ';">' + t.short + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:15px;font-weight:700;margin-bottom:2px;">' + t.name + '</div>' +
+          '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px;">' + t.subject + '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:6px;">🎓 ' + t.qual + '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;">' +
+            '<div class="status-dot ' + statusClass + '"></div>' +
+            '<span style="font-size:12px;color:' + statusColor + ';font-weight:600;">' + t.statusLabel + '</span>' +
+            (t.pending ? '<span class="badge badge-warning" style="margin-left:6px;">⏳ Awaiting reply</span>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;margin-bottom:14px;">' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:4px;">Last message · ' + t.lastMsgTime + '</div>' +
+        '<div style="font-size:12px;color:rgba(255,255,255,.65);">"' + t.lastMsg + '"</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" onclick="openMsgModal(' + t.id + ')">💬 Message</button>' +
+        '<button class="btn btn-dark btn-sm" style="flex:1;justify-content:center;" onclick="openMeetModal(' + t.id + ')">📅 Schedule</button>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('teacherGrid').innerHTML = html;
+}
+
+var conversations = [
+  {teacher:'Mr. Rajesh Singh',color:'#6C5CE7',short:'RS',messages:[
+    {text:'Good morning! How is Arjun performing in math this month?',sent:true,time:'Mon 10:15 AM'},
+    {text:'Arjun has been doing very well! He scored 92/100 in the last test. Keep encouraging him.',sent:false,time:'Mon 11:30 AM'},
+    {text:'Thank you so much! We will keep it up.',sent:true,time:'Mon 11:45 AM'},
+  ]},
+  {teacher:'Dr. Arif Khan',color:'#00B894',short:'AK',messages:[
+    {text:'Dr. Khan, is there anything Arjun needs to focus on for the Science exam?',sent:true,time:'Tue 2:00 PM'},
+    {text:'Yes, Chapter 5 on Forces and Motion needs more practice. I have shared notes on the portal.',sent:false,time:'Tue 4:15 PM'},
+    {text:'Still awaiting response on last query...',sent:true,time:'Wed 9:00 AM',pending:true},
+  ]},
+  {teacher:'Ms. Priya Nair',color:'#FD79A8',short:'PN',messages:[
+    {text:'How is Arjun doing in English this term?',sent:true,time:'Fri 3:00 PM'},
+    {text:'Arjun\'s reading comprehension has improved greatly. His essay last week was outstanding!',sent:false,time:'Fri 4:30 PM'},
+    {text:'That is wonderful to hear! Thank you.',sent:true,time:'Fri 5:00 PM'},
+  ]},
+];
+
+function renderConversations() {
+  var html = '';
+  conversations.forEach(function(cv) {
+    html += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:' + cv.color + '22;color:' + cv.color + ';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;">' + cv.short + '</div>' +
+        '<div style="font-weight:700;font-size:14px;">' + cv.teacher + '</div>' +
+      '</div>';
+    cv.messages.slice(-3).forEach(function(m) {
+      html += '<div style="display:flex;margin-bottom:8px;' + (m.sent?'justify-content:flex-end':'') + '">' +
+        '<div class="msg-bubble ' + (m.sent?'msg-sent':'msg-received') + '">' +
+          '<div style="' + (m.pending?'color:rgba(255,255,255,.4);font-style:italic;':'') + '">' + m.text + '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;text-align:right;">' + m.time + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('recentConvos').innerHTML = html;
+}
+
+function openMsgModal(id) {
+  selectedTeacher = teachers.find(function(t){ return t.id===id; });
+  document.getElementById('msgModalTitle').innerHTML = '💬 Message to ' + selectedTeacher.name;
+  document.getElementById('msgTeacherAvatar').style.background = selectedTeacher.color + '22';
+  document.getElementById('msgTeacherAvatar').style.color = selectedTeacher.color;
+  document.getElementById('msgTeacherAvatar').textContent = selectedTeacher.short;
+  document.getElementById('msgTeacherName').textContent = selectedTeacher.name;
+  document.getElementById('msgTeacherSubject').textContent = selectedTeacher.subject;
+  document.getElementById('msgText').value = '';
+  document.getElementById('msgModal').classList.add('open');
+}
+function closeMsgModal() { document.getElementById('msgModal').classList.remove('open'); }
+
+function sendMessage() {
+  var msg = document.getElementById('msgText').value.trim();
+  if(!msg) { showToast('Please type a message','error','⚠️'); return; }
+  closeMsgModal();
+  showToast('Message sent to ' + selectedTeacher.name + '!', 'success', '💬');
+}
+
+var timeSlotsList = ['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM'];
+var unavailableSlots = ['10:00 AM','11:00 AM','3:00 PM'];
+
+function openMeetModal(id) {
+  selectedTeacher = teachers.find(function(t){ return t.id===id; });
+  selectedSlot = '';
+  document.getElementById('meetModalTitle').innerHTML = '📅 Schedule Meeting — ' + selectedTeacher.name;
+  document.getElementById('meetTeacherAvatar').style.background = selectedTeacher.color + '22';
+  document.getElementById('meetTeacherAvatar').style.color = selectedTeacher.color;
+  document.getElementById('meetTeacherAvatar').textContent = selectedTeacher.short;
+  document.getElementById('meetTeacherName').textContent = selectedTeacher.name;
+  document.getElementById('meetTeacherSubject').textContent = selectedTeacher.subject;
+
+  var today = new Date();
+  today.setDate(today.getDate()+3);
+  document.getElementById('meetDate').value = today.toISOString().split('T')[0];
+
+  var slotsHtml = '';
+  timeSlotsList.forEach(function(slot) {
+    var unavail = unavailableSlots.indexOf(slot) !== -1;
+    slotsHtml += '<button class="slot-btn ' + (unavail?'unavailable':'') + '" onclick="' + (unavail?'':'selectSlot(this,\''+slot+'\')') + '">' + slot + '</button>';
+  });
+  document.getElementById('timeSlots').innerHTML = slotsHtml;
+  document.getElementById('meetModal').classList.add('open');
+}
+
+function selectSlot(el, slot) {
+  document.querySelectorAll('.slot-btn').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedSlot = slot;
+}
+
+function closeMeetModal() { document.getElementById('meetModal').classList.remove('open'); }
+
+function confirmMeeting() {
+  if(!selectedSlot) { showToast('Please select a time slot','error','⚠️'); return; }
+  var date = document.getElementById('meetDate').value;
+  var mode = document.getElementById('meetMode').value;
+  var reason = document.getElementById('meetReason').value;
+  closeMeetModal();
+  var dateObj = new Date(date);
+  var opts = {month:'short',day:'numeric'};
+  var dateStr = dateObj.toLocaleDateString('en-IN', opts);
+  showToast('Meeting scheduled with ' + selectedTeacher.name + ' on ' + dateStr + ' at ' + selectedSlot + '! (' + mode + ')', 'success', '📅');
+}
+
+document.getElementById('msgModal').addEventListener('click',function(e){ if(e.target===this) closeMsgModal(); });
+document.getElementById('meetModal').addEventListener('click',function(e){ if(e.target===this) closeMeetModal(); });
+
+renderTeachers();
+renderConversations();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['parent']);</script>
+</body>
+</html>

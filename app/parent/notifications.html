@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Notifications – lvlBase Parent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(0,206,201,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Page-specific */
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-tab{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);transition:all .2s;}
+.filter-tab.active{background:rgba(0,206,201,.15);border-color:rgba(0,206,201,.4);color:#00CEC9;}
+.notif-card{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:16px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);margin-bottom:10px;transition:all .2s;cursor:pointer;position:relative;}
+.notif-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);}
+.notif-card.unread{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);}
+.notif-card.unread::before{content:'';position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:#00CEC9;}
+.notif-card.urgent.unread::before{background:#D63031;}
+.notif-icon-wrap{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.notif-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.notif-body{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;line-height:1.4;}
+.notif-meta{display:flex;align-items:center;gap:10px;font-size:11px;color:rgba(255,255,255,.35);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-switch{position:relative;width:44px;height:24px;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:24px;cursor:pointer;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle-switch input:checked + .toggle-slider{background:#00CEC9;}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(20px);}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/parent/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/teacher-contact.html" class="nav-item"><span class="nav-icon">👩‍🏫</span>Teachers</a>
+    <a href="/app/parent/fee-payment.html" class="nav-item"><span class="nav-icon">💳</span>Fee &amp; Payment</a>
+    <a href="/app/parent/notifications.html" class="nav-item active"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">P</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Parent</div>
+        <div style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">🔔</span>
+    <h1 class="header-title">Notifications</h1>
+    <button class="btn btn-dark btn-sm" onclick="markAllRead()">✅ Mark All Read</button>
+    <button class="btn btn-dark btn-sm" onclick="openSettingsModal()">⚙️ Preferences</button>
+    <div style="position:relative;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">P</div>
+      <div style="position:absolute;top:-2px;right:-2px;width:14px;height:14px;background:#D63031;border-radius:50%;border:2px solid #12122A;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;" id="headerBadge">3</div>
+    </div>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Total</div>
+        <div style="font-size:32px;font-weight:800;color:#fff;" id="statTotal">24</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">All notifications</div>
+      </div>
+      <div class="bento-card b-col-3" style="border-color:rgba(0,206,201,.2);">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Unread</div>
+        <div style="font-size:32px;font-weight:800;color:#00CEC9;" id="statUnread">3</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Needs attention</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">This Week</div>
+        <div style="font-size:32px;font-weight:800;color:#a29bfe;">8</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Last 7 days</div>
+      </div>
+      <div class="bento-card b-col-3" style="border-color:rgba(214,48,49,.2);">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;">Urgent</div>
+        <div style="font-size:32px;font-weight:800;color:#D63031;" id="statUrgent">1</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Requires action</div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterNotifs('all',this)">All <span id="countAll" style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:10px;margin-left:4px;">24</span></button>
+      <button class="filter-tab" onclick="filterNotifs('unread',this)">Unread <span id="countUnread" style="background:rgba(0,206,201,.2);color:#00CEC9;padding:1px 6px;border-radius:10px;margin-left:4px;">3</span></button>
+      <button class="filter-tab" onclick="filterNotifs('academic',this)">📝 Academic</button>
+      <button class="filter-tab" onclick="filterNotifs('fee',this)">💳 Fee</button>
+      <button class="filter-tab" onclick="filterNotifs('attendance',this)">✅ Attendance</button>
+      <button class="filter-tab" onclick="filterNotifs('event',this)">📅 Events</button>
+      <button class="filter-tab" onclick="filterNotifs('achievement',this)">🏆 Achievements</button>
+    </div>
+
+    <div class="bento-grid">
+      <!-- Notification List -->
+      <div class="bento-card b-col-8">
+        <div class="card-title">
+          <span>📬 Notification Feed</span>
+          <button class="btn btn-dark btn-sm" onclick="markAllRead()">✅ Mark All Read</button>
+        </div>
+        <div id="notifList"></div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="bento-card b-col-4">
+        <div class="card-title"><span>⚙️ Quick Settings</span></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Delivery Channels</div>
+
+        <div class="toggle-row">
+          <div><div style="font-size:14px;font-weight:600;">📧 Email Alerts</div><div style="font-size:12px;color:rgba(255,255,255,.4);">sent to parent@email.com</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked id="toggleEmail" onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-size:14px;font-weight:600;">📱 SMS Alerts</div><div style="font-size:12px;color:rgba(255,255,255,.4);">+91 98XXX XXXXX</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked id="toggleSms" onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-size:14px;font-weight:600;">🔔 Push Notifications</div><div style="font-size:12px;color:rgba(255,255,255,.4);">In-app alerts</div></div>
+          <label class="toggle-switch"><input type="checkbox" checked id="togglePush" onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+
+        <div style="font-size:12px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 12px;">Notification Categories</div>
+
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">🚨 Urgent Alerts</div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">📝 Academic Updates</div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">💳 Fee Reminders</div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">✅ Attendance Alerts</div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">🏆 Achievements</div>
+          <label class="toggle-switch"><input type="checkbox" checked onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div style="font-size:13px;font-weight:600;">📅 Event Reminders</div>
+          <label class="toggle-switch"><input type="checkbox" onchange="savePrefs()"><span class="toggle-slider"></span></label>
+        </div>
+
+        <div style="margin-top:20px;background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.2);border-radius:12px;padding:14px;font-size:13px;">
+          <div style="font-weight:700;color:#00CEC9;margin-bottom:6px;">Quiet Hours</div>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;">No notifications sent between</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <input type="time" value="22:00" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;color:#fff;font-size:13px;flex:1;">
+            <span style="color:rgba(255,255,255,.4);">to</span>
+            <input type="time" value="07:00" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;color:#fff;font-size:13px;flex:1;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ Notification Preferences</div>
+    <p style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:20px;">Manage how and when you receive notifications from lvlBase.</p>
+    <div id="settingsModalContent">
+      <div class="toggle-row"><div><div style="font-weight:600;">Email Notifications</div></div><label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div style="font-weight:600;">SMS Notifications</div></div><label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div style="font-weight:600;">Push Notifications</div></div><label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div style="font-weight:600;">Weekly Summary Email</div></div><label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn btn-dark" onclick="closeSettingsModal()">Close</button>
+      <button class="btn btn-primary" onclick="saveAndClose()">Save Preferences</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = '<span style="font-size:18px;">' + icon + '</span><span>' + msg + '</span>';
+  c.appendChild(t);
+  requestAnimationFrame(function(){ t.classList.add('show'); });
+  setTimeout(function(){ t.style.transform='translateX(120%)'; setTimeout(function(){ t.remove(); },400); }, 3500);
+}
+
+const notifications = [
+  {id:1,type:'attendance',urgent:true,unread:true,icon:'🚨',iconBg:'rgba(214,48,49,.2)',title:"Attendance Warning",body:"Arjun's attendance has dropped to 78% this month. Minimum required is 85%. Please ensure regular attendance to avoid academic consequences.",time:'2 hours ago',child:'Arjun · Class 9-A'},
+  {id:2,type:'academic',unread:true,icon:'📝',iconBg:'rgba(108,92,231,.2)',title:"New Assignment Posted",body:"Science – Chapter 5: Forces and Motion. Due date: November 20, 2024. Teacher: Dr. Khan",time:'5 hours ago',child:'Arjun · Class 9-A'},
+  {id:3,type:'fee',unread:true,icon:'💳',iconBg:'rgba(253,203,110,.2)',title:"Fee Reminder",body:"Q3 Quarterly Fee of ₹12,000 is due on April 1, 2025. Pay early to avoid late charges.",time:'1 day ago',child:'Fee Account'},
+  {id:4,type:'achievement',unread:false,icon:'🏆',iconBg:'rgba(0,184,148,.2)',title:"Achievement Unlocked!",body:"Arjun earned the 'Quiz Master' badge for scoring 100% in 3 consecutive quizzes. Rank improved to Gold!",time:'2 days ago',child:'Arjun · Class 9-A'},
+  {id:5,type:'event',unread:false,icon:'📅',iconBg:'rgba(0,206,201,.2)',title:"Parent-Teacher Meeting",body:"Scheduled for November 20, 2024 from 4:00 PM – 6:00 PM in School Hall A. Please confirm your attendance.",time:'3 days ago',child:'School Event'},
+  {id:6,type:'attendance',unread:false,icon:'✅',iconBg:'rgba(0,184,148,.15)',title:"Arjun Marked Present",body:"Arjun was marked present in all periods today. Attendance for today: 100%",time:'Today 8:15 AM',child:'Arjun · Class 9-A'},
+  {id:7,type:'attendance',unread:false,icon:'✅',iconBg:'rgba(0,184,148,.15)',title:"Priya Marked Present",body:"Priya was marked present in all periods today.",time:'Today 8:15 AM',child:'Priya · Class 7-B'},
+  {id:8,type:'academic',unread:false,icon:'📊',iconBg:'rgba(108,92,231,.2)',title:"Exam Results Published",body:"October Term Exam results are now available. Arjun scored 87% overall. View detailed report in Reports section.",time:'4 days ago',child:'Arjun · Class 9-A'},
+  {id:9,type:'event',unread:false,icon:'🏅',iconBg:'rgba(253,203,110,.2)',title:"Annual Sports Day",body:"Annual Sports Day is scheduled for November 25, 2024. Students must wear PE uniform. Parents are welcome to attend.",time:'5 days ago',child:'School Event'},
+  {id:10,type:'academic',unread:false,icon:'📚',iconBg:'rgba(108,92,231,.15)',title:"Library Books Due",body:"2 library books issued to Arjun are due for return by November 18. Avoid late fine of ₹5/day.",time:'5 days ago',child:'Arjun · Class 9-A'},
+];
+
+let activeFilter = 'all';
+let notifData = notifications.map(n=>Object.assign({},n));
+
+function renderNotifs() {
+  let filtered = notifData;
+  if(activeFilter==='unread') filtered = filtered.filter(n=>n.unread);
+  else if(activeFilter!=='all') filtered = filtered.filter(n=>n.type===activeFilter);
+
+  if(!filtered.length) {
+    document.getElementById('notifList').innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.4);">No notifications in this category</div>';
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(n => {
+    html += '<div class="notif-card ' + (n.unread?'unread ':'') + (n.urgent?'urgent':'')+'" onclick="markRead('+n.id+',this)" id="notif-'+n.id+'">' +
+      '<div class="notif-icon-wrap" style="background:'+n.iconBg+';">'+n.icon+'</div>' +
+      '<div style="flex:1;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+          '<div class="notif-title">'+n.title+'</div>' +
+          (n.urgent?'<span class="badge badge-danger">🚨 Urgent</span>':'') +
+          '<span class="badge badge-'+typeColor(n.type)+'">'+typeLabel(n.type)+'</span>' +
+        '</div>' +
+        '<div class="notif-body">'+n.body+'</div>' +
+        '<div class="notif-meta">' +
+          '<span>🕐 '+n.time+'</span>' +
+          '<span>·</span>' +
+          '<span>'+n.child+'</span>' +
+          (n.unread?'<span style="color:#00CEC9;font-weight:600;">● Unread</span>':'') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('notifList').innerHTML = html;
+}
+
+function typeColor(t) {
+  const m={attendance:'teal',academic:'purple',fee:'warning',achievement:'success',event:'teal'};
+  return m[t]||'teal';
+}
+function typeLabel(t) {
+  const m={attendance:'Attendance',academic:'Academic',fee:'Fee',achievement:'Achievement',event:'Event'};
+  return m[t]||t;
+}
+
+function markRead(id, el) {
+  const n = notifData.find(x=>x.id===id);
+  if(n && n.unread) {
+    n.unread = false;
+    updateCounts();
+    renderNotifs();
+  }
+}
+
+function markAllRead() {
+  notifData.forEach(n=>n.unread=false);
+  updateCounts();
+  renderNotifs();
+  showToast('All notifications marked as read','success','✅');
+}
+
+function updateCounts() {
+  const unread = notifData.filter(n=>n.unread).length;
+  document.getElementById('statUnread').textContent = unread;
+  document.getElementById('countUnread').textContent = unread;
+  const hb = document.getElementById('headerBadge');
+  if(unread===0) hb.style.display='none'; else { hb.style.display='flex'; hb.textContent=unread; }
+}
+
+function filterNotifs(type, el) {
+  activeFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderNotifs();
+}
+
+function savePrefs() {
+  showToast('Notification preferences saved','success','⚙️');
+}
+
+function openSettingsModal() { document.getElementById('settingsModal').classList.add('open'); }
+function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+function saveAndClose() { closeSettingsModal(); showToast('Preferences saved successfully','success','✅'); }
+
+document.getElementById('settingsModal').addEventListener('click',function(e){ if(e.target===this) closeSettingsModal(); });
+
+renderNotifs();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['parent']);</script>
+</body>
+</html>

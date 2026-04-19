@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Class Leaderboard – lvlBase Teacher</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:440px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(108,92,231,.5);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Leaderboard-specific */
+.podium-container{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.podium-card{border-radius:20px;padding:24px;text-align:center;position:relative;overflow:hidden;}
+.podium-1{background:linear-gradient(135deg,rgba(249,202,36,.15),rgba(240,147,43,.1));border:2px solid rgba(249,202,36,.4);}
+.podium-2{background:linear-gradient(135deg,rgba(176,190,197,.15),rgba(144,164,174,.1));border:2px solid rgba(176,190,197,.35);}
+.podium-3{background:linear-gradient(135deg,rgba(188,143,143,.15),rgba(205,127,50,.1));border:2px solid rgba(205,127,50,.35);}
+.podium-crown{font-size:32px;margin-bottom:8px;}
+.podium-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;margin:0 auto 10px;}
+.podium-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.podium-class{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:10px;}
+.podium-xp{font-size:24px;font-weight:800;}
+.podium-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;}
+.rank-badge{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
+.rank-1-bg{background:linear-gradient(135deg,#f9ca24,#f0932b);}
+.rank-2-bg{background:linear-gradient(135deg,#b0bec5,#78909c);}
+.rank-3-bg{background:linear-gradient(135deg,#cd7f32,#a0522d);}
+
+.change-up{color:#00B894;font-weight:700;}
+.change-down{color:#D63031;font-weight:700;}
+.change-same{color:rgba(255,255,255,.3);}
+.level-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(108,92,231,.2);color:#a29bfe;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <a href="/app/teacher/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/teacher/leaderboard.html" class="nav-item active"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/resources.html" class="nav-item"><span class="nav-icon">📚</span>Resources</a>
+    <a href="/app/teacher/certificates.html" class="nav-item"><span class="nav-icon">🎓</span>Certificates</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">T</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Teacher</div>
+        <div style="font-size:11px;color:#00CEC9;">Teacher</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">🏆 Class Leaderboard</div>
+    <select class="form-select" id="classFilter" style="width:auto;padding:8px 14px;font-size:13px;" onchange="filterLeaderboard()">
+      <option value="all">All Classes</option>
+      <option value="9-A">Class 9-A</option>
+      <option value="10-B">Class 10-B</option>
+      <option value="8-C">Class 8-C</option>
+      <option value="11-A">Class 11-A</option>
+    </select>
+    <select class="form-select" id="periodFilter" style="width:auto;padding:8px 14px;font-size:13px;" onchange="filterLeaderboard()">
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+      <option value="alltime">All Time</option>
+    </select>
+    <button class="btn btn-dark btn-sm" onclick="exportLeaderboard()">📥 Export</button>
+    <button class="btn btn-primary btn-sm" onclick="openBonusModal()">⚡ Reward Top 3</button>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Podium -->
+    <div class="podium-container" id="podiumContainer">
+      <!-- rendered by JS -->
+    </div>
+
+    <!-- Full Leaderboard Table -->
+    <div class="card">
+      <div class="card-title">
+        <span>📋 Full Rankings</span>
+        <span id="rankingSubtitle" style="font-size:13px;color:rgba(255,255,255,.4);font-weight:400;">All Classes · This Week</span>
+      </div>
+      <table class="data-table" id="leaderTable">
+        <thead>
+          <tr>
+            <th>Rank</th><th>Student</th><th>Class</th>
+            <th>XP</th><th>Quests</th><th>Streak</th><th>Level</th><th>Change</th>
+          </tr>
+        </thead>
+        <tbody id="leaderBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bonus XP Modal -->
+<div class="modal-overlay" id="bonusModal">
+  <div class="modal">
+    <div class="modal-title">⚡ Reward Top 3 Bonus XP
+      <button onclick="closeBonusModal()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.2);border-radius:12px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;color:rgba(255,255,255,.7);">Awarding bonus XP to:</div>
+      <div style="font-size:13px;margin-top:8px;">🥇 <strong id="top1Name"></strong> &nbsp; 🥈 <strong id="top2Name"></strong> &nbsp; 🥉 <strong id="top3Name"></strong></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bonus XP Amount</label>
+      <input class="form-input" id="bonusXP" type="number" value="500" min="50" max="5000" placeholder="Enter XP amount" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason (optional)</label>
+      <input class="form-input" id="bonusReason" placeholder="e.g. Outstanding performance this week" />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-dark" onclick="closeBonusModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="awardBonus()">⚡ Award Bonus XP</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+const allStudents = [
+  {name:'Aryan Mehta',cls:'9-A',xp:12850,quests:47,streak:21,level:18,change:2,color:'#6C5CE7'},
+  {name:'Priya Sharma',cls:'9-A',xp:11920,quests:43,streak:15,level:17,change:-1,color:'#FD79A8'},
+  {name:'Rahul Singh',cls:'10-B',xp:11450,quests:40,streak:18,level:16,change:1,color:'#00CEC9'},
+  {name:'Sneha Patel',cls:'10-B',xp:10800,quests:38,streak:12,level:15,change:3,color:'#00B894'},
+  {name:'Amit Kumar',cls:'8-C',xp:9750,quests:35,streak:9,level:14,change:0,color:'#FDCB6E'},
+  {name:'Divya Rao',cls:'11-A',xp:9200,quests:33,streak:14,level:13,change:-2,color:'#a29bfe'},
+  {name:'Karan Joshi',cls:'9-A',xp:8900,quests:31,streak:7,level:13,change:1,color:'#FD79A8'},
+  {name:'Neha Gupta',cls:'8-C',xp:8450,quests:29,streak:11,level:12,change:-1,color:'#00B894'},
+  {name:'Vikram Nair',cls:'10-B',xp:7800,quests:27,streak:5,level:12,change:2,color:'#6C5CE7'},
+  {name:'Anjali Singh',cls:'11-A',xp:7200,quests:25,streak:8,level:11,change:0,color:'#00CEC9'},
+  {name:'Rohan Das',cls:'9-A',xp:6900,quests:23,streak:4,level:10,change:-3,color:'#FDCB6E'},
+  {name:'Meera Iyer',cls:'8-C',xp:6500,quests:21,streak:6,level:10,change:1,color:'#FD79A8'},
+];
+
+let displayStudents = [...allStudents];
+
+function filterLeaderboard(){
+  const cls = document.getElementById('classFilter').value;
+  const period = document.getElementById('periodFilter').value;
+  displayStudents = cls==='all' ? [...allStudents] : allStudents.filter(s=>s.cls===cls);
+  const periodLabel = {week:'This Week',month:'This Month',alltime:'All Time'}[period];
+  const clsLabel = cls==='all'?'All Classes':('Class '+cls);
+  document.getElementById('rankingSubtitle').textContent = `${clsLabel} · ${periodLabel}`;
+  renderPodium();
+  renderTable();
+}
+
+function renderPodium(){
+  const top3 = displayStudents.slice(0,3);
+  const container = document.getElementById('podiumContainer');
+  const configs = [
+    {style:'podium-1',crown:'👑',rankClass:'rank-1-bg',avatarBg:'rgba(249,202,36,.2)',avatarColor:'#f9ca24',xpColor:'#f9ca24'},
+    {style:'podium-2',crown:'🥈',rankClass:'rank-2-bg',avatarBg:'rgba(176,190,197,.2)',avatarColor:'#b0bec5',xpColor:'#b0bec5'},
+    {style:'podium-3',crown:'🥉',rankClass:'rank-3-bg',avatarBg:'rgba(205,127,50,.2)',avatarColor:'#cd7f32',xpColor:'#cd7f32'},
+  ];
+  container.innerHTML = top3.map((s,i)=>`
+    <div class="podium-card ${configs[i].style}">
+      <div class="rank-badge ${configs[i].rankClass}">${i+1}</div>
+      <div class="podium-crown">${configs[i].crown}</div>
+      <div class="podium-avatar" style="background:${configs[i].avatarBg};color:${configs[i].avatarColor};">${s.name.charAt(0)}</div>
+      <div class="podium-name">${s.name}</div>
+      <div class="podium-class">Class ${s.cls}</div>
+      <div class="podium-xp" style="color:${configs[i].xpColor};" data-target="${s.xp}">0</div>
+      <div class="podium-meta">XP Points · ${s.quests} Quests · ${s.streak}🔥 Streak</div>
+    </div>`).join('');
+  setTimeout(animatePodiumXP, 100);
+}
+
+function animatePodiumXP(){
+  document.querySelectorAll('[data-target]').forEach(el=>{
+    const target = parseInt(el.dataset.target);
+    let current = 0;
+    const step = Math.ceil(target/40);
+    const timer = setInterval(()=>{
+      current = Math.min(current+step, target);
+      el.textContent = current.toLocaleString();
+      if(current>=target) clearInterval(timer);
+    }, 20);
+  });
+}
+
+function renderTable(){
+  const tbody = document.getElementById('leaderBody');
+  tbody.innerHTML = displayStudents.map((s,i)=>{
+    const change = s.change>0 ? `<span class="change-up">↑${s.change}</span>` : s.change<0 ? `<span class="change-down">↓${Math.abs(s.change)}</span>` : `<span class="change-same">—</span>`;
+    const rankIcon = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
+    return `<tr>
+      <td><strong style="font-size:15px;">${rankIcon}</strong></td>
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${s.color}22;color:${s.color};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">${s.name.charAt(0)}</div>
+        <span style="font-weight:600;">${s.name}</span>
+      </div></td>
+      <td><span class="badge badge-purple">${s.cls}</span></td>
+      <td><strong style="color:#f9ca24;">${s.xp.toLocaleString()}</strong></td>
+      <td>${s.quests}</td>
+      <td>${s.streak}🔥</td>
+      <td><span class="level-badge">⚡ Lv.${s.level}</span></td>
+      <td>${change}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openBonusModal(){
+  const top3 = displayStudents.slice(0,3);
+  document.getElementById('top1Name').textContent = top3[0]?.name || '—';
+  document.getElementById('top2Name').textContent = top3[1]?.name || '—';
+  document.getElementById('top3Name').textContent = top3[2]?.name || '—';
+  document.getElementById('bonusModal').classList.add('open');
+}
+function closeBonusModal(){ document.getElementById('bonusModal').classList.remove('open'); }
+
+function awardBonus(){
+  const xp = document.getElementById('bonusXP').value || 500;
+  closeBonusModal();
+  showToast(`⚡ ${xp} XP Bonus awarded to top 3 students!`, 'success', '⚡');
+}
+
+function exportLeaderboard(){
+  showToast('📥 Leaderboard exported!', 'success', '📥');
+}
+
+document.getElementById('bonusModal').addEventListener('click',function(e){if(e.target===this)closeBonusModal();});
+
+filterLeaderboard();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['teacher']);</script>
+</body>
+</html>

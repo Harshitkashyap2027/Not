@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Student Monitor – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:500px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(214,48,49,.6)}70%{box-shadow:0 0 0 8px rgba(214,48,49,0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.pulse{animation:pulse 2s infinite;}
+.spin-anim{animation:spin 1s linear infinite;}
+.live-dot{width:10px;height:10px;border-radius:50%;background:#D63031;display:inline-block;animation:livePulse 1.5s infinite;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500;}
+.stat-icon{font-size:28px;margin-bottom:12px;}
+.live-banner{background:linear-gradient(135deg,rgba(214,48,49,.2),rgba(214,48,49,.08));border:1px solid rgba(214,48,49,.3);border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.filter-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.filter-tab{padding:7px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);transition:all .2s;}
+.filter-tab.active{background:rgba(229,57,53,.15);color:#fff;border-color:rgba(229,57,53,.3);}
+.filter-tab:hover:not(.active){background:rgba(255,255,255,.08);color:#fff;}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.student-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;cursor:pointer;transition:all .25s;position:relative;}
+.student-card:hover{background:rgba(255,255,255,.08);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.student-card.flagged{border-color:rgba(214,48,49,.3);background:rgba(214,48,49,.06);}
+.student-card.completed{border-color:rgba(0,184,148,.2);background:rgba(0,184,148,.05);}
+.student-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin-bottom:10px;position:relative;}
+.flagged-dot{position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:#D63031;border:2px solid #0D0D1A;animation:livePulse 1.5s infinite;}
+.student-name{font-size:13px;font-weight:700;margin-bottom:4px;}
+.student-track{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.progress-bar-wrap{background:rgba(255,255,255,.08);border-radius:100px;height:6px;margin-bottom:6px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:100px;transition:width .5s;}
+.progress-label{font-size:11px;color:rgba(255,255,255,.5);display:flex;justify-content:space-between;}
+.violation-badge{position:absolute;top:14px;right:14px;background:rgba(214,48,49,.2);color:#D63031;border-radius:8px;font-size:11px;font-weight:700;padding:2px 8px;}
+.refresh-indicator{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4);}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item active"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">👁️ Student Monitor</span>
+    <div class="refresh-indicator">
+      <svg class="spin-anim" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Auto-refresh: <span id="refreshTimer" style="color:#a29bfe;font-weight:600;">30s</span>
+    </div>
+  </header>
+  <div class="app-content">
+
+    <!-- Live Banner -->
+    <div class="live-banner fade-in">
+      <span class="live-dot"></span>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff;">🔴 LIVE — Exam in Progress</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">JavaScript Fundamentals — Module 3 &nbsp;•&nbsp; Started 1:48 PM &nbsp;•&nbsp; Ends 2:33 PM (45 min)</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-size:13px;font-weight:600;color:#FDCB6E;">27 min remaining</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">WebDev Batch A</div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.05s">
+        <div class="stat-icon">🟢</div>
+        <div class="stat-value" style="color:#00B894;" id="statActive">24</div>
+        <div class="stat-label">Active Students</div>
+        <div style="margin-top:8px;font-size:11px;color:#00B894;">Currently in exam</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.1s">
+        <div class="stat-icon">🚩</div>
+        <div class="stat-value" style="color:#D63031;" id="statFlagged">3</div>
+        <div class="stat-label">Flagged</div>
+        <div style="margin-top:8px;font-size:11px;color:#D63031;">Requires attention</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.15s">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" style="color:#a29bfe;" id="statCompleted">18</div>
+        <div class="stat-label">Completed</div>
+        <div style="margin-top:8px;font-size:11px;color:#a29bfe;">Submitted exam</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.2s">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" style="color:#FDCB6E;">67%</div>
+        <div class="stat-label">Avg Progress</div>
+        <div style="margin-top:8px;font-size:11px;color:#FDCB6E;">Of active students</div>
+      </div>
+    </div>
+
+    <!-- Filter + Grid -->
+    <div class="card fade-in" style="animation-delay:.25s;">
+      <div class="card-title">
+        <span>Live Student Grid</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-dark btn-sm" onclick="showToast('📋 Exporting live report...','info','📋')">Export Report</button>
+          <button class="btn btn-sm" style="background:rgba(214,48,49,.12);color:#D63031;border:1px solid rgba(214,48,49,.2);" onclick="showToast('🔔 All flagged students notified','error','🔔')">Alert All Flagged</button>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter('all',this)">All (45)</button>
+        <button class="filter-tab" onclick="setFilter('active',this)">🟢 Active (24)</button>
+        <button class="filter-tab" onclick="setFilter('flagged',this)">🚩 Flagged (3)</button>
+        <button class="filter-tab" onclick="setFilter('completed',this)">✅ Completed (18)</button>
+      </div>
+      <div class="student-grid" id="studentGrid"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Student Detail Modal -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <div class="modal-title" id="modalStudentName">🚩 Student Detail</div>
+    <div style="background:rgba(214,48,49,.08);border:1px solid rgba(214,48,49,.2);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:600;color:#D63031;margin-bottom:8px;">⚠️ Violations Detected</div>
+      <div id="modalViolations" style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.8;"></div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;margin-bottom:20px;">
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">EXAM PROGRESS</div>
+      <div id="modalProgress" style="font-size:20px;font-weight:700;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-dark" style="flex:1;" onclick="closeModal('studentModal')">Dismiss</button>
+      <button class="btn btn-primary" style="flex:1;background:#D63031;" onclick="disqualifyStudent()">🚫 Disqualify</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const students = [
+  {id:1,name:'Aryan Sharma',initial:'A',track:'Web Dev',progress:78,status:'active',violations:0,color:'#6C5CE7'},
+  {id:2,name:'Priya Mehta',initial:'P',track:'Web Dev',progress:91,status:'completed',violations:0,color:'#FD79A8'},
+  {id:3,name:'Rahul Verma',initial:'R',track:'AI/ML',progress:45,status:'flagged',violations:3,color:'#D63031',violationList:'Tab switch (2×), Face not detected (1×)'},
+  {id:4,name:'Sneha Patel',initial:'S',track:'App Dev',progress:88,status:'completed',violations:0,color:'#00B894'},
+  {id:5,name:'Karan Joshi',initial:'K',track:'Web Dev',progress:63,status:'active',violations:0,color:'#FDCB6E'},
+  {id:6,name:'Ananya Singh',initial:'A',track:'AI/ML',progress:72,status:'active',violations:0,color:'#00CEC9'},
+  {id:7,name:'Dev Kapoor',initial:'D',track:'Web Dev',progress:34,status:'flagged',violations:5,color:'#D63031',violationList:'Tab switch (3×), Camera blocked (1×), Face not detected (1×)'},
+  {id:8,name:'Riya Gupta',initial:'R',track:'App Dev',progress:95,status:'completed',violations:0,color:'#a29bfe'},
+  {id:9,name:'Mohit Yadav',initial:'M',track:'Web Dev',progress:61,status:'active',violations:0,color:'#6C5CE7'},
+  {id:10,name:'Pooja Nair',initial:'P',track:'AI/ML',progress:80,status:'completed',violations:0,color:'#FD79A8'},
+  {id:11,name:'Akash Tiwari',initial:'A',track:'Web Dev',progress:52,status:'active',violations:0,color:'#FDCB6E'},
+  {id:12,name:'Deepa Rao',initial:'D',track:'App Dev',progress:18,status:'flagged',violations:2,color:'#D63031',violationList:'Face not detected (2×)'},
+  {id:13,name:'Vikram Sinha',initial:'V',track:'Web Dev',progress:76,status:'active',violations:0,color:'#00B894'},
+  {id:14,name:'Sunita Das',initial:'S',track:'AI/ML',progress:99,status:'completed',violations:0,color:'#00CEC9'},
+  {id:15,name:'Nikhil Bose',initial:'N',track:'Web Dev',progress:58,status:'active',violations:0,color:'#a29bfe'},
+  {id:16,name:'Kavya Iyer',initial:'K',track:'App Dev',progress:87,status:'completed',violations:0,color:'#6C5CE7'},
+  {id:17,name:'Aditya Kumar',initial:'A',track:'Web Dev',progress:44,status:'active',violations:0,color:'#FD79A8'},
+  {id:18,name:'Meera Pillai',initial:'M',track:'AI/ML',progress:93,status:'completed',violations:0,color:'#00B894'},
+];
+
+let currentFilter = 'all';
+let selectedStudentId = null;
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function getBarColor(status) {
+  if(status==='flagged') return '#D63031';
+  if(status==='completed') return '#00B894';
+  return '#6C5CE7';
+}
+
+function renderGrid() {
+  const filtered = students.filter(s => currentFilter==='all' || s.status===currentFilter);
+  const grid = document.getElementById('studentGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,.3);">No students in this category.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(s => `
+    <div class="student-card ${s.status}" onclick="openStudentModal(${s.id})" style="${s.status==='flagged'?'cursor:pointer;':s.status==='completed'?'cursor:default;':'cursor:default;'}">
+      ${s.violations>0?`<div class="violation-badge">⚠️ ${s.violations}</div>`:''}
+      <div class="student-avatar" style="background:${s.color}22;color:${s.color};">
+        ${s.initial}
+        ${s.status==='flagged'?'<div class="flagged-dot"></div>':''}
+      </div>
+      <div class="student-name">${s.name}</div>
+      <div class="student-track">${s.track}</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${s.progress}%;background:${getBarColor(s.status)};"></div>
+      </div>
+      <div class="progress-label">
+        <span>${s.progress}% done</span>
+        <span class="badge ${s.status==='active'?'badge-purple':s.status==='flagged'?'badge-danger':'badge-success'}">${s.status}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openStudentModal(id) {
+  const s = students.find(st=>st.id===id);
+  if (!s || s.status!=='flagged') return;
+  selectedStudentId = id;
+  document.getElementById('modalStudentName').textContent = `🚩 ${s.name}`;
+  document.getElementById('modalViolations').innerHTML = s.violationList.split(', ').map(v=>`• ${v}`).join('<br/>');
+  document.getElementById('modalProgress').textContent = `${s.progress}% completed`;
+  document.getElementById('studentModal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function disqualifyStudent() {
+  const s = students.find(st=>st.id===selectedStudentId);
+  if (s) {
+    s.status = 'completed';
+    s.color = '#D63031';
+    renderGrid();
+    showToast(`🚫 ${s.name} has been disqualified.`,'error','🚫');
+  }
+  closeModal('studentModal');
+}
+
+let refreshCount = 30;
+const timerEl = document.getElementById('refreshTimer');
+setInterval(()=>{
+  refreshCount--;
+  timerEl.textContent = refreshCount+'s';
+  if (refreshCount <= 0) {
+    refreshCount = 30;
+    showToast('🔄 Student data refreshed','info','🔄');
+  }
+}, 1000);
+
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+renderGrid();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>

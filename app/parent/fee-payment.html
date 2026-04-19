@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fee &amp; Payment – lvlBase Parent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(0,206,201,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.xp-bar-bg{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.xp-bar-fill{height:100%;border-radius:4px;transition:width .6s;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(0,206,201,.5);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+
+/* Page-specific */
+.pay-method{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.pay-method:hover{border-color:rgba(0,206,201,.3);background:rgba(0,206,201,.06);}
+.pay-method.selected{border-color:#00CEC9;background:rgba(0,206,201,.12);}
+.pay-method input[type=radio]{accent-color:#00CEC9;}
+.processing-ring{width:60px;height:60px;border-radius:50%;border:4px solid rgba(0,206,201,.2);border-top-color:#00CEC9;animation:spin 0.8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fee-breakdown-bar{margin-bottom:14px;}
+.fee-breakdown-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/attendance.html" class="nav-item"><span class="nav-icon">✅</span>Attendance</a>
+    <a href="/app/parent/schedule.html" class="nav-item"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/teacher-contact.html" class="nav-item"><span class="nav-icon">👩‍🏫</span>Teachers</a>
+    <a href="/app/parent/fee-payment.html" class="nav-item active"><span class="nav-icon">💳</span>Fee &amp; Payment</a>
+    <a href="/app/parent/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">P</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Parent</div>
+        <div style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">💳</span>
+    <h1 class="header-title">Fee &amp; Payment</h1>
+    <button class="btn btn-dark btn-sm" onclick="downloadReceipt()">📄 Download Receipt</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">P</div>
+  </header>
+
+  <div class="app-content fade-in">
+
+    <!-- Scholarship Banner -->
+    <div style="background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.25);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:13px;">
+      <span style="font-size:20px;">🎓</span>
+      <div><strong style="color:#a29bfe;">Merit Scholarship Applied</strong> — 10% discount applied on tuition fees based on Arjun's exam score (Top 5% of class)</div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Fee Status</div>
+        <div style="font-size:22px;font-weight:800;color:#00B894;">Partially Paid</div>
+        <div class="badge badge-warning" style="margin-top:8px;">Q3 Due</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Annual Total</div>
+        <div style="font-size:28px;font-weight:800;color:#fff;">₹48,000</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Academic Year 2024–25</div>
+      </div>
+      <div class="bento-card b-col-3">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Amount Paid</div>
+        <div style="font-size:28px;font-weight:800;color:#00B894;">₹36,000</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">75% of annual fee</div>
+        <div style="margin-top:10px;"><div class="xp-bar-bg"><div class="xp-bar-fill" style="width:75%;background:linear-gradient(90deg,#00B894,#00CEC9);"></div></div></div>
+      </div>
+      <div class="bento-card b-col-3" style="border-color:rgba(253,203,110,.2);">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;">Amount Due</div>
+        <div style="font-size:28px;font-weight:800;color:#FDCB6E;">₹12,000</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Due: April 1, 2025</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px;width:100%;justify-content:center;" onclick="openPayModal()">Pay Now 💳</button>
+      </div>
+    </div>
+
+    <div class="bento-grid">
+
+      <!-- Current Status + History -->
+      <div class="bento-card b-col-8">
+        <div class="card-title"><span>📊 Payment History</span><span class="badge badge-success">2 Paid · 1 Due</span></div>
+
+        <!-- Due card -->
+        <div style="background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.2);border-radius:14px;padding:16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="width:48px;height:48px;background:rgba(253,203,110,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">⚠️</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;margin-bottom:3px;">Q3 Quarterly Fee</div>
+              <div style="font-size:13px;color:rgba(255,255,255,.5);">Due on April 1, 2025 · ₹12,000</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="openPayModal()">💳 Pay Now</button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Receipt</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:rgba(255,255,255,.5);">Oct 1, 2024</td>
+              <td><div style="font-weight:600;">Quarterly Fee – Q1</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Jul–Sep 2024</div></td>
+              <td style="font-weight:700;color:#fff;">₹12,000</td>
+              <td><span class="badge badge-success">✅ Paid</span></td>
+              <td><button class="btn btn-dark btn-sm" onclick="downloadReceipt('INV-2024-001')">📄 INV-001</button></td>
+            </tr>
+            <tr>
+              <td style="color:rgba(255,255,255,.5);">Jan 1, 2025</td>
+              <td><div style="font-weight:600;">Quarterly Fee – Q2</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Oct–Dec 2024</div></td>
+              <td style="font-weight:700;color:#fff;">₹12,000</td>
+              <td><span class="badge badge-success">✅ Paid</span></td>
+              <td><button class="btn btn-dark btn-sm" onclick="downloadReceipt('INV-2025-001')">📄 INV-002</button></td>
+            </tr>
+            <tr>
+              <td style="color:rgba(255,255,255,.5);">Apr 1, 2025</td>
+              <td><div style="font-weight:600;">Quarterly Fee – Q3</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Jan–Mar 2025</div></td>
+              <td style="font-weight:700;color:#FDCB6E;">₹12,000</td>
+              <td><span class="badge badge-warning">⚠️ Due</span></td>
+              <td><button class="btn btn-primary btn-sm" onclick="openPayModal()">Pay Now</button></td>
+            </tr>
+            <tr>
+              <td style="color:rgba(255,255,255,.5);">Monthly</td>
+              <td><div style="font-weight:600;">Transport Fee</div><div style="font-size:11px;color:rgba(255,255,255,.4);">School Bus – Route 5</div></td>
+              <td style="font-weight:700;color:#fff;">₹3,000/mo</td>
+              <td><span class="badge badge-success">✅ Auto-pay</span></td>
+              <td><span style="font-size:12px;color:rgba(255,255,255,.4);">Auto-deducted</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Fee Breakdown -->
+      <div class="bento-card b-col-4">
+        <div class="card-title"><span>📋 Fee Breakdown</span></div>
+
+        <div style="margin-bottom:20px;">
+          <div class="fee-breakdown-bar">
+            <div class="fee-breakdown-label"><span>Tuition Fee</span><span style="font-weight:700;">₹32,400 <small style="color:rgba(255,255,255,.4);font-weight:400;">/ year</small></span></div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:67.5%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);"></div></div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;">After 10% scholarship: ₹32,400 (was ₹36,000)</div>
+          </div>
+          <div class="fee-breakdown-bar">
+            <div class="fee-breakdown-label"><span>Transport Fee</span><span style="font-weight:700;">₹3,000 <small style="color:rgba(255,255,255,.4);font-weight:400;">/ month</small></span></div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:75%;background:linear-gradient(90deg,#00CEC9,#00B894);"></div></div>
+          </div>
+          <div class="fee-breakdown-bar">
+            <div class="fee-breakdown-label"><span>Laboratory Fee</span><span style="font-weight:700;">₹3,600 <small style="color:rgba(255,255,255,.4);font-weight:400;">/ year</small></span></div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:7.5%;background:linear-gradient(90deg,#FDCB6E,#e17055);"></div></div>
+          </div>
+          <div class="fee-breakdown-bar">
+            <div class="fee-breakdown-label"><span>Library Fee</span><span style="font-weight:700;">₹1,200 <small style="color:rgba(255,255,255,.4);font-weight:400;">/ year</small></span></div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:2.5%;background:linear-gradient(90deg,#FD79A8,#e84393);"></div></div>
+          </div>
+          <div class="fee-breakdown-bar">
+            <div class="fee-breakdown-label"><span>Activity Fee</span><span style="font-weight:700;">₹2,400 <small style="color:rgba(255,255,255,.4);font-weight:400;">/ year</small></span></div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:5%;background:linear-gradient(90deg,#00B894,#55efc4);"></div></div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;"><span style="color:rgba(255,255,255,.6);">Sub-total</span><span style="font-weight:600;">₹53,200</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;"><span style="color:#a29bfe;">🎓 Scholarship (10%)</span><span style="font-weight:600;color:#00B894;">−₹3,600</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:4px;"><span>Annual Total</span><span style="color:#00CEC9;">₹48,000</span></div>
+        </div>
+
+        <div style="margin-top:16px;background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.2);border-radius:12px;padding:12px;font-size:13px;text-align:center;">
+          <div style="color:#00B894;font-weight:700;margin-bottom:4px;">Payment Progress</div>
+          <div style="font-size:22px;font-weight:800;color:#00CEC9;">75%</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);">₹36,000 of ₹48,000 paid</div>
+          <div class="xp-bar-bg" style="margin-top:10px;"><div class="xp-bar-fill" style="width:75%;background:linear-gradient(90deg,#00B894,#00CEC9);"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-title">💳 Make Payment</div>
+    <div id="payContent">
+      <div style="background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5);">Q3 Quarterly Fee — Apr 2025</div>
+          <div style="font-size:22px;font-weight:800;color:#FDCB6E;">₹12,000</div>
+        </div>
+        <span class="badge badge-warning">Due</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <input type="text" class="form-input" value="₹12,000" readonly style="opacity:.7;">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <div onclick="selectPayMethod('upi',this)" class="pay-method selected" id="pm-upi">
+          <input type="radio" name="payMethod" checked> <span style="font-size:18px;">📱</span><div><div style="font-weight:600;font-size:14px;">UPI</div><div style="font-size:12px;color:rgba(255,255,255,.5);">GPay, PhonePe, Paytm</div></div>
+        </div>
+        <div onclick="selectPayMethod('card',this)" class="pay-method" id="pm-card">
+          <input type="radio" name="payMethod"> <span style="font-size:18px;">💳</span><div><div style="font-weight:600;font-size:14px;">Credit / Debit Card</div><div style="font-size:12px;color:rgba(255,255,255,.5);">Visa, Mastercard, RuPay</div></div>
+        </div>
+        <div onclick="selectPayMethod('netbanking',this)" class="pay-method" id="pm-netbanking">
+          <input type="radio" name="payMethod"> <span style="font-size:18px;">🏦</span><div><div style="font-weight:600;font-size:14px;">Net Banking</div><div style="font-size:12px;color:rgba(255,255,255,.5);">All major banks supported</div></div>
+        </div>
+      </div>
+
+      <div id="upiField">
+        <div class="form-group">
+          <label class="form-label">UPI ID</label>
+          <input type="text" class="form-input" placeholder="yourname@paytm" id="upiId">
+        </div>
+      </div>
+
+      <div style="background:rgba(0,184,148,.08);border:1px solid rgba(0,184,148,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:16px;">
+        🔒 Secured by 256-bit SSL encryption. Your payment info is never stored.
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-dark" onclick="closePayModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="processPayment()">Confirm Payment ₹12,000</button>
+      </div>
+    </div>
+
+    <!-- Processing state -->
+    <div id="payProcessing" style="display:none;text-align:center;padding:20px 0;">
+      <div class="processing-ring" style="margin-bottom:20px;"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Processing Payment…</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);">Please wait, do not close this window</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 4000);
+}
+
+function openPayModal() { document.getElementById('payModal').classList.add('open'); }
+function closePayModal() {
+  document.getElementById('payModal').classList.remove('open');
+  document.getElementById('payContent').style.display='block';
+  document.getElementById('payProcessing').style.display='none';
+}
+
+function selectPayMethod(method, el) {
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  document.getElementById('upiField').style.display = method==='upi' ? 'block' : 'none';
+}
+
+function processPayment() {
+  document.getElementById('payContent').style.display = 'none';
+  document.getElementById('payProcessing').style.display = 'block';
+  setTimeout(() => {
+    closePayModal();
+    showToast('✅ Payment of ₹12,000 received! Receipt #INV-2024-003', 'success', '✅');
+  }, 2800);
+}
+
+function downloadReceipt(inv) {
+  const id = inv || 'INV-2024-LATEST';
+  showToast(`📄 Receipt ${id} downloaded!`, 'success', '📄');
+}
+
+document.getElementById('payModal').addEventListener('click',function(e){ if(e.target===this) closePayModal(); });
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['parent']);</script>
+</body>
+</html>

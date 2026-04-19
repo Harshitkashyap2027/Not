@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>School Leaderboard – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes podiumRise{from{opacity:0;transform:translateY(30px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.podium-rise{animation:podiumRise .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500;}
+.stat-icon{font-size:28px;margin-bottom:12px;}
+/* Filter tabs */
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+.filter-tab{padding:7px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);transition:all .2s;}
+.filter-tab.active{background:rgba(229,57,53,.15);color:#fff;border-color:rgba(229,57,53,.3);}
+.filter-tab:hover:not(.active){background:rgba(255,255,255,.08);color:#fff;}
+/* Podium */
+.podium-container{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:12px;margin-bottom:24px;align-items:end;}
+.podium-card{border-radius:20px;padding:24px 20px;text-align:center;transition:all .3s;}
+.podium-card.gold{background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,165,0,.1));border:1px solid rgba(255,215,0,.3);}
+.podium-card.silver{background:linear-gradient(135deg,rgba(192,192,192,.15),rgba(160,160,160,.08));border:1px solid rgba(192,192,192,.25);}
+.podium-card.bronze{background:linear-gradient(135deg,rgba(205,127,50,.15),rgba(180,100,30,.08));border:1px solid rgba(205,127,50,.25);}
+.podium-avatar{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;margin:0 auto 10px;position:relative;}
+.podium-rank{position:absolute;bottom:-6px;right:-6px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #0D0D1A;}
+.podium-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.podium-track{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.podium-score{font-size:20px;font-weight:800;}
+.podium-label{font-size:11px;color:rgba(255,255,255,.4);}
+/* Table rank badges */
+.rank-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;font-size:12px;font-weight:800;}
+.rank-1{background:rgba(255,215,0,.2);color:#FFD700;}
+.rank-2{background:rgba(192,192,192,.2);color:#C0C0C0;}
+.rank-3{background:rgba(205,127,50,.2);color:#CD7F32;}
+.rank-other{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);}
+.streak-bar{display:flex;align-items:center;gap:6px;font-size:12px;}
+.student-ava{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item active"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">🏆 School Leaderboard</span>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setTrack('all',this)">All Tracks</button>
+      <button class="filter-tab" onclick="setTrack('Web Dev',this)">💻 Web Dev</button>
+      <button class="filter-tab" onclick="setTrack('AI/ML',this)">🤖 AI/ML</button>
+      <button class="filter-tab" onclick="setTrack('App Dev',this)">📱 App Dev</button>
+    </div>
+    <button class="btn btn-dark btn-sm" onclick="showToast('📥 Exporting leaderboard...','info','📥')">Export</button>
+  </header>
+  <div class="app-content">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:24px;">
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.05s">
+        <div class="stat-icon">🥇</div>
+        <div class="stat-value" style="color:#FFD700;">4,820 XP</div>
+        <div class="stat-label">Highest Score</div>
+        <div style="margin-top:8px;font-size:11px;color:#FFD700;">Sunita Das</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.1s">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" style="color:#a29bfe;">2,140 XP</div>
+        <div class="stat-label">Avg Score</div>
+        <div style="margin-top:8px;font-size:11px;color:#a29bfe;">All students</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.15s">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value" style="color:#FF6B35;">21 days</div>
+        <div class="stat-label">Top Streak</div>
+        <div style="margin-top:8px;font-size:11px;color:#FF6B35;">Priya Mehta</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.2s">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" style="color:#00B894;">284</div>
+        <div class="stat-label">Total Completions</div>
+        <div style="margin-top:8px;font-size:11px;color:#00B894;">Quests done</div>
+      </div>
+    </div>
+
+    <!-- Podium -->
+    <div class="podium-container fade-in" style="animation-delay:.25s;" id="podiumContainer"></div>
+
+    <!-- Full Leaderboard Table -->
+    <div class="card fade-in" style="animation-delay:.35s;">
+      <div class="card-title">
+        <span>Full Leaderboard</span>
+        <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.4);" id="tableSubtitle">Showing all 20 students</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Student</th>
+            <th>Track</th>
+            <th>Score</th>
+            <th>Quests Done</th>
+            <th>Streak</th>
+            <th>Badge</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const allStudents = [
+  {rank:1,name:'Sunita Das',initial:'S',track:'AI/ML',score:4820,quests:42,streak:18,badge:'🏆 Champion',color:'#00CEC9'},
+  {rank:2,name:'Priya Mehta',initial:'P',track:'Web Dev',score:4540,quests:38,streak:21,badge:'⚡ Speedster',color:'#FD79A8'},
+  {rank:3,name:'Riya Gupta',initial:'R',track:'App Dev',score:4280,quests:36,streak:14,badge:'🌟 Rising Star',color:'#a29bfe'},
+  {rank:4,name:'Kavya Iyer',initial:'K',track:'App Dev',score:3980,quests:34,streak:9,badge:'🎯 Focused',color:'#6C5CE7'},
+  {rank:5,name:'Meera Pillai',initial:'M',track:'AI/ML',score:3760,quests:31,streak:12,badge:'🤖 AI Wizard',color:'#00B894'},
+  {rank:6,name:'Aryan Sharma',initial:'A',track:'Web Dev',score:3540,quests:29,streak:7,badge:'💻 Builder',color:'#6C5CE7'},
+  {rank:7,name:'Sneha Patel',initial:'S',track:'App Dev',score:3320,quests:27,streak:5,badge:'📱 Dev Pro',color:'#00B894'},
+  {rank:8,name:'Ananya Singh',initial:'A',track:'AI/ML',score:3100,quests:25,streak:8,badge:'🔬 Explorer',color:'#00CEC9'},
+  {rank:9,name:'Pooja Nair',initial:'P',track:'AI/ML',score:2980,quests:23,streak:6,badge:'💡 Thinker',color:'#FD79A8'},
+  {rank:10,name:'Deepa Rao',initial:'D',track:'App Dev',score:2840,quests:22,streak:4,badge:'🏅 Achiever',color:'#a29bfe'},
+  {rank:11,name:'Vikram Sinha',initial:'V',track:'Web Dev',score:2720,quests:20,streak:3,badge:'🚀 Launcher',color:'#FDCB6E'},
+  {rank:12,name:'Rahul Verma',initial:'R',track:'AI/ML',score:2580,quests:18,streak:2,badge:'📊 Analyst',color:'#D63031'},
+  {rank:13,name:'Karan Joshi',initial:'K',track:'Web Dev',score:2440,quests:16,streak:5,badge:'🌐 Webber',color:'#FDCB6E'},
+  {rank:14,name:'Nikhil Bose',initial:'N',track:'Web Dev',score:2280,quests:14,streak:3,badge:'⭐ Learner',color:'#a29bfe'},
+  {rank:15,name:'Mohit Yadav',initial:'M',track:'Web Dev',score:2120,quests:12,streak:1,badge:'🔑 Starter',color:'#6C5CE7'},
+  {rank:16,name:'Aditya Kumar',initial:'A',track:'Web Dev',score:1960,quests:11,streak:2,badge:'📘 Student',color:'#FD79A8'},
+  {rank:17,name:'Akash Tiwari',initial:'A',track:'Web Dev',score:1820,quests:9,streak:0,badge:'📚 Curious',color:'#00CEC9'},
+  {rank:18,name:'Dev Kapoor',initial:'D',track:'Web Dev',score:1640,quests:8,streak:0,badge:'🌱 Sprouting',color:'#D63031'},
+];
+
+let currentTrack = 'all';
+
+function setTrack(track, btn) {
+  currentTrack = track;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard();
+}
+
+function getFiltered() {
+  return currentTrack === 'all' ? allStudents : allStudents.filter(s=>s.track===currentTrack);
+}
+
+function renderPodium(list) {
+  if (list.length < 3) {
+    document.getElementById('podiumContainer').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.3);padding:20px;">Not enough students for podium.</div>';
+    return;
+  }
+  const [first, second, third] = [list[0], list[1], list[2]];
+  const reranked = [second, first, third];
+  const classes = ['silver','gold','bronze'];
+  const crowns = ['🥈','🥇','🥉'];
+  const heights = ['','',''];
+  const ptops = ['12px','0','12px'];
+  document.getElementById('podiumContainer').innerHTML = reranked.map((s,i) => `
+    <div class="podium-card ${classes[i]} podium-rise" style="animation-delay:${.1+i*.1}s;padding-top:${ptops[i]};">
+      <div style="font-size:28px;margin-bottom:8px;">${crowns[i]}</div>
+      <div class="podium-avatar" style="background:${s.color}22;color:${s.color};">
+        ${s.initial}
+        <div class="podium-rank" style="background:${classes[i]==='gold'?'#FFD700':classes[i]==='silver'?'#C0C0C0':'#CD7F32'};">${i===1?1:i===0?2:3}</div>
+      </div>
+      <div class="podium-name">${s.name}</div>
+      <div class="podium-track">${s.track}</div>
+      <div class="podium-score" style="color:${classes[i]==='gold'?'#FFD700':classes[i]==='silver'?'#C0C0C0':'#CD7F32'};">${s.score.toLocaleString()}</div>
+      <div class="podium-label">XP</div>
+      <div style="margin-top:10px;font-size:13px;">${s.badge}</div>
+    </div>
+  `).join('');
+}
+
+function renderTable(list) {
+  document.getElementById('tableSubtitle').textContent = `Showing ${list.length} student${list.length!==1?'s':''}`;
+  document.getElementById('leaderboardTbody').innerHTML = list.map((s,i) => {
+    const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
+    const streakColor = s.streak>=14?'#FF6B35':s.streak>=7?'#FDCB6E':'rgba(255,255,255,.4)';
+    return `
+      <tr style="animation:fadeIn .3s ease ${i*.03}s both;">
+        <td><span class="rank-num ${rankClass}">${i+1}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="student-ava" style="background:${s.color}22;color:${s.color};">${s.initial}</div>
+            <span style="font-weight:600;">${s.name}</span>
+          </div>
+        </td>
+        <td><span class="badge ${s.track==='Web Dev'?'badge-purple':s.track==='AI/ML'?'badge-teal':'badge-success'}">${s.track}</span></td>
+        <td style="font-size:15px;font-weight:800;color:${i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'rgba(255,255,255,.9)'};">${s.score.toLocaleString()} <span style="font-size:11px;font-weight:500;color:rgba(255,255,255,.3);">XP</span></td>
+        <td style="font-weight:600;color:#a29bfe;">${s.quests} quests</td>
+        <td>
+          <div class="streak-bar">
+            <span style="color:${streakColor};">🔥</span>
+            <span style="color:${streakColor};font-weight:700;">${s.streak} days</span>
+          </div>
+        </td>
+        <td><span style="font-size:13px;">${s.badge}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderLeaderboard() {
+  const list = getFiltered();
+  const reranked = list.map((s,i)=>({...s,rank:i+1}));
+  renderPodium(reranked);
+  renderTable(reranked);
+}
+
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+renderLeaderboard();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>

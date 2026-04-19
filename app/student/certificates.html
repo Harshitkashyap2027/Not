@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Certificates – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter','Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.nav-section-label{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;margin-right:0;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.badge-gold{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:620px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(110%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+/* Certificate card styles */
+.cert-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;transition:all .25s;cursor:pointer;}
+.cert-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.cert-card.gold{border-color:rgba(253,203,110,.3);}
+.cert-card.purple{border-color:rgba(108,92,231,.3);}
+.cert-card.teal{border-color:rgba(0,206,201,.3);}
+.cert-card-banner{height:80px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;}
+.cert-card-body{padding:18px;}
+/* Certificate modal */
+.cert-doc{background:linear-gradient(145deg,#0D0D1A,#12122A);border:2px solid rgba(253,203,110,.4);border-radius:16px;padding:40px;position:relative;text-align:center;}
+.cert-doc::before{content:'';position:absolute;inset:6px;border:1px solid rgba(253,203,110,.15);border-radius:12px;pointer-events:none;}
+.cert-ornament{font-size:1.5rem;margin:0 8px;opacity:.6;}
+.qr-placeholder{width:80px;height:80px;border:2px solid rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:rgba(255,255,255,.4);margin:0 auto;background:rgba(255,255,255,.03);}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%)}.app-main{margin-left:0}.bento-grid{grid-template-columns:1fr 1fr}.b-col-3,.b-col-4{grid-column:span 6}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12}}
+</style>
+</head>
+<body>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside class="app-sidebar" id="app-sidebar">
+  <div class="sidebar-logo">
+    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">⚡</div>
+    <span style="font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">lvlBase</span>
+  </div>
+  <div style="padding:12px;margin:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;" id="sidebar-avatar">S</div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;" id="sidebar-name">Student</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);">🎓 Student</div>
+      </div>
+    </div>
+  </div>
+  <nav style="flex:1;padding:8px 0;overflow-y:auto;">
+    <div class="nav-section-label">Main</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span> Quest Map</a>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span> Profile</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span> Analytics</a>
+    <div class="nav-section-label">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span> Arena<span style="font-size:9px;background:#D63031;color:#fff;padding:2px 6px;border-radius:6px;font-weight:700;margin-left:4px;">LIVE</span></a>
+    <a href="/app/student/arena/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span> Leaderboard</a>
+    <a href="/app/student/exam-portal.html" class="nav-item"><span class="nav-icon">📝</span> Exam Portal</a>
+    <div class="nav-section-label">Learn</div>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🤖</span> Sage AI</a>
+    <a href="/app/student/ai/notes.html" class="nav-item"><span class="nav-icon">📝</span> AI Notes</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span> Code Studio</a>
+    <a href="/app/student/practice-gym.html" class="nav-item"><span class="nav-icon">🏋️</span> Practice Gym</a>
+    <div class="nav-section-label">Rewards</div>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span> Backpack</a>
+    <a href="/app/student/certificates.html" class="nav-item active"><span class="nav-icon">🎓</span> Certificates</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span> Support</a>
+  </nav>
+  <div style="padding:16px;">
+    <button onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'" style="width:100%;padding:10px;background:rgba(214,48,49,.1);border:1px solid rgba(214,48,49,.2);border-radius:10px;color:rgba(255,255,255,.6);cursor:pointer;font-size:.82rem;font-weight:600;">Sign Out</button>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="app-main">
+  <div class="app-header">
+    <div class="header-title">🎓 My Certificates</div>
+    <span class="badge badge-success">3 Verified</span>
+  </div>
+  <div class="app-content">
+    <div class="bento-grid fade-in">
+
+      <!-- Stats row -->
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2.2rem;font-weight:800;color:#a29bfe;">3</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;">Total Earned</div>
+          <div style="margin-top:8px;font-size:1.3rem;">🏅</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2.2rem;font-weight:800;color:#FDCB6E;">1</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;">This Month</div>
+          <div style="margin-top:8px;font-size:1.3rem;">📅</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2.2rem;font-weight:800;color:#00B894;">3</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;">Verified</div>
+          <div style="margin-top:8px;font-size:1.3rem;">✅</div>
+        </div>
+      </div>
+      <div class="b-col-3">
+        <div class="bento-card" style="text-align:center;padding:24px;">
+          <div style="font-size:2.2rem;font-weight:800;color:rgba(255,255,255,.3);">0</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;">Pending</div>
+          <div style="margin-top:8px;font-size:1.3rem;">⏳</div>
+        </div>
+      </div>
+
+      <!-- Certificate 1 — Web Development -->
+      <div class="b-col-6">
+        <div class="cert-card gold">
+          <div class="cert-card-banner" style="background:linear-gradient(135deg,#1a1340,#2d1f6e);">
+            <span>🌐</span>
+            <div style="position:absolute;top:10px;right:14px;" class="badge badge-success">✅ Verified</div>
+          </div>
+          <div class="cert-card-body">
+            <div style="font-size:1rem;font-weight:800;margin-bottom:6px;">Course Completion Certificate</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:12px;">Issued by <span style="color:#a29bfe;font-weight:600;">lvlBase Academy</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Track</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#FDCB6E;">Web Development</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Grade</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#00B894;">A+ Distinction</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Date Issued</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;">Oct 15, 2024</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Certificate ID</div>
+                <div style="font-size:.78rem;font-weight:600;margin-top:2px;color:#a29bfe;">LVL-2024-001234</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" onclick="viewCert(0)" style="flex:1;justify-content:center;">🔍 View Certificate</button>
+              <button class="btn btn-dark btn-sm" onclick="shareCert('LVL-2024-001234')" style="flex:1;justify-content:center;">📤 Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certificate 2 — AI & Data Science -->
+      <div class="b-col-6">
+        <div class="cert-card purple">
+          <div class="cert-card-banner" style="background:linear-gradient(135deg,#0d1a2e,#1a2d4a);">
+            <span>🤖</span>
+            <div style="position:absolute;top:10px;right:14px;" class="badge badge-success">✅ Verified</div>
+          </div>
+          <div class="cert-card-body">
+            <div style="font-size:1rem;font-weight:800;margin-bottom:6px;">Course Completion Certificate</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:12px;">Issued by <span style="color:#a29bfe;font-weight:600;">lvlBase Academy</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Track</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#00CEC9;">AI & Data Science</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Grade</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#00B894;">A Distinction</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Date Issued</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;">Nov 02, 2024</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Certificate ID</div>
+                <div style="font-size:.78rem;font-weight:600;margin-top:2px;color:#a29bfe;">LVL-2024-002891</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" onclick="viewCert(1)" style="flex:1;justify-content:center;">🔍 View Certificate</button>
+              <button class="btn btn-dark btn-sm" onclick="shareCert('LVL-2024-002891')" style="flex:1;justify-content:center;">📤 Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certificate 3 — App Development -->
+      <div class="b-col-6">
+        <div class="cert-card teal">
+          <div class="cert-card-banner" style="background:linear-gradient(135deg,#0d1f1e,#0d2e2d);">
+            <span>📱</span>
+            <div style="position:absolute;top:10px;right:14px;" class="badge badge-success">✅ Verified</div>
+          </div>
+          <div class="cert-card-body">
+            <div style="font-size:1rem;font-weight:800;margin-bottom:6px;">Course Completion Certificate</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:12px;">Issued by <span style="color:#a29bfe;font-weight:600;">lvlBase Academy</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Track</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#FD79A8;">App Development</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Grade</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;color:#00B894;">A+ Distinction</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Date Issued</div>
+                <div style="font-size:.8rem;font-weight:600;margin-top:2px;">Dec 10, 2024</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px;">
+                <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Certificate ID</div>
+                <div style="font-size:.78rem;font-weight:600;margin-top:2px;color:#a29bfe;">LVL-2024-004567</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary btn-sm" onclick="viewCert(2)" style="flex:1;justify-content:center;">🔍 View Certificate</button>
+              <button class="btn btn-dark btn-sm" onclick="shareCert('LVL-2024-004567')" style="flex:1;justify-content:center;">📤 Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Info Card -->
+      <div class="b-col-6">
+        <div class="bento-card" style="border-color:rgba(108,92,231,.25);background:linear-gradient(135deg,rgba(108,92,231,.08),rgba(108,92,231,.03));height:100%;display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div style="font-size:1.1rem;font-weight:700;margin-bottom:12px;">🔐 Certificate Verification</div>
+            <p style="font-size:.85rem;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:16px;">All lvlBase certificates carry unique IDs and can be publicly verified. Employers and institutions can confirm your credentials instantly.</p>
+            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;margin-bottom:16px;">
+              <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-bottom:6px;">🔗 Verification Portal</div>
+              <div style="font-size:.9rem;font-weight:700;color:#a29bfe;">unibolt.in/verify</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.65);">
+                <span style="color:#00B894;">✓</span> Tamper-proof digital signatures
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.65);">
+                <span style="color:#00B894;">✓</span> QR code for instant verification
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.65);">
+                <span style="color:#00B894;">✓</span> LinkedIn-compatible sharing
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:rgba(255,255,255,.65);">
+                <span style="color:#00B894;">✓</span> Lifetime validity guaranteed
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <a href="https://unibolt.in/verify" target="_blank" class="btn btn-dark" style="width:100%;justify-content:center;text-decoration:none;">🔍 Visit Verification Portal →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievement Timeline -->
+      <div class="b-col-12">
+        <div class="bento-card">
+          <div style="font-size:1rem;font-weight:700;margin-bottom:18px;">🏆 Achievement Timeline</div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div style="display:flex;gap:16px;align-items:flex-start;padding-bottom:20px;position:relative;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FD79A8,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📱</div>
+                <div style="width:2px;flex:1;background:rgba(255,255,255,.08);margin-top:6px;min-height:30px;"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:.9rem;">App Development Track Complete</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px;">Dec 10, 2024 · Certificate ID: LVL-2024-004567</div>
+                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <span class="badge badge-success">A+ Distinction</span>
+                  <span class="badge badge-purple">+3,000 XP</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;align-items:flex-start;padding-bottom:20px;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#0984e3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🤖</div>
+                <div style="width:2px;flex:1;background:rgba(255,255,255,.08);margin-top:6px;min-height:30px;"></div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:.9rem;">AI & Data Science Track Complete</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px;">Nov 02, 2024 · Certificate ID: LVL-2024-002891</div>
+                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <span class="badge badge-success">A Distinction</span>
+                  <span class="badge badge-purple">+2,500 XP</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FDCB6E,#e17055);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🌐</div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:.9rem;">Web Development Track Complete</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px;">Oct 15, 2024 · Certificate ID: LVL-2024-001234</div>
+                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                  <span class="badge badge-success">A+ Distinction</span>
+                  <span class="badge badge-purple">+2,000 XP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- end app-main -->
+
+<!-- ── CERTIFICATE VIEW MODAL ── -->
+<div class="modal-overlay" id="cert-modal">
+  <div class="modal" style="max-width:640px;">
+    <div class="cert-doc" id="cert-doc-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div style="font-size:.8rem;color:rgba(253,203,110,.6);">⚡ lvlBase Academy</div>
+        <div class="qr-placeholder" style="width:60px;height:60px;font-size:.6rem;">QR</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:8px;">
+        <span class="cert-ornament">✦</span>
+        <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:4px;color:rgba(253,203,110,.7);">Certificate of Completion</div>
+        <span class="cert-ornament">✦</span>
+      </div>
+      <div style="width:80px;height:2px;background:linear-gradient(90deg,transparent,rgba(253,203,110,.5),transparent);margin:12px auto 24px;"></div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px;">This is to certify that</div>
+      <div id="cert-student-name" style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#FDCB6E,#e17055);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">Student Name</div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:8px;">has successfully completed the</div>
+      <div id="cert-course-name" style="font-size:1.2rem;font-weight:700;color:#a29bfe;margin-bottom:20px;">Course Name</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;">
+          <div style="font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Date</div>
+          <div id="cert-date" style="font-size:.82rem;font-weight:600;margin-top:3px;">Oct 15, 2024</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;">
+          <div style="font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Grade</div>
+          <div id="cert-grade" style="font-size:.82rem;font-weight:600;color:#00B894;margin-top:3px;">A+ Distinction</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;">
+          <div style="font-size:.6rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;">Certificate ID</div>
+          <div id="cert-id" style="font-size:.75rem;font-weight:600;color:#a29bfe;margin-top:3px;">LVL-2024-001234</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+        <span style="font-size:.75rem;color:rgba(255,255,255,.35);">Issued by lvlBase Academy</span>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+      </div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.3);">This certificate can be verified at <span style="color:#a29bfe;">unibolt.in/verify</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-dark" onclick="closeCertModal()" style="flex:1;justify-content:center;">Close</button>
+      <button class="btn btn-primary" onclick="downloadCurrentCert()" style="flex:1;justify-content:center;">📥 Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['student']);</script>
+<script>
+function showToast(msg, type='info', icon='ℹ️'){
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:1.1rem">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>t.classList.add('show')); });
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); },3500);
+}
+
+const certificates = [
+  {name:'Web Development Track — Full Course',date:'Oct 15, 2024',grade:'A+ Distinction',id:'LVL-2024-001234',student:'Harshit Kashyap'},
+  {name:'AI & Data Science Track — Full Course',date:'Nov 02, 2024',grade:'A Distinction',id:'LVL-2024-002891',student:'Harshit Kashyap'},
+  {name:'App Development Track — Full Course',date:'Dec 10, 2024',grade:'A+ Distinction',id:'LVL-2024-004567',student:'Harshit Kashyap'},
+];
+
+let currentCertIndex = 0;
+
+function viewCert(index){
+  currentCertIndex = index;
+  const cert = certificates[index];
+  document.getElementById('cert-student-name').textContent = cert.student;
+  document.getElementById('cert-course-name').textContent = cert.name;
+  document.getElementById('cert-date').textContent = cert.date;
+  document.getElementById('cert-grade').textContent = cert.grade;
+  document.getElementById('cert-id').textContent = cert.id;
+  document.getElementById('cert-modal').classList.add('open');
+}
+
+function closeCertModal(){
+  document.getElementById('cert-modal').classList.remove('open');
+}
+
+function downloadCurrentCert(){
+  showToast('📥 Certificate PDF downloaded!', 'success', '📥');
+}
+
+function shareCert(certId){
+  const url = `https://unibolt.in/verify?cert=${certId}`;
+  if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+  showToast('🔗 Certificate link copied to clipboard!', 'success', '🔗');
+}
+
+// Populate student name from auth if available
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(typeof firebase !== 'undefined' && firebase.auth){
+    firebase.auth().onAuthStateChanged(user=>{
+      if(user){
+        const name = user.displayName || 'Student';
+        document.getElementById('sidebar-name').textContent = name;
+        document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+        certificates.forEach(c=>c.student = name);
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
