@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="lvlBase — The gamified AI-powered EdTech platform for schools. Combine LMS, gamification, AI tutoring, and school ERP in one platform.">
+<meta property="og:title" content="lvlBase — Level Up Learning">
+<meta property="og:description" content="Gamified AI-powered school management system">
+<meta property="og:type" content="website">
+<title>lvlBase — Level Up Learning</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/pwa/manifest-student.json">
+<link rel="stylesheet" href="/core/css/base.css">
+<style>
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:16px 0;transition:all .3s;background:transparent;}
+.nav.scrolled{background:rgba(13,13,26,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);padding:12px 0;}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:24px;}
+.nav-logo{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-logo span{-webkit-text-fill-color:#FDCB6E;}
+.nav-links{display:flex;align-items:center;gap:8px;}
+.nav-link{color:rgba(255,255,255,.7);font-size:.875rem;font-weight:500;padding:8px 14px;border-radius:8px;transition:all .2s;text-decoration:none;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,.06);}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.nav-btn{padding:9px 20px;border-radius:10px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;border:none;text-decoration:none;}
+.nav-btn.ghost{background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.12);}
+.nav-btn.ghost:hover{background:rgba(255,255,255,.12);}
+.nav-btn.primary{background:linear-gradient(135deg,#6C5CE7,#5A4BD1);color:#fff;box-shadow:0 4px 15px rgba(108,92,231,.4);}
+.nav-btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,92,231,.6);}
+.hamburger{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:4px;}
+@media(max-width:768px){.nav-links,.nav-actions{display:none;}.hamburger{display:block;}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;padding:120px 0 80px;}
+.hero-bg{position:absolute;inset:0;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);animation:float 8s ease-in-out infinite;}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(108,92,231,.35),transparent);top:-100px;left:-100px;}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(253,121,168,.25),transparent);bottom:-100px;right:-100px;animation-delay:-4s;}
+.orb3{width:400px;height:400px;background:radial-gradient(circle,rgba(0,206,201,.2),transparent);top:40%;right:10%;animation-delay:-2s;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px;}
+.hero-inner{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(108,92,231,.15);border:1px solid rgba(108,92,231,.3);border-radius:999px;font-size:.78rem;font-weight:700;color:#8B7CF8;margin-bottom:20px;animation:fadeDown .5s ease forwards;}
+.hero-title{font-size:clamp(2.5rem,5.5vw,4rem);font-weight:900;line-height:1.1;letter-spacing:-.03em;margin-bottom:20px;animation:fadeUp .6s ease .1s both;}
+.hero-sub{font-size:1.1rem;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:36px;max-width:520px;animation:fadeUp .6s ease .2s both;}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .6s ease .3s both;}
+.hero-stats{display:flex;gap:24px;margin-top:40px;animation:fadeUp .6s ease .4s both;}
+.hero-stat{text-align:center;}
+.hero-stat-num{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-stat-label{font-size:.72rem;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+
+/* ── HERO VISUAL ── */
+.hero-visual{position:relative;animation:fadeLeft .7s ease .2s both;}
+@keyframes fadeLeft{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.hero-dashboard{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:20px;box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.hd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.hd-logo{font-weight:800;font-size:.9rem;color:#8B7CF8;}
+.hd-dots{display:flex;gap:6px;}
+.hd-dot{width:10px;height:10px;border-radius:50%;}
+.hd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.hd-card{padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+.hd-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hd-card-label{font-size:.65rem;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;}
+.hd-card-val{font-size:1.3rem;font-weight:900;}
+.hd-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;}
+.hd-bar-fill{height:100%;border-radius:2px;animation:barGrow 2s ease 1s both;}
+@keyframes barGrow{from{width:0}to{width:var(--w)}}
+.hd-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hd-card-wide{grid-column:span 2;padding:14px;background:linear-gradient(135deg,rgba(108,92,231,.2),rgba(253,121,168,.1));border:1px solid rgba(108,92,231,.2);border-radius:14px;}
+
+/* ── FEATURES ── */
+.features{padding:100px 0;}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1280px;margin:0 auto;padding:0 24px;}
+.feat-card{padding:28px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;transition:all .3s;position:relative;overflow:hidden;}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-color,#6C5CE7);border-radius:3px 3px 0 0;}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.3);background:rgba(255,255,255,.08);}
+.feat-icon{font-size:2.2rem;margin-bottom:16px;display:block;}
+.feat-title{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
+.feat-desc{font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.6;}
+.feat-list{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+.feat-item{font-size:.78rem;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px;}
+.feat-item::before{content:'✓';color:#00B894;font-weight:800;font-size:.7rem;}
+
+/* ── HOW IT WORKS ── */
+.how{padding:100px 0;background:rgba(255,255,255,.02);}
+.steps-row{display:flex;gap:0;max-width:1000px;margin:48px auto 0;position:relative;}
+.steps-row::before{content:'';position:absolute;top:32px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,#6C5CE7,#FD79A8);z-index:0;}
+.step-item{flex:1;text-align:center;position:relative;z-index:1;padding:0 12px;}
+.step-circle{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;box-shadow:0 0 30px rgba(108,92,231,.5);}
+.step-title{font-size:.9rem;font-weight:800;margin-bottom:6px;}
+.step-desc{font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.5;}
+
+/* ── ROLES ── */
+.roles{padding:100px 0;}
+.roles-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;max-width:1280px;margin:48px auto 0;padding:0 24px;}
+.role-card{padding:24px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;text-align:center;transition:all .3s;cursor:pointer;}
+.role-card:hover{transform:translateY(-6px);border-color:var(--rc,rgba(108,92,231,.4));background:rgba(255,255,255,.07);box-shadow:0 16px 40px rgba(0,0,0,.3);}
+.role-emoji{font-size:2.5rem;margin-bottom:12px;display:block;}
+.role-name{font-weight:800;font-size:.9rem;margin-bottom:6px;}
+.role-tagline{font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.4;}
+.role-features{text-align:left;display:flex;flex-direction:column;gap:4px;}
+.role-feat{font-size:.7rem;color:rgba(255,255,255,.5);display:flex;gap:5px;align-items:center;}
+
+/* ── GAMIFICATION ── */
+.gamify{padding:100px 0;background:rgba(255,255,255,.015);}
+.gamify-inner{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.rank-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.rank-show{padding:16px 12px;border-radius:16px;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:all .25s;}
+.rank-show:hover{transform:translateY(-4px);}
+
+/* ── TESTIMONIALS ── */
+.testimonials{padding:100px 0;}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1280px;margin:48px auto 0;padding:0 24px;}
+.testi-card{padding:28px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;}
+.testi-stars{color:#FDCB6E;font-size:.9rem;margin-bottom:14px;}
+.testi-text{font-size:.88rem;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:20px;font-style:italic;}
+.testi-author{display:flex;align-items:center;gap:10px;}
+.testi-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;}
+.testi-name{font-weight:700;font-size:.85rem;}
+.testi-role{font-size:.72rem;color:rgba(255,255,255,.5);}
+
+/* ── PRICING PREVIEW ── */
+.pricing-prev{padding:100px 0;background:rgba(255,255,255,.02);}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:48px auto 0;padding:0 24px;}
+.price-card{padding:32px 28px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:24px;text-align:center;transition:all .3s;position:relative;}
+.price-card.popular{border-color:rgba(108,92,231,.4);background:rgba(108,92,231,.08);transform:scale(1.04);}
+.price-card.popular::before{content:'Most Popular';position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6C5CE7,#FD79A8);color:#fff;font-size:.72rem;font-weight:700;padding:4px 14px;border-radius:999px;white-space:nowrap;}
+.price-tier{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:12px;}
+.price-amount{font-size:3rem;font-weight:900;line-height:1;}
+.price-period{font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:24px;}
+.price-features{text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
+.price-feat{font-size:.82rem;color:rgba(255,255,255,.6);display:flex;gap:8px;align-items:flex-start;}
+.price-feat.no{color:rgba(255,255,255,.25);}
+.price-feat.no::before{content:'✕';color:rgba(255,255,255,.2);}
+.price-feat:not(.no)::before{content:'✓';color:#00B894;font-weight:800;}
+
+/* ── CTA BANNER ── */
+.cta-banner{padding:80px 24px;text-align:center;background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(253,121,168,.08));border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);}
+
+/* ── FOOTER ── */
+.footer{padding:64px 0 32px;background:rgba(0,0,0,.2);}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 24px;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px;}
+.footer-brand p{font-size:.85rem;color:rgba(255,255,255,.5);line-height:1.7;margin-top:12px;max-width:280px;}
+.footer-col-title{font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:14px;}
+.footer-link{display:block;color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:8px;transition:color .15s;text-decoration:none;}
+.footer-link:hover{color:#8B7CF8;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:rgba(255,255,255,.35);}
+.footer-socials{display:flex;gap:12px;}
+.footer-social{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s;text-decoration:none;}
+.footer-social:hover{background:rgba(108,92,231,.2);border-color:rgba(108,92,231,.3);}
+
+@media(max-width:1024px){
+  .hero-inner,.gamify-inner{grid-template-columns:1fr;}
+  .hero-visual{display:none;}
+  .feat-grid{grid-template-columns:repeat(2,1fr);}
+  .roles-grid{grid-template-columns:repeat(3,1fr);}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  .feat-grid,.testi-grid,.pricing-grid,.roles-grid{grid-template-columns:1fr;}
+  .steps-row{flex-direction:column;gap:24px;}
+  .steps-row::before{display:none;}
+  .price-card.popular{transform:none;}
+  .footer-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">lvl<span>Base</span></a>
+    <div class="nav-links">
+      <a href="/public/features.html" class="nav-link">Features</a>
+      <a href="/public/pricing.html"  class="nav-link">Pricing</a>
+      <a href="/public/for-schools.html" class="nav-link">For Schools</a>
+      <a href="/public/case-studies.html" class="nav-link">Case Studies</a>
+      <a href="/public/faq.html"      class="nav-link">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/auth/portal-login.html" class="nav-btn ghost">Log In</a>
+      <a href="/auth/school-onboarding.html" class="nav-btn primary">Get Started Free</a>
+    </div>
+    <button class="hamburger" onclick="this.nextElementSibling?.classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="hero-grid"></div>
+  </div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge">⚡ Powered by UniBolt AI · Now in Beta</div>
+      <h1 class="hero-title">
+        Level Up <span class="gradient-text">Every Student's</span><br>
+        Learning Journey
+      </h1>
+      <p class="hero-sub">lvlBase combines gamification, AI tutoring, and school management into one powerful platform. Students earn XP, climb ranks, and battle peers — while teachers and admins get everything they need.</p>
+      <div class="hero-ctas">
+        <a href="/auth/school-onboarding.html" class="btn btn-primary btn-lg">🚀 Start Free Trial</a>
+        <a href="/public/features.html" class="btn btn-secondary btn-lg">✨ Explore Features</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num">50K+</div><div class="hero-stat-label">Students</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">1.2K+</div><div class="hero-stat-label">Schools</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">4.9⭐</div><div class="hero-stat-label">Rating</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">99.9%</div><div class="hero-stat-label">Uptime</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-dashboard">
+        <div class="hd-header">
+          <span class="hd-logo">⚡ lvlBase</span>
+          <div class="hd-dots">
+            <div class="hd-dot" style="background:#ff5f56"></div>
+            <div class="hd-dot" style="background:#ffbd2e"></div>
+            <div class="hd-dot" style="background:#27c93f"></div>
+          </div>
+        </div>
+        <div class="hd-grid">
+          <div class="hd-card">
+            <div class="hd-card-top"><span class="hd-card-label">XP</span><span style="color:#FDCB6E">⚡</span></div>
+            <div class="hd-card-val gradient-text">12,450</div>
+            <div class="hd-bar"><div class="hd-bar-fill" style="--w:78%;width:0;background:linear-gradient(90deg,#6C5CE7,#FD79A8)"></div></div>
+          </div>
+          <div class="hd-card">
+            <div class="hd-card-top"><span class="hd-card-label">Rank</span><span>🔥</span></div>
+            <div class="hd-card-val" style="color:#F87171">S</div>
+            <div class="hd-bar"><div class="hd-bar-fill" style="--w:65%;width:0;background:#F87171"></div></div>
+          </div>
+          <div class="hd-card">
+            <div class="hd-card-top"><span class="hd-card-label">Streak</span><span>🔥</span></div>
+            <div class="hd-card-val" style="color:#FDCB6E">21d</div>
+            <div class="hd-bar"><div class="hd-bar-fill" style="--w:90%;width:0;background:#FDCB6E"></div></div>
+          </div>
+        </div>
+        <div class="hd-row">
+          <div class="hd-card">
+            <div class="hd-card-label" style="font-size:.6rem;margin-bottom:8px">ACTIVE QUEST</div>
+            <div style="font-size:.75rem;font-weight:700;margin-bottom:6px">📚 Algebra Chapter 5</div>
+            <div class="hd-bar"><div class="hd-bar-fill" style="--w:60%;width:0;background:#00CEC9"></div></div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-top:4px">6/10 tasks done</div>
+          </div>
+          <div class="hd-card-wide">
+            <div class="hd-card-label" style="font-size:.6rem;margin-bottom:8px">GUILD RANK</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:1.8rem">⚔️</span>
+              <div><div style="font-weight:800;font-size:.85rem">Dragon Slayers</div><div style="font-size:.65rem;color:rgba(255,255,255,.5)">#3 School Leaderboard</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features">
+  <div style="text-align:center;max-width:1280px;margin:0 auto;padding:0 24px;">
+    <div class="hero-badge" style="margin-bottom:16px;">🎯 Everything In One Platform</div>
+    <h2 class="hero-title" style="font-size:clamp(1.8rem,3.5vw,2.8rem);margin-bottom:12px;">Built for the Modern <span class="gradient-text">Learning Experience</span></h2>
+    <p style="color:rgba(255,255,255,.6);font-size:1rem;max-width:600px;margin:0 auto 48px;">From gamified quests to AI tutoring, from live battles to school ERP — lvlBase has everything schools need.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card" style="--accent-color:#6C5CE7">
+      <span class="feat-icon">🎮</span>
+      <div class="feat-title">Gamification Engine</div>
+      <div class="feat-desc">Transform learning into an epic adventure. Students earn XP, unlock ranks, and compete in real-time arena battles.</div>
+      <div class="feat-list">
+        <div class="feat-item">XP & Rank Progression System</div>
+        <div class="feat-item">1v1 Live Arena Battles</div>
+        <div class="feat-item">Guild Wars & Team Competitions</div>
+        <div class="feat-item">Loot Boxes & Achievement Badges</div>
+        <div class="feat-item">Global & School Leaderboards</div>
+      </div>
+    </div>
+    <div class="feat-card" style="--accent-color:#00CEC9">
+      <span class="feat-icon">🤖</span>
+      <div class="feat-title">AI Tutor (Sage AI)</div>
+      <div class="feat-desc">An intelligent AI tutor that detects weak topics, generates personalized quizzes, and provides 24/7 learning support.</div>
+      <div class="feat-list">
+        <div class="feat-item">Conversational AI Chat Tutor</div>
+        <div class="feat-item">Smart Flashcard Generation</div>
+        <div class="feat-item">Weak Topic Detection & Analysis</div>
+        <div class="feat-item">Mock Interview Practice</div>
+        <div class="feat-item">AI-Powered Grading</div>
+      </div>
+    </div>
+    <div class="feat-card" style="--accent-color:#FD79A8">
+      <span class="feat-icon">📚</span>
+      <div class="feat-title">Quest-Based LMS</div>
+      <div class="feat-desc">Replace boring textbooks with interactive quest maps. Students progress through lessons like an RPG adventure.</div>
+      <div class="feat-list">
+        <div class="feat-item">Visual Quest Map & Learning Path</div>
+        <div class="feat-item">Infinite Practice Quizzes</div>
+        <div class="feat-item">Assignment & Submission System</div>
+        <div class="feat-item">Real-Time Class Chat</div>
+        <div class="feat-item">Peer Collaboration Tools</div>
+      </div>
+    </div>
+    <div class="feat-card" style="--accent-color:#FDCB6E">
+      <span class="feat-icon">💻</span>
+      <div class="feat-title">Coding Workspace</div>
+      <div class="feat-desc">Built-in IDE for HTML/CSS/JS, Python, and Flutter — with live preview, AI code review, and automatic saving.</div>
+      <div class="feat-list">
+        <div class="feat-item">Web Studio (HTML/CSS/JS)</div>
+        <div class="feat-item">Python Lab with Execution</div>
+        <div class="feat-item">Flutter Lab Preview</div>
+        <div class="feat-item">AI Code Review & Suggestions</div>
+        <div class="feat-item">Version History & Snapshots</div>
+      </div>
+    </div>
+    <div class="feat-card" style="--accent-color:#00B894">
+      <span class="feat-icon">🏫</span>
+      <div class="feat-title">School ERP</div>
+      <div class="feat-desc">Complete school management: attendance, gradebook, announcements, fee payments, and analytics — all in one dashboard.</div>
+      <div class="feat-list">
+        <div class="feat-item">Digital Attendance Tracking</div>
+        <div class="feat-item">Gradebook & Report Cards</div>
+        <div class="feat-item">Fee & Payment Management</div>
+        <div class="feat-item">Asset & Resource Management</div>
+        <div class="feat-item">Emergency Alert System</div>
+      </div>
+    </div>
+    <div class="feat-card" style="--accent-color:#A78BFA">
+      <span class="feat-icon">🔒</span>
+      <div class="feat-title">Smart Proctoring</div>
+      <div class="feat-desc">AI-powered exam proctoring detects cheating attempts, monitors focus, and generates detailed violation reports.</div>
+      <div class="feat-list">
+        <div class="feat-item">Tab Switch Detection</div>
+        <div class="feat-item">Fullscreen Enforcement</div>
+        <div class="feat-item">Live Monitoring Dashboard</div>
+        <div class="feat-item">Audio Analysis</div>
+        <div class="feat-item">Automated Cheat Reports</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how">
+  <div style="text-align:center;max-width:1280px;margin:0 auto;padding:0 24px;">
+    <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:12px;">Get Started in <span class="gradient-text">4 Simple Steps</span></h2>
+    <p style="color:rgba(255,255,255,.6);">From signup to live classroom in under 10 minutes</p>
+    <div class="steps-row">
+      <div class="step-item"><div class="step-circle">🏫</div><div class="step-title">Register School</div><div class="step-desc">Create your school account and invite your team</div></div>
+      <div class="step-item"><div class="step-circle">👥</div><div class="step-title">Add Users</div><div class="step-desc">Import or invite students and teachers</div></div>
+      <div class="step-item"><div class="step-circle">📚</div><div class="step-title">Create Content</div><div class="step-desc">Build quests, quizzes, and assignments</div></div>
+      <div class="step-item"><div class="step-circle">🚀</div><div class="step-title">Launch & Engage</div><div class="step-desc">Students start earning XP and learning!</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ROLES ── -->
+<section class="roles">
+  <div style="text-align:center;max-width:1280px;margin:0 auto;padding:0 24px;">
+    <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:12px;">Built for <span class="gradient-text">Every Role</span></h2>
+    <p style="color:rgba(255,255,255,.6);max-width:500px;margin:0 auto;">A personalized experience for every user in your school ecosystem</p>
+  </div>
+  <div class="roles-grid">
+    <div class="role-card" style="--rc:rgba(253,203,110,.4)" onclick="location.href='/auth/signup-student.html'">
+      <span class="role-emoji">🎓</span>
+      <div class="role-name">Students</div>
+      <div class="role-tagline">Learn, Battle, and Level Up</div>
+      <div class="role-features">
+        <div class="role-feat">🗺️ Quest learning map</div>
+        <div class="role-feat">⚔️ Arena battles</div>
+        <div class="role-feat">🤖 AI tutor (Sage)</div>
+        <div class="role-feat">💻 Coding workspace</div>
+        <div class="role-feat">⚡ XP & rank system</div>
+      </div>
+    </div>
+    <div class="role-card" style="--rc:rgba(0,206,201,.4)" onclick="location.href='/auth/signup-teacher.html'">
+      <span class="role-emoji">👨‍🏫</span>
+      <div class="role-name">Teachers</div>
+      <div class="role-tagline">Teach Smarter, Grade Faster</div>
+      <div class="role-features">
+        <div class="role-feat">📊 Gradebook & analytics</div>
+        <div class="role-feat">🎯 Quiz & assignment builder</div>
+        <div class="role-feat">👁️ Live exam proctoring</div>
+        <div class="role-feat">📢 Class announcements</div>
+        <div class="role-feat">🤖 AI grading assistant</div>
+      </div>
+    </div>
+    <div class="role-card" style="--rc:rgba(253,121,168,.4)" onclick="location.href='/auth/portal-login.html'">
+      <span class="role-emoji">👨‍👩‍👧</span>
+      <div class="role-name">Parents</div>
+      <div class="role-tagline">Stay Connected & Informed</div>
+      <div class="role-features">
+        <div class="role-feat">�� Real-time progress</div>
+        <div class="role-feat">📅 Attendance tracking</div>
+        <div class="role-feat">💬 Teacher messaging</div>
+        <div class="role-feat">⏰ Screen time controls</div>
+        <div class="role-feat">💳 Fee payments</div>
+      </div>
+    </div>
+    <div class="role-card" style="--rc:rgba(108,92,231,.4)" onclick="location.href='/auth/school-onboarding.html'">
+      <span class="role-emoji">🏫</span>
+      <div class="role-name">School Admin</div>
+      <div class="role-tagline">Manage Everything Effortlessly</div>
+      <div class="role-features">
+        <div class="role-feat">📊 School analytics</div>
+        <div class="role-feat">👥 User management</div>
+        <div class="role-feat">📢 Broadcasts & alerts</div>
+        <div class="role-feat">🔒 Security & SSO</div>
+        <div class="role-feat">📦 ERP features</div>
+      </div>
+    </div>
+    <div class="role-card" style="--rc:rgba(0,184,148,.4)">
+      <span class="role-emoji">👑</span>
+      <div class="role-name">Super Admin</div>
+      <div class="role-tagline">Platform-Wide Control</div>
+      <div class="role-features">
+        <div class="role-feat">🌐 Multi-tenant management</div>
+        <div class="role-feat">💰 Revenue tracking</div>
+        <div class="role-feat">🚩 Feature flags</div>
+        <div class="role-feat">🛡️ Security monitoring</div>
+        <div class="role-feat">🤖 AI usage analytics</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GAMIFICATION SHOWCASE ── -->
+<section class="gamify">
+  <div class="gamify-inner">
+    <div>
+      <div class="hero-badge" style="margin-bottom:16px">🏆 Gamification System</div>
+      <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:16px;">7 Ranks. Infinite <span class="gradient-text">Motivation.</span></h2>
+      <p style="color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:32px;">Our progressive rank system keeps students motivated. From Iron to Legendary — every XP earned gets them closer to the top.</p>
+      <div class="rank-grid">
+        <div class="rank-show"><div style="font-size:1.4rem">⚙️</div><div style="font-size:.75rem;font-weight:800;color:#9CA3AF;margin-top:4px">E — Iron</div></div>
+        <div class="rank-show"><div style="font-size:1.4rem">🥉</div><div style="font-size:.75rem;font-weight:800;color:#D97706;margin-top:4px">D — Bronze</div></div>
+        <div class="rank-show"><div style="font-size:1.4rem">🥈</div><div style="font-size:.75rem;font-weight:800;color:#60A5FA;margin-top:4px">C — Silver</div></div>
+        <div class="rank-show"><div style="font-size:1.4rem">🥇</div><div style="font-size:.75rem;font-weight:800;color:#34D399;margin-top:4px">B — Gold</div></div>
+        <div class="rank-show"><div style="font-size:1.4rem">💎</div><div style="font-size:.75rem;font-weight:800;color:#A78BFA;margin-top:4px">A — Plat</div></div>
+        <div class="rank-show"><div style="font-size:1.4rem">🔥</div><div style="font-size:.75rem;font-weight:800;color:#F87171;margin-top:4px">S — Diamond</div></div>
+        <div class="rank-show" style="grid-column:span 2;background:rgba(253,203,110,.1);border-color:rgba(253,203,110,.2)"><div style="font-size:1.6rem">👑</div><div style="font-size:.75rem;font-weight:800;color:#FDCB6E;margin-top:4px">SS — Legendary</div></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="feat-card" style="--accent-color:#FDCB6E"><span class="feat-icon">⚡</span><div class="feat-title">XP System</div><div class="feat-desc">Earn XP for every action — quizzes, quests, battles, streaks, and more.</div></div>
+        <div class="feat-card" style="--accent-color:#FD79A8"><span class="feat-icon">⚔️</span><div class="feat-title">Guild Wars</div><div class="feat-desc">Form guilds, compete in weekly wars, dominate the leaderboard.</div></div>
+        <div class="feat-card" style="--accent-color:#6C5CE7"><span class="feat-icon">🎁</span><div class="feat-title">Loot Boxes</div><div class="feat-desc">Open loot boxes with Common, Rare, Epic, and Legendary rewards.</div></div>
+        <div class="feat-card" style="--accent-color:#00B894"><span class="feat-icon">🛍️</span><div class="feat-title">XP Shop</div><div class="feat-desc">Spend your XP on power-ups, avatar frames, and special boosts.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials">
+  <div style="text-align:center;max-width:1280px;margin:0 auto;padding:0 24px;">
+    <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:12px;">Loved by <span class="gradient-text">Educators Worldwide</span></h2>
+    <p style="color:rgba(255,255,255,.6);margin-bottom:0">See what schools are saying about lvlBase</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"lvlBase completely transformed how our students engage with learning. Attendance is up 40% and test scores improved dramatically within the first semester."</div><div class="testi-author"><div class="testi-avatar">SK</div><div><div class="testi-name">Sarah K.</div><div class="testi-role">Principal, Westview Academy</div></div></div></div>
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"The AI tutor Sage is incredible. My students ask it questions at 11pm and get better explanations than some textbooks. The gamification keeps them hooked."</div><div class="testi-author"><div class="testi-avatar">MR</div><div><div class="testi-name">Marcus R.</div><div class="testi-role">Math Teacher, Lincoln High</div></div></div></div>
+    <div class="testi-card"><div class="testi-stars">★★★★★</div><div class="testi-text">"As a parent, I love being able to see my child's progress in real-time. The streak counter is genius — my daughter hasn't missed a day of learning in 3 months!"</div><div class="testi-author"><div class="testi-avatar">AP</div><div><div class="testi-name">Anita P.</div><div class="testi-role">Parent, Riverside School</div></div></div></div>
+  </div>
+</section>
+
+<!-- ── PRICING PREVIEW ── -->
+<section class="pricing-prev">
+  <div style="text-align:center;max-width:1280px;margin:0 auto;padding:0 24px;">
+    <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:12px;">Simple, <span class="gradient-text">Transparent Pricing</span></h2>
+    <p style="color:rgba(255,255,255,.6);">Start free. Scale as you grow. No hidden fees.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card"><div class="price-tier">Starter</div><div class="price-amount gradient-text">Free</div><div class="price-period">forever · up to 100 students</div><div class="price-features"><div class="price-feat">Up to 100 students</div><div class="price-feat">Basic gamification</div><div class="price-feat">Quiz builder</div><div class="price-feat">Basic analytics</div><div class="price-feat no">AI Tutor (Sage)</div><div class="price-feat no">Arena battles</div></div><a href="/auth/school-onboarding.html" class="btn btn-secondary btn-full">Get Started Free</a></div>
+    <div class="price-card popular"><div class="price-tier">Pro</div><div class="price-amount gradient-text">₹299</div><div class="price-period">per student / year</div><div class="price-features"><div class="price-feat">Unlimited students</div><div class="price-feat">Full gamification</div><div class="price-feat">AI Tutor (Sage)</div><div class="price-feat">Arena battles</div><div class="price-feat">Advanced analytics</div><div class="price-feat">Priority support</div></div><a href="/auth/school-onboarding.html" class="btn btn-primary btn-full">Start Pro Trial</a></div>
+    <div class="price-card"><div class="price-tier">Enterprise</div><div class="price-amount gradient-text">Custom</div><div class="price-period">contact for pricing</div><div class="price-features"><div class="price-feat">Everything in Pro</div><div class="price-feat">Custom SSO/SAML</div><div class="price-feat">Dedicated support</div><div class="price-feat">SLA guarantee</div><div class="price-feat">Data export & APIs</div><div class="price-feat">Custom branding</div></div><a href="/public/contact.html" class="btn btn-secondary btn-full">Contact Sales</a></div>
+  </div>
+  <div style="text-align:center;margin-top:24px;font-size:.82rem;color:rgba(255,255,255,.4);">All plans include a 30-day free trial · No credit card required · Cancel anytime</div>
+</section>
+
+<!-- ── CTA BANNER ── -->
+<section class="cta-banner">
+  <h2 style="font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;margin-bottom:16px;">Ready to <span class="gradient-text">Transform</span> Your School?</h2>
+  <p style="color:rgba(255,255,255,.6);margin-bottom:32px;font-size:1rem;">Join 1,200+ schools already using lvlBase to gamify learning and boost engagement.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <a href="/auth/school-onboarding.html" class="btn btn-primary btn-xl">🚀 Start Free Trial — No Card Needed</a>
+    <a href="/public/contact.html" class="btn btn-secondary btn-xl">📞 Talk to Sales</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div style="font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">lvlBase</div>
+        <p>The gamified AI-powered EdTech platform for modern schools. Built with ❤️ using Firebase.</p>
+        <div class="footer-socials" style="margin-top:16px">
+          <a href="#" class="footer-social">𝕏</a>
+          <a href="#" class="footer-social">in</a>
+          <a href="#" class="footer-social">f</a>
+          <a href="#" class="footer-social">▶</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <a href="/public/features.html" class="footer-link">Features</a>
+        <a href="/public/pricing.html"  class="footer-link">Pricing</a>
+        <a href="/public/case-studies.html" class="footer-link">Case Studies</a>
+        <a href="/public/webinars.html" class="footer-link">Webinars</a>
+        <a href="/public/system-status.html" class="footer-link">System Status</a>
+      </div>
+      <div>
+        <div class="footer-col-title">For</div>
+        <a href="/public/for-schools.html"   class="footer-link">Schools</a>
+        <a href="/public/for-teachers.html"  class="footer-link">Teachers</a>
+        <a href="/public/for-parents.html"   class="footer-link">Parents</a>
+        <a href="/auth/signup-student.html"  class="footer-link">Students</a>
+        <a href="/public/roi-calculator.html" class="footer-link">ROI Calculator</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <a href="/public/contact.html"   class="footer-link">Contact</a>
+        <a href="/public/press.html"     class="footer-link">Press</a>
+        <a href="/public/faq.html"       class="footer-link">FAQ</a>
+        <a href="/public/verify-certificate.html" class="footer-link">Verify Certificate</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <a href="/public/legal/privacy-policy.html"   class="footer-link">Privacy Policy</a>
+        <a href="/public/legal/terms-of-service.html" class="footer-link">Terms of Service</a>
+        <a href="/public/legal/compliance.html"        class="footer-link">Compliance</a>
+        <a href="/public/legal/security-whitepaper.html" class="footer-link">Security</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 lvlBase. All rights reserved. Powered by UniBolt.</span>
+      <span>🇮🇳 Made in India</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Nav scroll effect
+window.addEventListener('scroll',()=>{
+  document.getElementById('main-nav').classList.toggle('scrolled',scrollY>50);
+});
+// Animate stats counter
+const counters=document.querySelectorAll('.hero-stat-num');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('animate-fadeUp');}});
+},{threshold:.5});
+counters.forEach(c=>io.observe(c));
+</script>
+</body>
+</html>

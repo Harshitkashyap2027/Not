@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — lvlBase</title>
+<link rel="stylesheet" href="/core/css/base.css">
+<link rel="stylesheet" href="/core/css/auth.css">
+</head>
+<body class="auth-page">
+<div class="auth-bg">
+  <div class="auth-bg-orb"></div><div class="auth-bg-orb"></div><div class="auth-bg-orb"></div>
+  <div class="auth-bg-grid"></div>
+</div>
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">⚡</div>
+    <div class="auth-logo-text">lvlBase</div>
+    <div class="auth-logo-sub">Powered by UniBolt</div>
+  </div>
+  <h2 class="auth-title">Welcome back! 👋</h2>
+  <p class="auth-subtitle">Sign in to continue your learning journey</p>
+  <form class="auth-form" id="login-form" novalidate>
+    <div class="input-group">
+      <label class="input-label">Email Address</label>
+      <div class="input-with-icon">
+        <span class="icon">📧</span>
+        <input type="email" name="email" class="auth-input" placeholder="you@school.com" required>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Password</label>
+      <div class="input-with-icon">
+        <span class="icon">🔒</span>
+        <input type="password" name="password" id="pass-input" class="auth-input" placeholder="••••••••" required>
+        <span class="toggle-pass" onclick="togglePass()">👁️</span>
+      </div>
+    </div>
+    <div class="auth-links">
+      <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--text-secondary);cursor:pointer">
+        <input type="checkbox" name="remember"> Remember me
+      </label>
+      <a href="/auth/forgot-password.html" class="auth-link">Forgot password?</a>
+    </div>
+    <button type="submit" class="auth-btn" id="login-btn">
+      <span id="btn-text">Sign In</span>
+      <span id="btn-loader" class="spinner spinner-sm" style="display:none"></span>
+    </button>
+    <div class="auth-divider">or continue with</div>
+    <button type="button" class="social-btn" id="google-btn" onclick="signInGoogle()">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjIuNTYgMTIuMjVjMC0uNzgtLjA3LTEuNTMtLjItMi4yNUgxMnY0LjI2aDUuOTJjLS4yNiAxLjM3LTEuMDQgMi41My0yLjIxIDMuMzF2Mi43N2gzLjU3YzIuMDgtMS45MiAzLjI4LTQuNzQgMy4yOC04LjA5eiIgZmlsbD0iIzQyODVGNCIvPjxwYXRoIGQ9Ik0xMiAyM2MyLjk3IDAgNS40Ni0uOTggNy4yOC0yLjY2bC0zLjU3LTIuNzdjLS45OC42Ni0yLjIzIDEuMDYtMy43MSAxLjA2LTIuODYgMC01LjI5LTEuOTMtNi4xNi00LjUzSDIuMTh2Mi44NEMzLjk5IDIwLjUzIDcuNyAyMyAxMiAyM3oiIGZpbGw9IiMzNEE4NTMiLz48cGF0aCBkPSJNNS44NCAxNC4wOWMtLjIyLS42Ni0uMzUtMS4zNi0uMzUtMi4wOXMuMTMtMS40My4zNS0yLjA5VjcuMDdIMi4xOEExMC45NiAxMC45NiAwIDAgMCAxIDEyYzAgMS43Ny40MiAzLjQ2IDEuMTggNC45M2wyLjg1LTIuMjIuODEtLjYyeiIgZmlsbD0iI0ZCQkMwNSIvPjxwYXRoIGQ9Ik0xMiA1LjM4YzEuNjIgMCAzLjA2LjU2IDQuMjEgMS42NGwzLjE1LTMuMTVDMTcuNDUgMi4wOSAxNC45NyAxIDEyIDEgNy43IDEgMy45OSAzLjQ3IDIuMTggNy4wN2wzLjY2IDIuODRjLjg3LTIuNiAzLjMtNC41MyA2LjE2LTQuNTN6IiBmaWxsPSIjRUE0MzM1Ii8+PC9zdmc+" alt="Google">
+      Continue with Google
+    </button>
+    <button type="button" class="social-btn" onclick="showMagicLink()">
+      ✨ Sign in with Magic Link
+    </button>
+  </form>
+  <div class="auth-footer">
+    New to lvlBase? <a href="/auth/signup-student.html">Create account</a> &nbsp;·&nbsp;
+    <a href="/auth/school-onboarding.html">Register a school</a>
+  </div>
+</div>
+
+<!-- Magic Link Modal -->
+<div id="magic-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:rgba(18,18,42,.95);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:32px;max-width:400px;width:100%">
+    <h3 style="margin-bottom:8px">✨ Magic Link Login</h3>
+    <p style="font-size:.85rem;color:rgba(255,255,255,.6);margin-bottom:20px">Enter your email and we'll send a magic link to sign you in instantly.</p>
+    <input type="email" id="magic-email" class="auth-input" placeholder="your@email.com" style="margin-bottom:16px">
+    <button onclick="sendMagicLink()" class="auth-btn" style="margin-bottom:12px">Send Magic Link</button>
+    <button onclick="document.getElementById('magic-modal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.5);width:100%;cursor:pointer;font-size:.85rem">Cancel</button>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+
+<script>
+function togglePass(){
+  const i=document.getElementById('pass-input');
+  i.type=i.type==='password'?'text':'password';
+}
+function showMagicLink(){
+  document.getElementById('magic-modal').style.display='flex';
+}
+document.getElementById('login-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const fd=new FormData(e.target);
+  const email=fd.get('email').trim(), pwd=fd.get('password');
+  if(!LvlSecurity.isValidEmail(email)){LvlUI.toast('Invalid email','Please enter a valid email','error');return;}
+  if(pwd.length<6){LvlUI.toast('Too short','Password too short','error');return;}
+  if(!LvlSecurity.rateLimit('login',5,60000)){LvlUI.toast('Too many attempts','Please wait a minute','warning');return;}
+  document.getElementById('btn-text').textContent='Signing in...';
+  document.getElementById('btn-loader').style.display='inline-block';
+  document.getElementById('login-btn').disabled=true;
+  try{
+    await LvlAuth.signInEmail(email,pwd);
+  }catch(err){
+    const msgs={
+      'auth/user-not-found':'No account found with this email',
+      'auth/wrong-password':'Incorrect password',
+      'auth/too-many-requests':'Too many attempts. Try again later',
+      'auth/user-disabled':'This account has been disabled'
+    };
+    LvlUI.toast('Login failed',msgs[err.code]||err.message,'error');
+    document.getElementById('btn-text').textContent='Sign In';
+    document.getElementById('btn-loader').style.display='none';
+    document.getElementById('login-btn').disabled=false;
+  }
+});
+async function signInGoogle(){
+  try{
+    document.getElementById('google-btn').textContent='Signing in...';
+    await LvlAuth.signInGoogle();
+  }catch(e){
+    LvlUI.toast('Google sign-in failed',e.message,'error');
+    document.getElementById('google-btn').innerHTML='<img src="..." alt="">Continue with Google';
+  }
+}
+async function sendMagicLink(){
+  const email=document.getElementById('magic-email').value.trim();
+  if(!LvlSecurity.isValidEmail(email)){LvlUI.toast('Invalid email','','error');return;}
+  try{
+    await LvlAuth.sendMagicLink(email);
+    document.getElementById('magic-modal').style.display='none';
+    LvlUI.toast('Magic link sent!','Check your email inbox ✨','success',6000);
+  }catch(e){LvlUI.toast('Failed to send',e.message,'error');}
+}
+// Check for magic link completion
+if(window.location.search.includes('apiKey')||window.location.href.includes('magic-link')){
+  LvlAuth.completeMagicLink().catch(()=>{});
+}
+</script>
+</body>
+</html>

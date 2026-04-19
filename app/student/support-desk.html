@@ -315,22 +315,26 @@ function renderTickets(){
 
 function filterTickets(val){currentFilter=val;renderTickets();}
 
+function esc(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML;}
+
 function viewTicket(id){
   const t=tickets.find(x=>x.id===id);if(!t)return;viewingTicket=t;
   const statusClass={Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed'}[t.status]||'open';
   document.getElementById('vTitle').textContent=t.id+' – '+t.subject;
-  document.getElementById('vDetails').innerHTML=`
-    <div class="detail-row"><div class="detail-key">Status</div><div class="detail-val"><span class="status-badge status-${statusClass}">${t.status}</span></div></div>
-    <div class="detail-row"><div class="detail-key">Category</div><div class="detail-val">${t.category}</div></div>
-    <div class="detail-row"><div class="detail-key">Priority</div><div class="detail-val">${t.priority}</div></div>
-    <div class="detail-row"><div class="detail-key">Date</div><div class="detail-val">${t.date}</div></div>
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-top:8px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;">${t.desc}</div>`;
+  const vDetails=document.getElementById('vDetails');vDetails.innerHTML='';
+  const rows=[['Status',`<span class="status-badge status-${esc(statusClass)}">${esc(t.status)}</span>`],['Category',esc(t.category)],['Priority',esc(t.priority)],['Date',esc(t.date)]];
+  rows.forEach(([k,v])=>{const r=document.createElement('div');r.className='detail-row';r.innerHTML=`<div class="detail-key">${k}</div><div class="detail-val">${v}</div>`;vDetails.appendChild(r);});
+  const descBox=document.createElement('div');
+  descBox.style.cssText='background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-top:8px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;';
+  descBox.textContent=t.desc;vDetails.appendChild(descBox);
   const thread=document.getElementById('vThread');thread.innerHTML='';
   if(t.messages&&t.messages.length){
     t.messages.forEach(m=>{
       const d=document.createElement('div');
       d.className='msg-bubble '+(m.from==='Support'?'msg-staff':'msg-user');
-      d.innerHTML=`<strong>${m.from}:</strong> ${m.text}<div class="msg-meta">${m.time}</div>`;
+      const strong=document.createElement('strong');strong.textContent=m.from+':';
+      const meta=document.createElement('div');meta.className='msg-meta';meta.textContent=m.time;
+      d.appendChild(strong);d.append(' '+m.text);d.appendChild(meta);
       thread.appendChild(d);
     });
   }
@@ -343,7 +347,9 @@ function sendReply(){
   viewingTicket.messages.push({from:'You',text,time:'Just now'});
   inp.value='';
   const d=document.createElement('div');d.className='msg-bubble msg-user';
-  d.innerHTML=`<strong>You:</strong> ${text}<div class="msg-meta">Just now</div>`;
+  const strong=document.createElement('strong');strong.textContent='You:';
+  const meta=document.createElement('div');meta.className='msg-meta';meta.textContent='Just now';
+  d.appendChild(strong);d.append(' '+text);d.appendChild(meta);
   document.getElementById('vThread').appendChild(d);
 }
 
