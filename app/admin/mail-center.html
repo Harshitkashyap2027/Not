@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mail Center – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(229,57,53,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+textarea.form-input{resize:vertical;min-height:120px;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500;}
+.stat-icon{font-size:28px;margin-bottom:12px;}
+.template-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;}
+.template-card:hover{background:rgba(229,57,53,.08);border-color:rgba(229,57,53,.2);transform:translateY(-2px);}
+.template-icon{font-size:26px;flex-shrink:0;}
+.template-name{font-size:14px;font-weight:600;margin-bottom:3px;}
+.template-desc{font-size:11px;color:rgba(255,255,255,.4);}
+.sending-anim{display:none;align-items:center;gap:8px;color:#00B894;font-size:13px;font-weight:600;}
+.sending-anim.show{display:flex;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,184,148,.3);border-top-color:#00B894;border-radius:50%;animation:spin .8s linear infinite;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item active"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">📧 Mail Center</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.35);">Compose & track email campaigns</span>
+  </header>
+  <div class="app-content">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.05s">
+        <div class="stat-icon">📤</div>
+        <div class="stat-value">1,248</div>
+        <div class="stat-label">Emails Sent</div>
+        <div style="margin-top:8px;font-size:11px;color:#a29bfe;">+84 this week</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.1s">
+        <div class="stat-icon">👁️</div>
+        <div class="stat-value" style="color:#00B894;">64%</div>
+        <div class="stat-label">Open Rate</div>
+        <div style="margin-top:8px;font-size:11px;color:#00B894;">Above industry avg</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.15s">
+        <div class="stat-icon">🖱️</div>
+        <div class="stat-value" style="color:#00CEC9;">31%</div>
+        <div class="stat-label">Click Rate</div>
+        <div style="margin-top:8px;font-size:11px;color:#00CEC9;">+3% from last month</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.2s">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value" style="color:#D63031;">12</div>
+        <div class="stat-label">Bounced</div>
+        <div style="margin-top:8px;font-size:11px;color:#D63031;">Review addresses</div>
+      </div>
+    </div>
+
+    <div class="bento-grid">
+      <!-- Compose Area -->
+      <div class="b-col-8 fade-in" style="animation-delay:.25s;">
+        <div class="card">
+          <div class="card-title">✉️ Compose Email</div>
+          <div class="form-group">
+            <label class="form-label">Recipients</label>
+            <select class="form-select" id="recipients">
+              <option value="all_students">All Students (348)</option>
+              <option value="all_teachers">All Teachers (24)</option>
+              <option value="web_dev">Web Dev Class (89)</option>
+              <option value="ai_ml">AI/ML Class (62)</option>
+              <option value="app_dev">App Dev Class (54)</option>
+              <option value="individual">Individual Student</option>
+            </select>
+          </div>
+          <div class="form-group" id="individualRow" style="display:none;">
+            <label class="form-label">Student Email</label>
+            <input type="email" class="form-input" id="individualEmail" placeholder="student@example.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-input" id="emailSubject" placeholder="Email subject line..."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="form-input" id="emailBody" rows="7" placeholder="Write your message here..."></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="sendEmail()">📤 Send Email</button>
+            <button class="btn btn-dark" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn btn-dark" onclick="previewEmail()">👁️ Preview</button>
+            <div class="sending-anim" id="sendingAnim">
+              <div class="spinner"></div>
+              <span>Sending...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Templates -->
+      <div class="b-col-4 fade-in" style="animation-delay:.3s;">
+        <div class="card" style="height:100%;">
+          <div class="card-title">⚡ Quick Templates</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="template-card" onclick="applyTemplate('homework')">
+              <div class="template-icon">📚</div>
+              <div>
+                <div class="template-name">Homework Reminder</div>
+                <div class="template-desc">Remind students of pending homework</div>
+              </div>
+            </div>
+            <div class="template-card" onclick="applyTemplate('exam')">
+              <div class="template-icon">📝</div>
+              <div>
+                <div class="template-name">Exam Alert</div>
+                <div class="template-desc">Notify about upcoming examination</div>
+              </div>
+            </div>
+            <div class="template-card" onclick="applyTemplate('fee')">
+              <div class="template-icon">💳</div>
+              <div>
+                <div class="template-name">Fee Reminder</div>
+                <div class="template-desc">Payment due date reminder</div>
+              </div>
+            </div>
+            <div class="template-card" onclick="applyTemplate('welcome')">
+              <div class="template-icon">🎉</div>
+              <div>
+                <div class="template-name">Welcome Email</div>
+                <div class="template-desc">Onboard new students warmly</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email History Table -->
+      <div class="b-col-12 fade-in" style="animation-delay:.35s;">
+        <div class="card">
+          <div class="card-title">
+            <span>📬 Email History</span>
+            <button class="btn btn-dark btn-sm" onclick="showToast('📥 Exporting history...','info','📥')">Export CSV</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Recipients</th>
+                <th>Opens</th>
+                <th>Clicks</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="emailHistoryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const templates = {
+  homework: {
+    subject: '📚 Homework Reminder – Please Submit Your Work',
+    body: `Dear Student,\n\nThis is a friendly reminder that your homework assignment is due soon. Please ensure you submit your work through the lvlBase portal before the deadline.\n\nSubject: [Subject Name]\nDue Date: [Date]\n\nIf you have any questions, feel free to reach out to your instructor.\n\nBest regards,\nlvlBase Academy`
+  },
+  exam: {
+    subject: '📝 Upcoming Exam Alert – Please Prepare',
+    body: `Dear Student,\n\nThis is to inform you that an exam is scheduled for the following:\n\nExam: [Exam Name]\nDate: [Date]\nTime: [Time]\nDuration: [Duration]\n\nPlease ensure you are well-prepared and logged into the portal 10 minutes before the exam starts.\n\nGood luck!\nlvlBase Academy`
+  },
+  fee: {
+    subject: '💳 Fee Payment Reminder – Action Required',
+    body: `Dear Student/Parent,\n\nThis is a reminder that your course fee payment is due shortly.\n\nAmount Due: ₹[Amount]\nDue Date: [Date]\nPayment Portal: https://lvlbase.in/pay\n\nPlease ensure timely payment to avoid any disruption to your learning.\n\nThank you,\nlvlBase Finance Team`
+  },
+  welcome: {
+    subject: '🎉 Welcome to lvlBase Academy!',
+    body: `Dear [Student Name],\n\nWelcome to lvlBase Academy! We are thrilled to have you join us.\n\nYour account is now active and ready to use. Here's how to get started:\n\n1. Log in at https://lvlbase.in\n2. Complete your profile setup\n3. Explore your enrolled courses\n4. Join your class community\n\nIf you need any help, our support team is always here for you.\n\nHappy Learning! 🚀\nlvlBase Team`
+  }
+};
+
+const emailHistory = [
+  {date:'Dec 13, 2024',subject:'📚 Module 3 Assignment Due Tomorrow',recipients:'All Students (348)',opens:'224 (64%)',clicks:'108 (31%)',status:'delivered'},
+  {date:'Dec 12, 2024',subject:'📝 Exam Scheduled – JavaScript Fundamentals',recipients:'Web Dev Class (89)',opens:'71 (80%)',clicks:'34 (38%)',status:'delivered'},
+  {date:'Dec 11, 2024',subject:'🎉 New Course Available: React Basics',recipients:'Web Dev Class (89)',opens:'58 (65%)',clicks:'41 (46%)',status:'delivered'},
+  {date:'Dec 10, 2024',subject:'💳 December Fee Reminder',recipients:'All Students (348)',opens:'189 (54%)',clicks:'92 (26%)',status:'delivered'},
+  {date:'Dec 9, 2024',subject:'🔔 Platform Maintenance – Dec 10, 2 AM',recipients:'All Users (372)',opens:'201 (54%)',clicks:'22 (6%)',status:'delivered'},
+  {date:'Dec 8, 2024',subject:'⚠️ Attendance Warning – [Student Name]',recipients:'Individual (1)',opens:'1 (100%)',clicks:'1 (100%)',status:'delivered'},
+];
+
+const recipientCounts = {
+  all_students:348,all_teachers:24,web_dev:89,ai_ml:62,app_dev:54,individual:1
+};
+
+document.getElementById('recipients').addEventListener('change', function() {
+  document.getElementById('individualRow').style.display = this.value === 'individual' ? 'block' : 'none';
+});
+
+function applyTemplate(name) {
+  const t = templates[name];
+  document.getElementById('emailSubject').value = t.subject;
+  document.getElementById('emailBody').value = t.body;
+  showToast(`⚡ "${name.charAt(0).toUpperCase()+name.slice(1)}" template applied!`,'info','⚡');
+}
+
+function sendEmail() {
+  const sub = document.getElementById('emailSubject').value.trim();
+  const body = document.getElementById('emailBody').value.trim();
+  if (!sub) { showToast('⚠️ Please enter a subject.','error','⚠️'); return; }
+  if (!body) { showToast('⚠️ Please write a message.','error','⚠️'); return; }
+  const rec = document.getElementById('recipients').value;
+  const count = recipientCounts[rec] || 1;
+  const anim = document.getElementById('sendingAnim');
+  anim.classList.add('show');
+  setTimeout(()=>{
+    anim.classList.remove('show');
+    const recLabel = document.getElementById('recipients').options[document.getElementById('recipients').selectedIndex].text;
+    emailHistory.unshift({
+      date:'Just now',
+      subject:sub,
+      recipients:recLabel,
+      opens:'0 (0%)',
+      clicks:'0 (0%)',
+      status:'delivered'
+    });
+    renderHistory();
+    document.getElementById('emailSubject').value = '';
+    document.getElementById('emailBody').value = '';
+    showToast(`📧 Email sent to ${count} recipient${count!==1?'s':''}!`,'success','📧');
+  }, 1800);
+}
+
+function saveDraft() {
+  showToast('💾 Draft saved successfully!','info','💾');
+}
+
+function previewEmail() {
+  showToast('👁️ Preview mode coming soon!','info','👁️');
+}
+
+function renderHistory() {
+  const statusMap = {delivered:'badge-success',failed:'badge-danger',draft:'badge-warning'};
+  document.getElementById('emailHistoryTbody').innerHTML = emailHistory.map(e => `
+    <tr>
+      <td style="color:rgba(255,255,255,.4);font-size:12px;">${e.date}</td>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.subject}</td>
+      <td style="color:rgba(255,255,255,.6);">${e.recipients}</td>
+      <td>${e.opens}</td>
+      <td>${e.clicks}</td>
+      <td><span class="badge ${statusMap[e.status]||'badge-success'}" style="text-transform:capitalize;">${e.status}</span></td>
+      <td>
+        <button class="btn btn-dark btn-sm" onclick="showToast('📋 Email details loaded','info','📋')">View</button>
+        <button class="btn btn-dark btn-sm" style="margin-left:6px;" onclick="resend(this)">↩️ Resend</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function resend(btn) {
+  showToast('↩️ Email queued for resend!','success','↩️');
+}
+
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+renderHistory();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>

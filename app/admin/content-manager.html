@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Content Manager – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:520px;transform:scale(.9) translateY(20px);transition:all .3s;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tabFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.tab-content{animation:tabFade .3s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(229,57,53,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+textarea.form-input{resize:vertical;min-height:80px;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500;}
+.stat-icon{font-size:28px;margin-bottom:12px;}
+/* Tab Navigation */
+.tab-nav{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:20px;width:fit-content;}
+.tab-btn{padding:8px 20px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:#12122A;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+.tab-btn:hover:not(.active){color:rgba(255,255,255,.8);}
+/* FAQ Accordion */
+.faq-item{border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.faq-question{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:14px;font-weight:600;transition:background .2s;}
+.faq-question:hover{background:rgba(255,255,255,.04);}
+.faq-answer{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s;font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;}
+.faq-item.open .faq-answer{max-height:200px;padding:0 18px 14px;}
+.faq-chevron{transition:transform .3s;font-size:12px;}
+.faq-item.open .faq-chevron{transform:rotate(180deg);}
+/* Media grid */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+.media-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;}
+.media-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);}
+.media-icon{font-size:32px;margin-bottom:8px;}
+.media-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.8);}
+.media-size{font-size:10px;color:rgba(255,255,255,.35);margin-top:3px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item active"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">🗂️ Content Manager</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.35);">Manage resources, FAQs, announcements & media</span>
+  </header>
+  <div class="app-content">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.05s">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">128</div>
+        <div class="stat-label">Total Resources</div>
+        <div style="margin-top:8px;font-size:11px;color:#a29bfe;">+12 this month</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.1s">
+        <div class="stat-icon">❓</div>
+        <div class="stat-value" style="color:#00CEC9;">24</div>
+        <div class="stat-label">Active FAQs</div>
+        <div style="margin-top:8px;font-size:11px;color:#00CEC9;">4 pending review</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.15s">
+        <div class="stat-icon">📌</div>
+        <div class="stat-value" style="color:#FDCB6E;">3</div>
+        <div class="stat-label">Pinned Announcements</div>
+        <div style="margin-top:8px;font-size:11px;color:#FDCB6E;">Visible to all</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.2s">
+        <div class="stat-icon">🗄️</div>
+        <div class="stat-value" style="color:#00B894;">512 MB</div>
+        <div class="stat-label">Media Files</div>
+        <div style="margin-top:8px;font-size:11px;color:#00B894;">of 2 GB used</div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav fade-in" style="animation-delay:.22s;">
+      <button class="tab-btn active" onclick="switchTab('resources',this)">📦 Resources</button>
+      <button class="tab-btn" onclick="switchTab('faq',this)">❓ FAQ</button>
+      <button class="tab-btn" onclick="switchTab('announcements',this)">📣 Announcements</button>
+      <button class="tab-btn" onclick="switchTab('media',this)">🖼️ Media</button>
+    </div>
+
+    <!-- Resources Tab -->
+    <div id="tab-resources" class="card fade-in tab-content" style="animation-delay:.28s;">
+      <div class="card-title">
+        <span>📦 Resources Library</span>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addResourceModal')">+ Add Resource</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" class="search-input" placeholder="🔍  Search resources..." oninput="filterResources(this.value)"/>
+        <select class="form-select" style="width:auto;padding:9px 14px;" onchange="filterResources('')">
+          <option>All Types</option>
+          <option>PDF</option>
+          <option>Video</option>
+          <option>Link</option>
+        </select>
+      </div>
+      <table class="data-table" id="resourcesTable">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Subject / Track</th>
+            <th>Type</th>
+            <th>Added</th>
+            <th>Downloads</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="resourcesTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- FAQ Tab -->
+    <div id="tab-faq" class="card fade-in" style="display:none;">
+      <div class="card-title">
+        <span>❓ Frequently Asked Questions</span>
+        <button class="btn btn-primary btn-sm" onclick="showToast('📝 Add FAQ coming soon','info','📝')">+ Add FAQ</button>
+      </div>
+      <div id="faqList"></div>
+    </div>
+
+    <!-- Announcements Tab -->
+    <div id="tab-announcements" class="card fade-in" style="display:none;">
+      <div class="card-title">
+        <span>📣 Announcements</span>
+        <button class="btn btn-primary btn-sm" onclick="showToast('📣 Announcement editor coming soon','info','📣')">+ New Announcement</button>
+      </div>
+      <div id="announcementList"></div>
+    </div>
+
+    <!-- Media Tab -->
+    <div id="tab-media" class="card fade-in" style="display:none;">
+      <div class="card-title">
+        <span>🖼️ Media Library</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-dark btn-sm" onclick="showToast('📊 Storage: 512 MB / 2 GB (26%)','info','📊')">Storage Info</button>
+          <button class="btn btn-primary btn-sm" onclick="showToast('📤 Upload dialog coming soon','info','📤')">📤 Upload File</button>
+        </div>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Add Resource Modal -->
+<div class="modal-overlay" id="addResourceModal">
+  <div class="modal">
+    <div class="modal-title">📦 Add New Resource</div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-input" id="resTitle" placeholder="Resource title..."/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL / File Link</label>
+      <input type="url" class="form-input" id="resUrl" placeholder="https://..."/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="resType">
+          <option>PDF</option>
+          <option>Video</option>
+          <option>Link</option>
+          <option>Slides</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="form-select" id="resSubject">
+          <option>HTML/CSS</option>
+          <option>JavaScript</option>
+          <option>Python</option>
+          <option>React</option>
+          <option>AI Basics</option>
+          <option>General</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" id="resDesc" placeholder="Brief description of this resource..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="addResource()">Add Resource</button>
+      <button class="btn btn-dark" style="flex:1;" onclick="closeModal('addResourceModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const resources = [
+  {title:'HTML5 Complete Reference',subject:'HTML/CSS',track:'Web Dev',type:'PDF',added:'Dec 10, 2024',downloads:142},
+  {title:'JavaScript ES6+ Cheatsheet',subject:'JavaScript',track:'Web Dev',type:'PDF',added:'Dec 8, 2024',downloads:218},
+  {title:'React Hooks Tutorial',subject:'React',track:'Web Dev',type:'Video',added:'Dec 5, 2024',downloads:97},
+  {title:'Python for Beginners – Full Course',subject:'Python',track:'AI/ML',type:'Video',added:'Dec 3, 2024',downloads:134},
+  {title:'CSS Grid & Flexbox Guide',subject:'HTML/CSS',track:'Web Dev',type:'Link',added:'Dec 1, 2024',downloads:88},
+  {title:'Machine Learning Basics',subject:'AI Basics',track:'AI/ML',type:'PDF',added:'Nov 28, 2024',downloads:76},
+  {title:'Node.js Express Setup Guide',subject:'JavaScript',track:'Web Dev',type:'PDF',added:'Nov 25, 2024',downloads:63},
+  {title:'GitHub for Students',subject:'General',track:'General',type:'Link',added:'Nov 20, 2024',downloads:201},
+];
+
+const faqs = [
+  {q:'How do I access my course materials?',a:'Log in to your lvlBase account and navigate to "My Courses" from the dashboard. All your enrolled courses and materials will be listed there.'},
+  {q:'What should I do if I forget my password?',a:'Click on "Forgot Password" on the login page and enter your registered email. You will receive a reset link within 2 minutes.'},
+  {q:'How are exam scores calculated?',a:'Scores are calculated based on correct answers weighted by question points. MCQ questions are auto-graded instantly, while Short Answer questions may require manual review by instructors.'},
+  {q:'Can I retake a quiz?',a:'Yes, most quizzes allow up to 3 attempts. Your highest score will be recorded. Exams may have a different policy set by your instructor.'},
+  {q:'How do I earn XP and level up?',a:'XP is earned by completing quests, submitting assignments, attending live sessions, and scoring well in exams. Level up thresholds are shown in your progress dashboard.'},
+  {q:'What internet speed do I need for live sessions?',a:'A minimum of 5 Mbps is recommended for stable video streaming. For best experience, use a wired connection or stay close to your WiFi router.'},
+];
+
+const announcements = [
+  {icon:'📌',title:'Platform Maintenance – Dec 20 at 2 AM',body:'Brief maintenance window scheduled. Platform will be offline for approximately 30 minutes.',date:'Dec 13, 2024',pinned:true,audience:'All Users'},
+  {icon:'🎉',title:'New Course: Advanced React – Now Available!',body:'We are excited to launch our newest module. Enroll now from your dashboard.',date:'Dec 11, 2024',pinned:true,audience:'Web Dev Students'},
+  {icon:'📝',title:'Q4 Exam Schedule Released',body:'All exam dates for December–January have been published. Check your exam calendar.',date:'Dec 9, 2024',pinned:true,audience:'All Students'},
+  {icon:'🏆',title:'December Leaderboard is Live!',body:'The monthly leaderboard has reset. Start earning XP to claim the top spot!',date:'Dec 1, 2024',pinned:false,audience:'All Students'},
+];
+
+const mediaFiles = [
+  {icon:'🖼️',name:'banner_hero.png',size:'2.4 MB'},
+  {icon:'📹',name:'intro_webdev.mp4',size:'84 MB'},
+  {icon:'📄',name:'syllabus_q4.pdf',size:'1.1 MB'},
+  {icon:'🖼️',name:'logo_dark.svg',size:'48 KB'},
+  {icon:'📹',name:'python_lecture_1.mp4',size:'112 MB'},
+  {icon:'📄',name:'css_cheatsheet.pdf',size:'890 KB'},
+  {icon:'🖼️',name:'certificate_template.png',size:'3.2 MB'},
+  {icon:'📹',name:'react_hooks_demo.mp4',size:'67 MB'},
+  {icon:'📄',name:'js_exercises.pdf',size:'654 KB'},
+  {icon:'🖼️',name:'team_photo.jpg',size:'5.8 MB'},
+  {icon:'📄',name:'ai_glossary.pdf',size:'1.8 MB'},
+  {icon:'📹',name:'ml_basics_lecture.mp4',size:'98 MB'},
+];
+
+let nextResId = 9;
+
+function switchTab(name, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(t=>{ t.style.display='none'; });
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const panel = document.getElementById('tab-'+name);
+  panel.style.display='block';
+  panel.classList.add('tab-content');
+  btn.classList.add('active');
+  setTimeout(()=>panel.classList.remove('tab-content'), 400);
+}
+
+function filterResources(val) {
+  const filtered = resources.filter(r => r.title.toLowerCase().includes(val.toLowerCase()) || r.subject.toLowerCase().includes(val.toLowerCase()));
+  renderResources(filtered);
+}
+
+function renderResources(list) {
+  const typeIcons = {PDF:'📄',Video:'📹',Link:'🔗',Slides:'📊'};
+  const typeBadge = {PDF:'badge-danger',Video:'badge-teal',Link:'badge-purple',Slides:'badge-warning'};
+  document.getElementById('resourcesTbody').innerHTML = list.map(r => `
+    <tr>
+      <td style="font-weight:600;">${r.title}</td>
+      <td style="color:rgba(255,255,255,.6);">${r.subject} <span style="color:rgba(255,255,255,.25);">•</span> ${r.track}</td>
+      <td><span class="badge ${typeBadge[r.type]||'badge-purple'}">${typeIcons[r.type]||'📎'} ${r.type}</span></td>
+      <td style="color:rgba(255,255,255,.4);font-size:12px;">${r.added}</td>
+      <td style="color:#FDCB6E;font-weight:600;">${r.downloads}</td>
+      <td>
+        <button class="btn btn-dark btn-sm" onclick="showToast('🔗 Opening resource...','info','🔗')">View</button>
+        <button class="btn btn-sm" style="margin-left:6px;background:rgba(214,48,49,.12);color:#D63031;border:1px solid rgba(214,48,49,.2);" onclick="showToast('🗑️ Resource removed','error','🗑️')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderFAQ() {
+  document.getElementById('faqList').innerHTML = faqs.map((f,i) => `
+    <div class="faq-item" id="faq${i}">
+      <div class="faq-question" onclick="toggleFAQ(${i})">
+        <span>${f.q}</span>
+        <span class="faq-chevron">▼</span>
+      </div>
+      <div class="faq-answer">${f.a}</div>
+    </div>
+  `).join('');
+}
+
+function toggleFAQ(i) {
+  const item = document.getElementById('faq'+i);
+  item.classList.toggle('open');
+}
+
+function renderAnnouncements() {
+  document.getElementById('announcementList').innerHTML = announcements.map(a => `
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;">
+      <div style="font-size:26px;flex-shrink:0;">${a.icon}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:700;">${a.title}</span>
+          ${a.pinned?'<span class="badge badge-warning">📌 Pinned</span>':''}
+          <span class="badge badge-teal">${a.audience}</span>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:6px;">${a.body}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);">${a.date}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-dark btn-sm" onclick="showToast('✏️ Edit coming soon','info','✏️')">Edit</button>
+        <button class="btn btn-sm" style="background:rgba(214,48,49,.12);color:#D63031;border:1px solid rgba(214,48,49,.2);" onclick="showToast('🗑️ Announcement deleted','error','🗑️')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMedia() {
+  document.getElementById('mediaGrid').innerHTML = mediaFiles.map(m => `
+    <div class="media-card" onclick="showToast('📂 Opening ${m.name}...','info','📂')">
+      <div class="media-icon">${m.icon}</div>
+      <div class="media-name">${m.name}</div>
+      <div class="media-size">${m.size}</div>
+    </div>
+  `).join('');
+}
+
+function addResource() {
+  const title = document.getElementById('resTitle').value.trim();
+  if (!title) { showToast('⚠️ Please enter a title.','error','⚠️'); return; }
+  resources.unshift({
+    title,
+    subject: document.getElementById('resSubject').value,
+    track: 'Web Dev',
+    type: document.getElementById('resType').value,
+    added: 'Just now',
+    downloads: 0
+  });
+  closeModal('addResourceModal');
+  renderResources(resources);
+  showToast('✅ Resource added successfully!','success','✅');
+  document.getElementById('resTitle').value = '';
+  document.getElementById('resUrl').value = '';
+  document.getElementById('resDesc').value = '';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+renderResources(resources);
+renderFAQ();
+renderAnnouncements();
+renderMedia();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>

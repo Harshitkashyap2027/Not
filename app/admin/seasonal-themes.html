@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Seasonal Themes – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:400px;text-align:center;transform:scale(.9);transition:all .3s;}
+.confirm-overlay.open .confirm-box{transform:scale(1);}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%,100%{opacity:.7}50%{opacity:1}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.active-theme-card{background:linear-gradient(135deg,rgba(255,140,0,.15),rgba(229,57,53,.12));border:1px solid rgba(255,140,0,.3);border-radius:24px;padding:30px;margin-bottom:24px;position:relative;overflow:hidden;}
+.active-theme-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,140,0,.2),transparent);border-radius:50%;}
+.month-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px;transition:all .25s;position:relative;overflow:hidden;}
+.month-card:hover{background:rgba(255,255,255,.07);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.month-card.is-active{border-color:rgba(255,140,0,.4);background:rgba(255,140,0,.08);}
+.month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.color-strip{display:flex;height:6px;border-radius:100px;overflow:hidden;margin-top:12px;}
+.color-swatch{flex:1;transition:flex .3s;}
+.particles-label{font-size:10px;color:rgba(255,255,255,.35);margin-top:8px;font-weight:500;}
+.activate-btn{width:100%;margin-top:12px;padding:7px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);transition:all .2s;}
+.activate-btn:hover:not(:disabled){background:rgba(229,57,53,.2);border-color:rgba(229,57,53,.4);color:#fff;}
+.activate-btn:disabled{opacity:.6;cursor:default;background:rgba(0,184,148,.15);color:#00B894;border-color:rgba(0,184,148,.3);}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item active"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">🎨 Seasonal Themes</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.35);">Manage monthly platform themes & particle effects</span>
+  </header>
+  <div class="app-content">
+
+    <!-- Active Theme Banner -->
+    <div class="active-theme-card fade-in">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="font-size:56px;" id="activeThemeEmoji">🎃</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:600;color:rgba(255,140,0,.8);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">CURRENTLY ACTIVE THEME</div>
+          <div style="font-size:24px;font-weight:800;" id="activeThemeName">October — Autumn Vibes</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:4px;" id="activeThemeDesc">🍂 Falling autumn leaves • Warm amber & orange glow palette • Festive mood</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+          <span class="badge badge-success" style="font-size:13px;padding:6px 16px;">✓ ACTIVE</span>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);">Active since Dec 1, 2024</div>
+        </div>
+      </div>
+      <div style="display:flex;height:8px;border-radius:100px;overflow:hidden;margin-top:20px;gap:2px;" id="activeColorStrip">
+        <div style="flex:1;background:#FF8C00;"></div>
+        <div style="flex:1;background:#E53935;"></div>
+        <div style="flex:1;background:#D4A017;"></div>
+        <div style="flex:1;background:#8B4513;"></div>
+        <div style="flex:1;background:#FF6B35;"></div>
+      </div>
+    </div>
+
+    <!-- Months Grid -->
+    <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;" class="fade-in">All 12 Months</div>
+    <div class="month-grid fade-in" id="monthGrid"></div>
+
+  </div>
+</main>
+
+<!-- Confirm Activation -->
+<div class="confirm-overlay" id="confirmActivate">
+  <div class="confirm-box">
+    <div style="font-size:44px;margin-bottom:12px;" id="confirmEmoji">🎃</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:8px;" id="confirmTitle">Activate Theme?</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:24px;" id="confirmDesc">This will change the platform theme for all users.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-dark" style="flex:1;" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="confirmActivation()">Activate ✓</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const months = [
+  {idx:0,month:'January',emoji:'❄️',theme:'Snowfall',particles:'❄️ Falling snowflakes',colors:['#A8D8F0','#6BB8D4','#3A7BD5','#1E3A5F','#C9E8F5']},
+  {idx:1,month:'February',emoji:'💝',theme:'Pink Glow',particles:'💗 Floating hearts',colors:['#FF6B9D','#FF8FAB','#FFC0CB','#E91E8C','#FF1493']},
+  {idx:2,month:'March',emoji:'🌸',theme:'Blossom',particles:'🌸 Falling petals',colors:['#FFB7C5','#FF9EBF','#FF6B9D','#E85D8A','#FFDEE9']},
+  {idx:3,month:'April',emoji:'🌧️',theme:'April Showers',particles:'💧 Rainfall drops',colors:['#64B5F6','#42A5F5','#1E88E5','#0D47A1','#90CAF9']},
+  {idx:4,month:'May',emoji:'☀️',theme:'Summer Sun',particles:'✨ Sun glare rays',colors:['#FFD600','#FFCA28','#FFA000','#FF6F00','#FFF9C4']},
+  {idx:5,month:'June',emoji:'🌤️',theme:'Bright Days',particles:'✨ Light beams',colors:['#81D4FA','#FFD600','#A5D6A7','#80DEEA','#FFF9C4']},
+  {idx:6,month:'July',emoji:'⛈️',theme:'Monsoon',particles:'⛈️ Stormy rainfall',colors:['#455A64','#607D8B','#78909C','#37474F','#B0BEC5']},
+  {idx:7,month:'August',emoji:'🇮🇳',theme:'Independence',particles:'🎆 Tricolor glow',colors:['#FF8F00','#FFFFFF','#1A6B3C','#FF6D00','#80CBC4']},
+  {idx:8,month:'September',emoji:'🍂',theme:'Early Autumn',particles:'🍂 Falling leaves',colors:['#FF8C00','#D4A017','#8B4513','#A0522D','#DEB887']},
+  {idx:9,month:'October',emoji:'🎃',theme:'Autumn Vibes',particles:'🍂 Autumn leaves',colors:['#FF8C00','#E53935','#D4A017','#8B4513','#FF6B35'],isActive:true},
+  {idx:10,month:'November',emoji:'🍁',theme:'Late Autumn',particles:'🍁 Maple leaves',colors:['#BF360C','#E64A19','#FF7043','#FFAB91','#4E342E']},
+  {idx:11,month:'December',emoji:'🎄',theme:'Winter Festival',particles:'❄️ Snowfall',colors:['#1565C0','#C0392B','#27AE60','#F1C40F','#ECF0F1']},
+];
+
+let pendingActivateIdx = null;
+
+function buildColorStrip(colors) {
+  return colors.map(c=>`<div class="color-swatch" style="background:${c};"></div>`).join('');
+}
+
+function renderMonths() {
+  document.getElementById('monthGrid').innerHTML = months.map(m => `
+    <div class="month-card ${m.isActive?'is-active':''}" id="monthCard${m.idx}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:26px;">${m.emoji}</div>
+        ${m.isActive?'<span class="badge badge-success" style="font-size:10px;">Active ✓</span>':''}
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${m.month}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);font-weight:600;">${m.theme}</div>
+      <div class="particles-label">${m.particles}</div>
+      <div class="color-strip">${buildColorStrip(m.colors)}</div>
+      <button class="activate-btn" ${m.isActive?'disabled':''} onclick="promptActivate(${m.idx})">
+        ${m.isActive?'Active ✓':'Activate'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function promptActivate(idx) {
+  const m = months[idx];
+  pendingActivateIdx = idx;
+  document.getElementById('confirmEmoji').textContent = m.emoji;
+  document.getElementById('confirmTitle').textContent = `Set ${m.month} as active theme?`;
+  document.getElementById('confirmDesc').textContent = `${m.theme} — ${m.particles} will be applied for all users.`;
+  document.getElementById('confirmActivate').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmActivate').classList.remove('open');
+  pendingActivateIdx = null;
+}
+
+function confirmActivation() {
+  if (pendingActivateIdx === null) return;
+  months.forEach(m => m.isActive = false);
+  const m = months[pendingActivateIdx];
+  m.isActive = true;
+  // Update active theme banner
+  document.getElementById('activeThemeEmoji').textContent = m.emoji;
+  document.getElementById('activeThemeName').textContent = `${m.month} — ${m.theme}`;
+  document.getElementById('activeThemeDesc').textContent = `${m.particles} • Seasonal color palette`;
+  document.getElementById('activeColorStrip').innerHTML = buildColorStrip(m.colors);
+  renderMonths();
+  closeConfirm();
+  showToast(`🎨 ${m.month} theme activated!`,'success','🎨');
+}
+
+document.getElementById('confirmActivate').addEventListener('click', e => {
+  if (e.target === document.getElementById('confirmActivate')) closeConfirm();
+});
+
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+renderMonths();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>

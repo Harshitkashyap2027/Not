@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Exam Manager – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-primary:hover{background:#c62828;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.data-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.data-table tr:last-child td{border-bottom:none;}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+.b-col-3{grid-column:span 3;}.b-col-4{grid-column:span 4;}.b-col-6{grid-column:span 6;}.b-col-8{grid-column:span 8;}.b-col-12{grid-column:span 12;}
+.bento-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;transition:all .25s;position:relative;overflow:hidden;}
+.bento-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:560px;transform:scale(.9) translateY(20px);transition:all .3s;max-height:90vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
+.toast{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:13px;font-weight:500;}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(0,184,148,.3);}.toast.error{border-color:rgba(214,48,49,.3);}.toast.info{border-color:rgba(108,92,231,.3);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.fade-in{animation:fadeIn .4s ease forwards;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(229,57,53,.5);}
+.form-input::placeholder{color:rgba(255,255,255,.3);}
+.form-select{width:100%;background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+@media(max-width:900px){.app-sidebar{transform:translateX(-100%);}.app-main{margin-left:0;}.bento-grid{grid-template-columns:1fr 1fr;}.b-col-3,.b-col-4{grid-column:span 6;}.b-col-6,.b-col-8,.b-col-12{grid-column:span 12;}}
+.stat-value{font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.45);font-weight:500;}
+.stat-icon{font-size:28px;margin-bottom:12px;}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{background:#12122A;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:90%;max-width:380px;text-align:center;transform:scale(.9);transition:all .3s;}
+.confirm-overlay.open .confirm-box{transform:scale(1);}
+textarea.form-input{resize:vertical;min-height:80px;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.section-title{font-size:15px;font-weight:700;margin-bottom:14px;color:rgba(255,255,255,.9);}
+.exam-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.exam-item:last-child{border-bottom:none;}
+.exam-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.exam-info{flex:1;}
+.exam-name{font-size:14px;font-weight:600;}
+.exam-meta{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/exam-manager.html" class="nav-item active"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/mail-center.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/student-monitor.html" class="nav-item"><span class="nav-icon">👁️</span>Student Monitor</a>
+    <a href="/app/admin/content-manager.html" class="nav-item"><span class="nav-icon">🗂️</span>Content Manager</a>
+    <a href="/app/admin/seasonal-themes.html" class="nav-item"><span class="nav-icon">🎨</span>Seasonal Themes</a>
+    <a href="/app/admin/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span>Leaderboard</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'" style="width:100%;background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span class="header-title">📝 Exam Manager</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.35);">Manage questions, exams & schedules</span>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addQuestionModal')">+ Add Question</button>
+  </header>
+  <div class="app-content">
+
+    <!-- Stats Row -->
+    <div class="bento-grid" style="margin-bottom:20px;">
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.05s">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">48</div>
+        <div class="stat-label">Total Questions</div>
+        <div style="margin-top:8px;font-size:11px;color:#a29bfe;">+6 this week</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.1s">
+        <div class="stat-icon">🗂️</div>
+        <div class="stat-value" style="color:#00CEC9;">3</div>
+        <div class="stat-label">Active Exams</div>
+        <div style="margin-top:8px;font-size:11px;color:#00CEC9;">2 scheduled today</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.15s">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" style="color:#FDCB6E;">72%</div>
+        <div class="stat-label">Avg Score</div>
+        <div style="margin-top:8px;font-size:11px;color:#FDCB6E;">+4% from last month</div>
+      </div>
+      <div class="bento-card b-col-3 fade-in" style="animation-delay:.2s">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" style="color:#00B894;">68%</div>
+        <div class="stat-label">Pass Rate</div>
+        <div style="margin-top:8px;font-size:11px;color:#00B894;">Above target (60%)</div>
+      </div>
+    </div>
+
+    <!-- Questions Table -->
+    <div class="card fade-in" style="animation-delay:.25s;margin-bottom:20px;">
+      <div class="card-title">
+        <span>Question Bank</span>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addQuestionModal')">+ Add Question</button>
+      </div>
+      <div class="toolbar">
+        <input type="text" class="search-input" placeholder="🔍  Search questions..." id="questionSearch" oninput="filterQuestions()"/>
+        <select class="form-select" style="width:auto;padding:9px 14px;" onchange="filterQuestions()" id="typeFilter">
+          <option value="">All Types</option>
+          <option value="MCQ">MCQ</option>
+          <option value="True/False">True/False</option>
+          <option value="Short Answer">Short Answer</option>
+        </select>
+        <select class="form-select" style="width:auto;padding:9px 14px;" onchange="filterQuestions()" id="subjectFilter">
+          <option value="">All Subjects</option>
+          <option value="HTML">HTML</option>
+          <option value="CSS">CSS</option>
+          <option value="JavaScript">JavaScript</option>
+          <option value="Python">Python</option>
+          <option value="AI Basics">AI Basics</option>
+        </select>
+      </div>
+      <table class="data-table" id="questionsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question Text</th>
+            <th>Type</th>
+            <th>Subject</th>
+            <th>Points</th>
+            <th>Track</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="questionsTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Exam Schedule -->
+    <div class="card fade-in" style="animation-delay:.3s;">
+      <div class="card-title">
+        <span>📅 Exam Schedule</span>
+        <button class="btn btn-dark btn-sm" onclick="showToast('📅 Redirecting to schedule builder...','info','📅')">+ Schedule Exam</button>
+      </div>
+      <div id="examScheduleList"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Add Question Modal -->
+<div class="modal-overlay" id="addQuestionModal">
+  <div class="modal">
+    <div class="modal-title">📝 Add New Question</div>
+    <div class="form-group">
+      <label class="form-label">Question Text</label>
+      <textarea class="form-input" id="qText" placeholder="Type your question here..." rows="3"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Question Type</label>
+        <select class="form-select" id="qType" onchange="toggleOptions()">
+          <option value="MCQ">MCQ</option>
+          <option value="True/False">True/False</option>
+          <option value="Short Answer">Short Answer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Points</label>
+        <input type="number" class="form-input" id="qPoints" value="5" min="1" max="20"/>
+      </div>
+    </div>
+    <div id="mcqOptions">
+      <div class="form-group">
+        <label class="form-label">Options (MCQ)</label>
+        <div class="options-grid">
+          <input type="text" class="form-input" id="opt1" placeholder="Option A"/>
+          <input type="text" class="form-input" id="opt2" placeholder="Option B"/>
+          <input type="text" class="form-input" id="opt3" placeholder="Option C"/>
+          <input type="text" class="form-input" id="opt4" placeholder="Option D"/>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Correct Answer</label>
+      <input type="text" class="form-input" id="qAnswer" placeholder="e.g., Option A or True"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <select class="form-select" id="qSubject">
+          <option>HTML</option>
+          <option>CSS</option>
+          <option>JavaScript</option>
+          <option>Python</option>
+          <option>AI Basics</option>
+          <option>React</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Track</label>
+        <select class="form-select" id="qTrack">
+          <option>Web Dev</option>
+          <option>App Dev</option>
+          <option>AI/ML</option>
+          <option>General</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="addQuestion()">Add Question</button>
+      <button class="btn btn-dark" style="flex:1;" onclick="closeModal('addQuestionModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation -->
+<div class="confirm-overlay" id="deleteConfirm">
+  <div class="confirm-box">
+    <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Delete Question?</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;">This action cannot be undone.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-dark" style="flex:1;" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;background:#D63031;" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+const questions = [
+  {id:1,text:'What does HTML stand for?',type:'MCQ',subject:'HTML',points:5,track:'Web Dev'},
+  {id:2,text:'Which CSS property controls text size?',type:'MCQ',subject:'CSS',points:5,track:'Web Dev'},
+  {id:3,text:'JavaScript is a compiled language.',type:'True/False',subject:'JavaScript',points:3,track:'Web Dev'},
+  {id:4,text:'What is a closure in JavaScript?',type:'Short Answer',subject:'JavaScript',points:10,track:'Web Dev'},
+  {id:5,text:'Which tag creates a hyperlink in HTML?',type:'MCQ',subject:'HTML',points:5,track:'Web Dev'},
+  {id:6,text:'Explain the box model in CSS.',type:'Short Answer',subject:'CSS',points:10,track:'Web Dev'},
+  {id:7,text:'What does API stand for?',type:'MCQ',subject:'AI Basics',points:5,track:'AI/ML'},
+  {id:8,text:'Python uses indentation for code blocks.',type:'True/False',subject:'Python',points:3,track:'AI/ML'},
+  {id:9,text:'What is machine learning?',type:'Short Answer',subject:'AI Basics',points:10,track:'AI/ML'},
+  {id:10,text:'Which Python keyword is used for loops?',type:'MCQ',subject:'Python',points:5,track:'AI/ML'},
+];
+
+const exams = [
+  {name:'Web Dev Module 3 Exam',subject:'JavaScript',date:'Today, 2:00 PM',duration:'45 min',enrolled:34,status:'upcoming'},
+  {name:'AI Fundamentals Quiz',subject:'AI Basics',date:'Today, 4:30 PM',duration:'30 min',enrolled:28,status:'upcoming'},
+  {name:'HTML & CSS Final',subject:'HTML/CSS',date:'Tomorrow, 10:00 AM',duration:'60 min',enrolled:41,status:'scheduled'},
+  {name:'Python Basics Assessment',subject:'Python',date:'Dec 18, 9:00 AM',duration:'45 min',enrolled:22,status:'scheduled'},
+  {name:'React Component Quiz',subject:'React',date:'Dec 20, 11:00 AM',duration:'30 min',enrolled:19,status:'draft'},
+];
+
+let deleteTargetId = null;
+let nextId = 11;
+
+function renderQuestions(list) {
+  const tbody = document.getElementById('questionsTbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:rgba(255,255,255,.3);">No questions found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(q => `
+    <tr>
+      <td style="color:rgba(255,255,255,.3);font-size:12px;">#${q.id}</td>
+      <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${q.text}</td>
+      <td><span class="badge ${q.type==='MCQ'?'badge-purple':q.type==='True/False'?'badge-teal':'badge-warning'}">${q.type}</span></td>
+      <td style="color:rgba(255,255,255,.6);">${q.subject}</td>
+      <td><span style="font-weight:700;color:#FDCB6E;">${q.points} pts</span></td>
+      <td><span class="badge badge-success">${q.track}</span></td>
+      <td>
+        <button class="btn btn-dark btn-sm" style="margin-right:6px;" onclick="editQuestion(${q.id})">✏️ Edit</button>
+        <button class="btn btn-sm" style="background:rgba(214,48,49,.12);color:#D63031;border:1px solid rgba(214,48,49,.2);" onclick="deleteQuestion(${q.id})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterQuestions() {
+  const s = document.getElementById('questionSearch').value.toLowerCase();
+  const t = document.getElementById('typeFilter').value;
+  const sub = document.getElementById('subjectFilter').value;
+  const filtered = questions.filter(q =>
+    (q.text.toLowerCase().includes(s) || q.subject.toLowerCase().includes(s)) &&
+    (!t || q.type === t) &&
+    (!sub || q.subject === sub)
+  );
+  renderQuestions(filtered);
+}
+
+function renderExams() {
+  const statusMap = {upcoming:'badge-danger',scheduled:'badge-warning',draft:'badge-teal'};
+  const iconMap = {upcoming:'🔴',scheduled:'📅',draft:'📄'};
+  const bgMap = {upcoming:'rgba(214,48,49,.15)',scheduled:'rgba(253,203,110,.15)',draft:'rgba(0,206,201,.15)'};
+  document.getElementById('examScheduleList').innerHTML = exams.map(e => `
+    <div class="exam-item">
+      <div class="exam-icon" style="background:${bgMap[e.status]};">${iconMap[e.status]}</div>
+      <div class="exam-info">
+        <div class="exam-name">${e.name}</div>
+        <div class="exam-meta">📖 ${e.subject} &nbsp;•&nbsp; 🕐 ${e.date} &nbsp;•&nbsp; ⏱️ ${e.duration} &nbsp;•&nbsp; 👥 ${e.enrolled} enrolled</div>
+      </div>
+      <span class="badge ${statusMap[e.status]}" style="text-transform:capitalize;">${e.status}</span>
+      <button class="btn btn-dark btn-sm" style="margin-left:8px;" onclick="showToast('📝 Opening ${e.name} editor...','info','📝')">Edit</button>
+    </div>
+  `).join('');
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function toggleOptions() {
+  const t = document.getElementById('qType').value;
+  document.getElementById('mcqOptions').style.display = t === 'MCQ' ? 'block' : 'none';
+}
+function addQuestion() {
+  const text = document.getElementById('qText').value.trim();
+  if (!text) { showToast('⚠️ Please enter a question.','error','⚠️'); return; }
+  const newQ = {
+    id: nextId++,
+    text,
+    type: document.getElementById('qType').value,
+    subject: document.getElementById('qSubject').value,
+    points: parseInt(document.getElementById('qPoints').value) || 5,
+    track: document.getElementById('qTrack').value
+  };
+  questions.unshift(newQ);
+  closeModal('addQuestionModal');
+  filterQuestions();
+  showToast('✅ Question added successfully!','success','✅');
+  document.getElementById('qText').value = '';
+}
+function editQuestion(id) {
+  showToast('✏️ Edit mode coming soon!','info','✏️');
+}
+function deleteQuestion(id) {
+  deleteTargetId = id;
+  document.getElementById('deleteConfirm').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('deleteConfirm').classList.remove('open');
+  deleteTargetId = null;
+}
+function confirmDelete() {
+  const idx = questions.findIndex(q => q.id === deleteTargetId);
+  if (idx !== -1) questions.splice(idx, 1);
+  closeConfirm();
+  filterQuestions();
+  showToast('🗑️ Question deleted','error','🗑️');
+}
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="font-size:18px;">${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.style.transform='translateX(120%)'; setTimeout(()=>t.remove(),400); }, 3500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+document.getElementById('deleteConfirm').addEventListener('click', e => { if(e.target===document.getElementById('deleteConfirm')) closeConfirm(); });
+
+renderQuestions(questions);
+renderExams();
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>if(typeof LvlAuth!=='undefined')LvlAuth.requireAuth(['schoolAdmin']);</script>
+</body>
+</html>
