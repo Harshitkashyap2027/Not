@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Dashboard – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.ov-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:transform .2s;}
+.ov-card:hover{transform:translateY(-2px);}
+.ov-icon{font-size:28px;margin-bottom:12px;}
+.ov-value{font-size:34px;font-weight:800;margin-bottom:4px;}
+.ov-label{font-size:12px;color:rgba(255,255,255,.5);}
+.ov-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;margin-top:8px;padding:2px 8px;border-radius:10px;}
+.trend-up{background:rgba(0,184,148,.15);color:#00b894;}
+.trend-dn{background:rgba(253,121,168,.15);color:#FD79A8;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.two-col{display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-secondary{background:rgba(0,206,201,.15);color:#00CEC9;border:1px solid rgba(0,206,201,.3);}
+.btn-secondary:hover{background:rgba(0,206,201,.25);}
+.btn-accent{background:rgba(253,121,168,.15);color:#FD79A8;border:1px solid rgba(253,121,168,.3);}
+.btn-accent:hover{background:rgba(253,121,168,.25);}
+.enroll-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.enroll-row:last-child{border-bottom:none;}
+.enroll-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
+.enroll-info{flex:1;}
+.enroll-name{font-size:13px;font-weight:600;}
+.enroll-meta{font-size:11px;color:rgba(255,255,255,.4);}
+.enroll-time{font-size:11px;color:rgba(255,255,255,.35);}
+.health-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.health-row:last-child{border-bottom:none;}
+.health-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.health-label{flex:1;font-size:13px;color:rgba(255,255,255,.75);}
+.health-status{font-size:12px;font-weight:600;}
+.rev-bar-wrap{display:flex;flex-direction:column;gap:10px;}
+.rev-row{display:flex;align-items:center;gap:10px;}
+.rev-month{width:32px;font-size:12px;color:rgba(255,255,255,.5);flex-shrink:0;}
+.rev-track{flex:1;height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;}
+.rev-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#6C5CE7,#a29bfe);}
+.rev-val{width:50px;text-align:right;font-size:12px;font-weight:700;color:#a29bfe;}
+.activity-log{display:flex;flex-direction:column;gap:0;}
+.log-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.log-item:last-child{border-bottom:none;}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.log-body{flex:1;}
+.log-msg{font-size:13px;color:rgba(255,255,255,.8);}
+.log-time{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
+@media(max-width:1100px){.overview-grid{grid-template-columns:repeat(2,1fr);}.two-col{grid-template-columns:1fr;}.three-col{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Admin</div>
+    <a href="/app/admin/dashboard.html" class="nav-item active"><span class="nav-icon">🏫</span>Dashboard</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👥</span>User Management</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Class Management</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📊</span>Reports</a>
+    <div class="nav-section-title">Communication</div>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📣</span>Announcements</a>
+    <div class="nav-section-title">Account</div>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">💳</span>Billing</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Admin</div>
+        <div class="user-role-sm">School Administrator</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🏫</span>
+    <span class="header-title">Admin Dashboard</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);" id="todayDate"></div>
+    <button onclick="LvlAuth.signOut()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;border:none;">Sign Out</button>
+    <div class="user-avatar-sm" id="headerAvatar" style="width:36px;height:36px;font-size:15px;">A</div>
+  </header>
+  <div class="app-content">
+
+    <!-- Quick Actions -->
+    <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+      <a href="/app/admin/user-management.html" class="btn btn-primary">➕ Add User</a>
+      <a href="/app/admin/class-management.html" class="btn btn-secondary">📚 Add Class</a>
+      <a href="/app/admin/announcements.html" class="btn btn-accent">📣 Send Announcement</a>
+      <a href="/app/admin/reports.html" class="btn" style="background:rgba(253,203,110,.15);color:#FDCB6E;border:1px solid rgba(253,203,110,.3);">📊 View Reports</a>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="overview-grid">
+      <div class="ov-card" style="border-top:2px solid #6C5CE7;">
+        <div class="ov-icon">👨‍🎓</div>
+        <div class="ov-value" style="color:#6C5CE7" id="statStudents">348</div>
+        <div class="ov-label">Total Students</div>
+        <div class="ov-trend trend-up">↑ +12 this month</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #00CEC9;">
+        <div class="ov-icon">👩‍🏫</div>
+        <div class="ov-value" style="color:#00CEC9" id="statTeachers">24</div>
+        <div class="ov-label">Active Teachers</div>
+        <div class="ov-trend trend-up">↑ +2 this term</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #FDCB6E;">
+        <div class="ov-icon">📚</div>
+        <div class="ov-value" style="color:#FDCB6E" id="statClasses">18</div>
+        <div class="ov-label">Active Classes</div>
+        <div class="ov-trend trend-up">↑ 3 new this term</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #00b894;">
+        <div class="ov-icon">✅</div>
+        <div class="ov-value" style="color:#00b894" id="statSubs">348</div>
+        <div class="ov-label">Active Subscriptions</div>
+        <div class="ov-trend trend-up">↑ 100% seat usage</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Recent Enrollments -->
+      <div class="card">
+        <div class="card-title">🆕 Recent Enrollments <span style="font-size:12px;color:rgba(255,255,255,.35);font-weight:400;">Last 7 days</span></div>
+        <div id="enrollmentList">
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(108,92,231,.2);color:#a29bfe;">S</div>
+            <div class="enroll-info"><div class="enroll-name">Sofia Hernandez</div><div class="enroll-meta">Grade 9 · Math &amp; Science · Class 9-A</div></div>
+            <div class="enroll-time">2h ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(0,206,201,.2);color:#00CEC9;">J</div>
+            <div class="enroll-info"><div class="enroll-name">James Okeke</div><div class="enroll-meta">Grade 10 · All Subjects · Class 10-B</div></div>
+            <div class="enroll-time">5h ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(253,121,168,.2);color:#FD79A8;">A</div>
+            <div class="enroll-info"><div class="enroll-name">Aisha Patel</div><div class="enroll-meta">Grade 8 · English &amp; History · Class 8-C</div></div>
+            <div class="enroll-time">1d ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(253,203,110,.2);color:#FDCB6E;">M</div>
+            <div class="enroll-info"><div class="enroll-name">Marcus Webb</div><div class="enroll-meta">Grade 11 · Advanced CS · Class 11-A</div></div>
+            <div class="enroll-time">1d ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(0,184,148,.2);color:#00b894;">L</div>
+            <div class="enroll-info"><div class="enroll-name">Lily Chen</div><div class="enroll-meta">Grade 9 · STEM Track · Class 9-B</div></div>
+            <div class="enroll-time">2d ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(108,92,231,.2);color:#a29bfe;">T</div>
+            <div class="enroll-info"><div class="enroll-name">Tariq Nasser</div><div class="enroll-meta">Grade 12 · AP Physics · Class 12-A</div></div>
+            <div class="enroll-time">3d ago</div>
+          </div>
+          <div class="enroll-row">
+            <div class="enroll-avatar" style="background:rgba(0,206,201,.2);color:#00CEC9;">P</div>
+            <div class="enroll-info"><div class="enroll-name">Priya Sharma</div><div class="enroll-meta">Grade 10 · Coding Elective · Class 10-A</div></div>
+            <div class="enroll-time">4d ago</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health + Activity -->
+      <div style="display:flex;flex-direction:column;gap:24px;">
+        <div class="card">
+          <div class="card-title">🔧 System Health</div>
+          <div class="health-row"><div class="health-dot" style="background:#00b894;box-shadow:0 0 6px #00b894;"></div><div class="health-label">Firebase Auth</div><div class="health-status" style="color:#00b894;">Operational</div></div>
+          <div class="health-row"><div class="health-dot" style="background:#00b894;box-shadow:0 0 6px #00b894;"></div><div class="health-label">Firestore DB</div><div class="health-status" style="color:#00b894;">Operational</div></div>
+          <div class="health-row"><div class="health-dot" style="background:#00b894;box-shadow:0 0 6px #00b894;"></div><div class="health-label">Realtime DB</div><div class="health-status" style="color:#00b894;">Operational</div></div>
+          <div class="health-row"><div class="health-dot" style="background:#FDCB6E;box-shadow:0 0 6px #FDCB6E;"></div><div class="health-label">AI Sage (OpenAI)</div><div class="health-status" style="color:#FDCB6E;">Degraded</div></div>
+          <div class="health-row"><div class="health-dot" style="background:#00b894;box-shadow:0 0 6px #00b894;"></div><div class="health-label">Arena Matchmaking</div><div class="health-status" style="color:#00b894;">Operational</div></div>
+          <div class="health-row"><div class="health-dot" style="background:#00b894;box-shadow:0 0 6px #00b894;"></div><div class="health-label">Storage CDN</div><div class="health-status" style="color:#00b894;">Operational</div></div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="card">
+          <div class="card-title">📈 This Week</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:rgba(108,92,231,.1);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#6C5CE7;">1,240</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Quests Completed</div>
+            </div>
+            <div style="background:rgba(0,206,201,.1);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#00CEC9;">87%</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Avg Attendance</div>
+            </div>
+            <div style="background:rgba(253,203,110,.1);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#FDCB6E;">52,480</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">XP Earned</div>
+            </div>
+            <div style="background:rgba(0,184,148,.1);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:22px;font-weight:800;color:#00b894;">94%</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">Active Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart + Activity Log -->
+    <div class="three-col">
+      <div class="card" style="grid-column:span 2;">
+        <div class="card-title">💰 Monthly Revenue Overview <span style="font-size:12px;color:rgba(255,255,255,.35);font-weight:400;">Subscription revenue (USD)</span></div>
+        <div class="rev-bar-wrap" id="revenueChart"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🕐 Activity Log</div>
+        <div class="activity-log">
+          <div class="log-item"><div class="log-icon" style="background:rgba(108,92,231,.15);">👤</div><div class="log-body"><div class="log-msg">New teacher <strong>Dr. Rivera</strong> account created</div><div class="log-time">10 min ago</div></div></div>
+          <div class="log-item"><div class="log-icon" style="background:rgba(0,184,148,.15);">📚</div><div class="log-body"><div class="log-msg">Class <strong>11-B AP Calc</strong> schedule updated</div><div class="log-time">42 min ago</div></div></div>
+          <div class="log-item"><div class="log-icon" style="background:rgba(253,121,168,.15);">📣</div><div class="log-body"><div class="log-msg">Announcement sent to all students</div><div class="log-time">1h ago</div></div></div>
+          <div class="log-item"><div class="log-icon" style="background:rgba(253,203,110,.15);">💳</div><div class="log-body"><div class="log-msg">Subscription renewed — Pro Plan</div><div class="log-time">3h ago</div></div></div>
+          <div class="log-item"><div class="log-icon" style="background:rgba(0,206,201,.15);">🔒</div><div class="log-body"><div class="log-msg">Security scan completed — no issues</div><div class="log-time">6h ago</div></div></div>
+          <div class="log-item"><div class="log-icon" style="background:rgba(108,92,231,.15);">⚙️</div><div class="log-body"><div class="log-msg">XP multiplier set to 1.5× for finals week</div><div class="log-time">Yesterday</div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+const months = ['Jul','Aug','Sep','Oct','Nov','Dec'];
+const revenues = [3200, 3450, 3680, 3900, 4100, 4350];
+const maxRev = Math.max(...revenues);
+
+function renderRevenueChart() {
+  const wrap = document.getElementById('revenueChart');
+  months.forEach((m, i) => {
+    const pct = Math.round(revenues[i] / maxRev * 100);
+    wrap.innerHTML += `<div class="rev-row">
+      <div class="rev-month">${m}</div>
+      <div class="rev-track"><div class="rev-fill" style="width:${pct}%"></div></div>
+      <div class="rev-val">$${(revenues[i]/1000).toFixed(1)}k</div>
+    </div>`;
+  });
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['schoolAdmin']);
+  const now = new Date();
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  renderRevenueChart();
+}
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) { window.location.href = '/auth/login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0] || 'Admin';
+  document.getElementById('sidebarName').textContent = name;
+  const init = name.charAt(0).toUpperCase();
+  document.getElementById('avatarInitial').textContent = init;
+  document.getElementById('headerAvatar').textContent = init;
+  loadPage();
+});
+
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

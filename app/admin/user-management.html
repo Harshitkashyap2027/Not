@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>User Management – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px;}
+.filter-tabs{display:flex;gap:4px;background:rgba(255,255,255,.05);padding:4px;border-radius:12px;margin-bottom:20px;width:fit-content;}
+.tab-btn{padding:8px 20px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s;}
+.tab-btn.active{background:#6C5CE7;color:#fff;}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.08);color:#fff;}
+.search-wrap{position:relative;margin-bottom:20px;}
+.search-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px 12px 44px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:#6C5CE7;}
+.search-input::placeholder{color:rgba(255,255,255,.3);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;}
+.user-table{width:100%;border-collapse:collapse;}
+.user-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 12px 12px;}
+.user-table td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;}
+.user-table tr:last-child td{border-bottom:none;}
+.user-table tr:hover td{background:rgba(255,255,255,.02);}
+.user-cell{display:flex;align-items:center;gap:10px;}
+.u-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.u-name{font-size:13px;font-weight:600;}
+.u-email{font-size:11px;color:rgba(255,255,255,.4);}
+.role-badge{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.role-student{background:rgba(108,92,231,.2);color:#a29bfe;}
+.role-teacher{background:rgba(0,206,201,.2);color:#00CEC9;}
+.role-pending{background:rgba(253,203,110,.2);color:#FDCB6E;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;}
+.status-active{background:rgba(0,184,148,.15);color:#00b894;}
+.status-inactive{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
+.status-pending{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.action-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;transition:all .2s;}
+.action-btn:hover{background:rgba(108,92,231,.2);color:#a29bfe;border-color:#6C5CE7;}
+.action-btn.danger:hover{background:rgba(214,48,49,.15);color:#D63031;border-color:#D63031;}
+.add-user-form{background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.2);border-radius:16px;padding:24px;margin-bottom:24px;display:none;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field label{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:#6C5CE7;}
+.form-select{background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-mini{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;text-align:center;}
+.stat-mini-val{font-size:24px;font-weight:800;}
+.stat-mini-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Admin</div>
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏫</span>Dashboard</a>
+    <a href="/app/admin/user-management.html" class="nav-item active"><span class="nav-icon">👥</span>User Management</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Class Management</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📊</span>Reports</a>
+    <div class="nav-section-title">Communication</div>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📣</span>Announcements</a>
+    <div class="nav-section-title">Account</div>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">💳</span>Billing</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Admin</div>
+        <div class="user-role-sm">School Administrator</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">👥</span>
+    <span class="header-title">User Management</span>
+    <button onclick="toggleAddForm()" class="btn btn-primary">➕ Add User</button>
+    <button onclick="LvlAuth.signOut()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;border:none;">Sign Out</button>
+    <div class="user-avatar-sm" id="headerAvatar" style="width:36px;height:36px;font-size:15px;">A</div>
+  </header>
+  <div class="app-content">
+
+    <!-- User stats -->
+    <div class="stats-row">
+      <div class="stat-mini"><div class="stat-mini-val" style="color:#6C5CE7;">348</div><div class="stat-mini-lbl">Total Students</div></div>
+      <div class="stat-mini"><div class="stat-mini-val" style="color:#00CEC9;">24</div><div class="stat-mini-lbl">Teachers</div></div>
+      <div class="stat-mini"><div class="stat-mini-val" style="color:#FDCB6E;">7</div><div class="stat-mini-lbl">Pending Approval</div></div>
+      <div class="stat-mini"><div class="stat-mini-val" style="color:#FD79A8;">14</div><div class="stat-mini-lbl">Inactive</div></div>
+    </div>
+
+    <!-- Add User Form (hidden by default) -->
+    <div class="add-user-form" id="addUserForm">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div style="font-size:16px;font-weight:700;">➕ Add New User</div>
+        <button onclick="toggleAddForm()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>First Name</label><input class="form-input" type="text" placeholder="e.g. Sofia"></div>
+        <div class="form-field"><label>Last Name</label><input class="form-input" type="text" placeholder="e.g. Hernandez"></div>
+        <div class="form-field"><label>Email Address</label><input class="form-input" type="email" placeholder="sofia@school.edu"></div>
+        <div class="form-field"><label>Role</label>
+          <select class="form-select">
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Grade / Department</label><input class="form-input" type="text" placeholder="e.g. Grade 9 or Mathematics Dept."></div>
+        <div class="form-field"><label>Assign Class</label>
+          <select class="form-select">
+            <option>Class 8-A</option><option>Class 8-B</option><option>Class 9-A</option><option>Class 9-B</option><option>Class 10-A</option><option>Class 11-A</option><option>Class 12-A</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button onclick="submitAddUser()" class="btn btn-primary">✅ Create User &amp; Send Invite</button>
+        <button onclick="toggleAddForm()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:none;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs + Search -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div class="filter-tabs">
+          <button class="tab-btn active" onclick="filterUsers('all',this)">All Users</button>
+          <button class="tab-btn" onclick="filterUsers('student',this)">Students</button>
+          <button class="tab-btn" onclick="filterUsers('teacher',this)">Teachers</button>
+          <button class="tab-btn" onclick="filterUsers('pending',this)">Pending</button>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="classFilter" onchange="applyFilters()" style="background:#1a1a35;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:8px 14px;border-radius:10px;font-size:13px;outline:none;">
+            <option value="">All Classes</option>
+            <option>Class 8-A</option><option>Class 8-B</option><option>Class 9-A</option><option>Class 9-B</option><option>Class 10-A</option><option>Class 11-A</option><option>Class 12-A</option>
+          </select>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);">⬇️ Export CSV</button>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search by name, email, class…" oninput="applyFilters()">
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="user-table" id="userTable">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Class / Dept.</th>
+              <th>Status</th>
+              <th>Last Active</th>
+              <th>XP</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:13px;color:rgba(255,255,255,.4);" id="tableCount">Showing 15 of 372 users</div>
+        <div style="display:flex;gap:6px;">
+          <button class="action-btn">← Prev</button>
+          <button class="action-btn" style="background:rgba(108,92,231,.2);color:#a29bfe;border-color:#6C5CE7;">1</button>
+          <button class="action-btn">2</button>
+          <button class="action-btn">3</button>
+          <button class="action-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+const USERS = [
+  {name:'Sofia Hernandez',email:'sofia.h@school.edu',role:'student',cls:'Class 9-A',status:'active',lastActive:'2 min ago',xp:4820,avatar:'S',color:'#6C5CE7'},
+  {name:'James Okeke',email:'james.o@school.edu',role:'student',cls:'Class 10-B',status:'active',lastActive:'15 min ago',xp:3910,avatar:'J',color:'#00CEC9'},
+  {name:'Dr. Maria Rivera',email:'m.rivera@school.edu',role:'teacher',cls:'Mathematics',status:'active',lastActive:'1h ago',xp:12400,avatar:'M',color:'#FD79A8'},
+  {name:'Aisha Patel',email:'aisha.p@school.edu',role:'student',cls:'Class 8-C',status:'active',lastActive:'3h ago',xp:2750,avatar:'A',color:'#FDCB6E'},
+  {name:'Marcus Webb',email:'marcus.w@school.edu',role:'student',cls:'Class 11-A',status:'active',lastActive:'5h ago',xp:6340,avatar:'M',color:'#00b894'},
+  {name:'Prof. Lee Chang',email:'l.chang@school.edu',role:'teacher',cls:'Computer Science',status:'active',lastActive:'20 min ago',xp:18900,avatar:'L',color:'#6C5CE7'},
+  {name:'Lily Chen',email:'lily.c@school.edu',role:'student',cls:'Class 9-B',status:'active',lastActive:'1d ago',xp:5120,avatar:'L',color:'#00CEC9'},
+  {name:'Tariq Nasser',email:'tariq.n@school.edu',role:'student',cls:'Class 12-A',status:'inactive',lastActive:'5d ago',xp:7800,avatar:'T',color:'#FD79A8'},
+  {name:'Ms. Priya Sharma',email:'p.sharma@school.edu',role:'teacher',cls:'English',status:'active',lastActive:'30 min ago',xp:9200,avatar:'P',color:'#FDCB6E'},
+  {name:'Ryan Torres',email:'ryan.t@school.edu',role:'student',cls:'Class 10-A',status:'pending',lastActive:'Never',xp:0,avatar:'R',color:'#FDCB6E'},
+  {name:'Nia Johnson',email:'nia.j@school.edu',role:'student',cls:'Class 8-A',status:'active',lastActive:'4h ago',xp:3100,avatar:'N',color:'#00b894'},
+  {name:'Ethan Brooks',email:'ethan.b@school.edu',role:'student',cls:'Class 11-B',status:'active',lastActive:'2h ago',xp:4500,avatar:'E',color:'#6C5CE7'},
+  {name:'Mr. David Kim',email:'d.kim@school.edu',role:'teacher',cls:'Science',status:'pending',lastActive:'Never',xp:0,avatar:'D',color:'#00CEC9'},
+  {name:'Zara Ahmed',email:'zara.a@school.edu',role:'student',cls:'Class 9-A',status:'active',lastActive:'6h ago',xp:3880,avatar:'Z',color:'#FD79A8'},
+  {name:'Oliver Smith',email:'oliver.s@school.edu',role:'student',cls:'Class 12-A',status:'inactive',lastActive:'12d ago',xp:2100,avatar:'O',color:'#FDCB6E'},
+];
+
+let currentFilter = 'all';
+
+function renderTable(users) {
+  const tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = '';
+  users.forEach(u => {
+    const statusClass = u.status === 'active' ? 'status-active' : u.status === 'pending' ? 'status-pending' : 'status-inactive';
+    const roleClass = u.role === 'student' ? 'role-student' : u.role === 'teacher' ? 'role-teacher' : 'role-pending';
+    const statusDot = u.status === 'active' ? '🟢' : u.status === 'pending' ? '🟡' : '⚫';
+    tbody.innerHTML += `<tr>
+      <td><div class="user-cell">
+        <div class="u-avatar" style="background:rgba(${hexToRgb(u.color)},.2);color:${u.color}">${u.avatar}</div>
+        <div><div class="u-name">${u.name}</div><div class="u-email">${u.email}</div></div>
+      </div></td>
+      <td><span class="role-badge ${roleClass}">${u.role}</span></td>
+      <td style="color:rgba(255,255,255,.65)">${u.cls}</td>
+      <td><span class="status-badge ${statusClass}">${statusDot} ${u.status}</span></td>
+      <td style="color:rgba(255,255,255,.4)">${u.lastActive}</td>
+      <td style="color:#FDCB6E;font-weight:600">${u.xp.toLocaleString()}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="action-btn">✏️ Edit</button>
+        <button class="action-btn danger">🚫 Deactivate</button>
+      </div></td>
+    </tr>`;
+  });
+  document.getElementById('tableCount').textContent = `Showing ${users.length} of ${USERS.length} users`;
+}
+
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16);const g=parseInt(hex.slice(3,5),16);const b=parseInt(hex.slice(5,7),16);return `${r},${g},${b}`;}
+
+function filterUsers(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cls = document.getElementById('classFilter').value;
+  let filtered = USERS.filter(u => {
+    const matchRole = currentFilter === 'all' || u.role === currentFilter || (currentFilter === 'pending' && u.status === 'pending');
+    const matchSearch = !search || u.name.toLowerCase().includes(search) || u.email.toLowerCase().includes(search) || u.cls.toLowerCase().includes(search);
+    const matchCls = !cls || u.cls === cls;
+    return matchRole && matchSearch && matchCls;
+  });
+  renderTable(filtered);
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('addUserForm');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+}
+
+function submitAddUser() {
+  alert('User invite sent! They will receive an email to set up their account.');
+  toggleAddForm();
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['schoolAdmin']);
+  renderTable(USERS);
+}
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) { window.location.href = '/auth/login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0] || 'Admin';
+  document.getElementById('sidebarName').textContent = name;
+  const init = name.charAt(0).toUpperCase();
+  document.getElementById('avatarInitial').textContent = init;
+  document.getElementById('headerAvatar').textContent = init;
+  loadPage();
+});
+
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>
