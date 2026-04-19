@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Messages – lvlBase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;display:flex;gap:20px;min-height:calc(100vh - 64px);}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(0,206,201,.08);color:#fff;border-left-color:#00CEC9;}
+.nav-item.active{background:rgba(0,206,201,.12);color:#00CEC9;border-left-color:#00CEC9;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.btn-teal{background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);}
+/* Two panel layout */
+.msg-left{width:280px;flex-shrink:0;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;}
+.msg-right{flex:1;background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;}
+/* Left panel */
+.msg-left-top{padding:16px;}
+.msg-search{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none;}
+.msg-search::placeholder{color:rgba(255,255,255,.3);}
+.compose-btn{display:block;width:100%;margin-top:10px;padding:10px;background:linear-gradient(135deg,#00CEC9,#00b894);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;}
+.conv-list{flex:1;overflow-y:auto;}
+.conv-item{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;}
+.conv-item:hover{background:rgba(255,255,255,.04);}
+.conv-item.active{background:rgba(0,206,201,.08);border-left:3px solid #00CEC9;}
+.conv-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;}
+.conv-body{flex:1;min-width:0;}
+.conv-name{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+.conv-preview{font-size:11px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conv-time{font-size:10px;color:rgba(255,255,255,.3);}
+.unread-badge{background:#FD79A8;color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:2px 6px;min-width:18px;text-align:center;}
+/* Right panel — thread */
+.thread-header{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:14px;}
+.thread-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;}
+.thread-name{font-size:15px;font-weight:700;}
+.thread-sub{font-size:12px;color:rgba(255,255,255,.4);}
+.online-dot{width:9px;height:9px;border-radius:50%;background:#00B894;display:inline-block;margin-right:5px;}
+.thread-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+/* Message bubbles */
+.msg-row{display:flex;gap:10px;align-items:flex-end;}
+.msg-row.sent{flex-direction:row-reverse;}
+.bubble-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.bubble{max-width:72%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.6;}
+.bubble-received{background:#1a1a3e;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.9);border-bottom-left-radius:4px;}
+.bubble-sent{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;border-bottom-right-radius:4px;}
+.bubble-time{font-size:10px;margin-top:4px;color:rgba(255,255,255,.3);text-align:right;}
+.bubble-time.recv{text-align:left;}
+/* Message input */
+.thread-input{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:10px;align-items:flex-end;}
+.msg-input-box{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;color:#fff;font-size:13px;font-family:'Segoe UI',sans-serif;resize:none;outline:none;min-height:44px;}
+.msg-input-box::placeholder{color:rgba(255,255,255,.3);}
+.send-btn{padding:11px 20px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;}
+.date-divider{text-align:center;font-size:11px;color:rgba(255,255,255,.25);padding:4px 0;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Parent Portal</div>
+    <a href="/app/parent/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/parent/child-progress.html" class="nav-item"><span class="nav-icon">👶</span>Child Progress</a>
+    <a href="/app/parent/reports.html" class="nav-item"><span class="nav-icon">📋</span>Reports</a>
+    <a href="/app/parent/messages.html" class="nav-item active"><span class="nav-icon">💬</span>Messages</a>
+    <a href="/app/parent/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">P</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Parent</div>
+        <div class="user-role-sm" style="font-size:11px;color:#00CEC9;">Parent Account</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px;">💬</span>
+    <h1 class="header-title">Messages</h1>
+    <span style="font-size:12px;color:rgba(255,255,255,.4);">3 unread messages</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">P</div>
+  </header>
+
+  <div class="app-content">
+
+    <!-- Left panel: conversation list -->
+    <div class="msg-left">
+      <div class="msg-left-top">
+        <input class="msg-search" type="text" placeholder="🔍  Search conversations…" />
+        <button class="compose-btn" onclick="alert('Compose new message')">✏️ Compose New Message</button>
+      </div>
+
+      <div class="conv-list">
+        <!-- Active: Mr. Adams -->
+        <div class="conv-item active">
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+          <div class="conv-body">
+            <div class="conv-name">
+              Mr. Adams
+              <div style="display:flex;align-items:center;gap:6px;"><span class="conv-time">2h ago</span><span class="unread-badge">2</span></div>
+            </div>
+            <div class="conv-preview">Ethan did great on the quiz today...</div>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#00CEC9,#00b894);">R</div>
+          <div class="conv-body">
+            <div class="conv-name">Ms. Rivera<span class="conv-time">Yesterday</span></div>
+            <div class="conv-preview">Please review the lab report...</div>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#FD79A8,#e84393);">T</div>
+          <div class="conv-body">
+            <div class="conv-name">
+              Mrs. Thompson
+              <div style="display:flex;align-items:center;gap:6px;"><span class="conv-time">Nov 9</span><span class="unread-badge">1</span></div>
+            </div>
+            <div class="conv-preview">Lily's reading comprehension...</div>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#FDCB6E,#e17055);">W</div>
+          <div class="conv-body">
+            <div class="conv-name">Coach Williams<span class="conv-time">Nov 7</span></div>
+            <div class="conv-preview">Attendance reminder for gym class...</div>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#a29bfe,#FD79A8);">P</div>
+          <div class="conv-body">
+            <div class="conv-name">Ms. Park<span class="conv-time">Nov 5</span></div>
+            <div class="conv-preview">Lily's artwork was selected for...</div>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar" style="background:rgba(255,255,255,.12);">📢</div>
+          <div class="conv-body">
+            <div class="conv-name">Admin<span class="conv-time">Nov 3</span></div>
+            <div class="conv-preview">Parent-teacher night scheduled for...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel: message thread -->
+    <div class="msg-right">
+      <!-- Thread header -->
+      <div class="thread-header">
+        <div class="thread-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+        <div style="flex:1;">
+          <div class="thread-name">Mr. Adams</div>
+          <div class="thread-sub"><span class="online-dot"></span>Online &nbsp;·&nbsp; 📐 Mathematics — Grade 8</div>
+        </div>
+        <button class="btn btn-outline" style="font-size:12px;" onclick="alert('Scheduling meeting…')">📅 Schedule Meeting</button>
+      </div>
+
+      <!-- Messages -->
+      <div class="thread-body">
+        <div class="date-divider">— November 8, 2024 —</div>
+
+        <!-- Teacher message -->
+        <div class="msg-row">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+          <div>
+            <div class="bubble bubble-received">Hello! Just wanted to let you know that Ethan scored 96% on his algebra test today — his best result this semester! He showed excellent problem-solving and completed the bonus questions too. 🎉</div>
+            <div class="bubble-time recv">Mr. Adams &nbsp;·&nbsp; 2:14 PM</div>
+          </div>
+        </div>
+
+        <!-- Parent reply -->
+        <div class="msg-row sent">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#00CEC9,#6C5CE7);">S</div>
+          <div>
+            <div class="bubble bubble-sent">That's wonderful news! He's been working very hard this week — staying up late going over practice problems. We're really proud of him. 😊</div>
+            <div class="bubble-time">Sarah (You) &nbsp;·&nbsp; 2:31 PM</div>
+          </div>
+        </div>
+
+        <!-- Teacher -->
+        <div class="msg-row">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+          <div>
+            <div class="bubble bubble-received">I can really tell! His problem-solving approach has improved significantly compared to Q1. He's now helping other students understand the concepts too, which shows true mastery.</div>
+            <div class="bubble-time recv">Mr. Adams &nbsp;·&nbsp; 2:45 PM</div>
+          </div>
+        </div>
+
+        <div class="date-divider">— November 9, 2024 —</div>
+
+        <!-- Parent -->
+        <div class="msg-row sent">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#00CEC9,#6C5CE7);">S</div>
+          <div>
+            <div class="bubble bubble-sent">Are there any areas we should focus on at home to keep his momentum going? Any topics coming up that might need extra attention?</div>
+            <div class="bubble-time">Sarah (You) &nbsp;·&nbsp; 9:05 AM</div>
+          </div>
+        </div>
+
+        <!-- Teacher -->
+        <div class="msg-row">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+          <div>
+            <div class="bubble bubble-received">Geometry proofs could use a bit more practice — we're starting that unit next week. I'm attaching some resources and a practice worksheet to help him prepare. His algebra is solid, so this is the natural next step! 📎</div>
+            <div class="bubble-time recv">Mr. Adams &nbsp;·&nbsp; 9:42 AM</div>
+          </div>
+        </div>
+
+        <!-- Attachment preview -->
+        <div class="msg-row">
+          <div class="bubble-avatar" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);">A</div>
+          <div>
+            <div class="bubble bubble-received" style="display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="alert('Downloading attachment…')">
+              <span style="font-size:24px;">📄</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;">Geometry_Proofs_Practice.pdf</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);">PDF &nbsp;·&nbsp; 2.4 MB &nbsp;·&nbsp; Click to download</div>
+              </div>
+            </div>
+            <div class="bubble-time recv">Mr. Adams &nbsp;·&nbsp; 9:43 AM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="thread-input">
+        <textarea class="msg-input-box" rows="2" placeholder="Type a message to Mr. Adams…" id="msgInput"></textarea>
+        <button class="send-btn" onclick="alert('Message sent!')">➤</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+LvlAuth.requireAuth(['parent']);
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Parent';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('headerAvatar').textContent = name.charAt(0).toUpperCase();
+  }
+});
+// Allow Enter to send (Shift+Enter for newline)
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    alert('Message sent!');
+    this.value = '';
+  }
+});
+</script>
+</body>
+</html>
