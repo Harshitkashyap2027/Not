@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Analytics – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+
+/* Overview Cards */
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.ov-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:transform .2s;}
+.ov-card:hover{transform:translateY(-2px);}
+.ov-card::after{content:'';position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.08;}
+.ov-icon{font-size:24px;margin-bottom:12px;}
+.ov-value{font-size:32px;font-weight:800;margin-bottom:4px;}
+.ov-label{font-size:12px;color:rgba(255,255,255,.5);}
+.ov-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;margin-top:8px;padding:2px 8px;border-radius:10px;}
+.trend-up{background:rgba(0,184,148,.15);color:#00b894;}
+.trend-dn{background:rgba(253,121,168,.15);color:#FD79A8;}
+
+/* Two-col layout */
+.analytics-grid{display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-subtitle{font-size:12px;color:rgba(255,255,255,.35);font-weight:400;}
+
+/* Subject Bar Chart */
+.subject-bar-wrap{display:flex;flex-direction:column;gap:14px;}
+.subject-row{display:flex;align-items:center;gap:12px;}
+.subject-name{width:80px;font-size:13px;color:rgba(255,255,255,.7);flex-shrink:0;}
+.subject-track{flex:1;height:12px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
+.subject-fill{height:100%;border-radius:6px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.subject-pct{width:38px;text-align:right;font-size:13px;font-weight:700;flex-shrink:0;}
+
+/* 8-week trend */
+.trend-chart{display:flex;align-items:flex-end;gap:6px;height:100px;margin-bottom:8px;}
+.trend-bar{flex:1;border-radius:4px 4px 0 0;min-height:4px;cursor:pointer;position:relative;transition:opacity .2s;}
+.trend-bar:hover{opacity:.8;}
+.trend-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;font-size:11px;white-space:nowrap;pointer-events:none;margin-bottom:4px;display:none;}
+.trend-bar:hover .trend-tooltip{display:block;}
+.trend-labels{display:flex;gap:6px;}
+.trend-label{flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,.35);}
+
+/* Strengths / Weaknesses */
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.sw-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;}
+.sw-title{font-size:14px;font-weight:700;margin-bottom:14px;}
+.sw-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sw-item:last-child{border-bottom:none;}
+.sw-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sw-text{flex:1;font-size:13px;color:rgba(255,255,255,.7);}
+.sw-val{font-size:13px;font-weight:700;}
+
+/* Quiz Table */
+.quiz-table{width:100%;border-collapse:collapse;}
+.quiz-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 10px;}
+.quiz-table td{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);}
+.quiz-table tr:last-child td{border-bottom:none;}
+.score-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;font-weight:700;}
+.score-a{background:rgba(0,184,148,.15);color:#00b894;}
+.score-b{background:rgba(108,92,231,.15);color:#a29bfe;}
+.score-c{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.score-d{background:rgba(253,121,168,.15);color:#FD79A8;}
+
+@media(max-width:1000px){.overview-grid{grid-template-columns:repeat(2,1fr);}.analytics-grid{grid-template-columns:1fr;}.sw-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item active"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-level-sm">Level 7 Explorer</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📊</span>
+    <span class="header-title">My Analytics</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">Last updated: Today</div>
+    <select id="periodSelect" onchange="updatePeriod(this.value)" style="background:#1a1a35;border:1px solid rgba(255,255,255,.1);color:#fff;padding:6px 12px;border-radius:10px;font-size:13px;outline:none;cursor:pointer;">
+      <option value="week">This Week</option>
+      <option value="month" selected>This Month</option>
+      <option value="all">All Time</option>
+    </select>
+  </header>
+  <div class="app-content">
+
+    <!-- Overview -->
+    <div class="overview-grid">
+      <div class="ov-card" style="border-top:2px solid #6C5CE7;">
+        <div class="ov-icon">📊</div>
+        <div class="ov-value" style="color:#6C5CE7">84%</div>
+        <div class="ov-label">Average Score</div>
+        <div class="ov-trend trend-up">↑ +3% vs last month</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #00CEC9;">
+        <div class="ov-icon">⏱️</div>
+        <div class="ov-value" style="color:#00CEC9">12.5h</div>
+        <div class="ov-label">Study Hours</div>
+        <div class="ov-trend trend-up">↑ +1.5h vs last month</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #FDCB6E;">
+        <div class="ov-icon">🏆</div>
+        <div class="ov-value" style="color:#FDCB6E">92nd</div>
+        <div class="ov-label">Rank Percentile</div>
+        <div class="ov-trend trend-up">↑ Top 8% globally</div>
+      </div>
+      <div class="ov-card" style="border-top:2px solid #FD79A8;">
+        <div class="ov-icon">📋</div>
+        <div class="ov-value" style="color:#FD79A8">42</div>
+        <div class="ov-label">Quests Done</div>
+        <div class="ov-trend trend-up">↑ +8 vs last month</div>
+      </div>
+    </div>
+
+    <div class="analytics-grid">
+      <!-- Subject Performance -->
+      <div class="card">
+        <div class="card-title">🎓 Subject Performance <span class="card-subtitle">Current month</span></div>
+        <div class="subject-bar-wrap" id="subjectChart"></div>
+      </div>
+      <!-- 8-Week Trend -->
+      <div class="card">
+        <div class="card-title">📈 8-Week Score Trend</div>
+        <div class="trend-chart" id="trendChart"></div>
+        <div class="trend-labels" id="trendLabels"></div>
+        <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;">
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Peak: <span style="color:#00b894;font-weight:700">94% (Week 7)</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Low: <span style="color:#FD79A8;font-weight:700">71% (Week 1)</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Avg: <span style="color:#FDCB6E;font-weight:700">84%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strengths & Weaknesses -->
+    <div class="sw-grid">
+      <div class="sw-card" style="border-top:2px solid #00b894;">
+        <div class="sw-title" style="color:#00b894;">💪 Strengths</div>
+        <div class="sw-item"><div class="sw-dot" style="background:#00b894"></div><div class="sw-text">Python programming logic</div><div class="sw-val" style="color:#00b894">95%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#00b894"></div><div class="sw-text">Algebraic equations</div><div class="sw-val" style="color:#00b894">92%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#00b894"></div><div class="sw-text">Essay structure & clarity</div><div class="sw-val" style="color:#00b894">88%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#00b894"></div><div class="sw-text">Scientific method</div><div class="sw-val" style="color:#00b894">86%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#00b894"></div><div class="sw-text">Data structures</div><div class="sw-val" style="color:#00b894">85%</div></div>
+      </div>
+      <div class="sw-card" style="border-top:2px solid #FD79A8;">
+        <div class="sw-title" style="color:#FD79A8;">📉 Areas to Improve</div>
+        <div class="sw-item"><div class="sw-dot" style="background:#FD79A8"></div><div class="sw-text">Historical date recall</div><div class="sw-val" style="color:#FD79A8">62%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#FD79A8"></div><div class="sw-text">Geometry proofs</div><div class="sw-val" style="color:#FD79A8">65%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#FD79A8"></div><div class="sw-text">Chemical equations balancing</div><div class="sw-val" style="color:#FD79A8">68%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#FD79A8"></div><div class="sw-text">Poetry analysis</div><div class="sw-val" style="color:#FD79A8">70%</div></div>
+        <div class="sw-item"><div class="sw-dot" style="background:#FD79A8"></div><div class="sw-text">Trigonometry applications</div><div class="sw-val" style="color:#FDCB6E">72%</div></div>
+      </div>
+    </div>
+
+    <!-- Recent Quiz Scores -->
+    <div class="card">
+      <div class="card-title">📝 Recent Quiz Scores</div>
+      <table class="quiz-table">
+        <thead><tr>
+          <th>Quest / Quiz</th><th>Subject</th><th>Score</th><th>XP Earned</th><th>Date</th><th>Time Taken</th>
+        </tr></thead>
+        <tbody id="quizTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/login.html';return;}initPage(user);});
+
+const subjects=[
+  {name:'💻 Code',pct:95,color:'#00b894'},
+  {name:'🔢 Math',pct:92,color:'#6C5CE7'},
+  {name:'📖 English',pct:85,color:'#FD79A8'},
+  {name:'🔬 Science',pct:78,color:'#00CEC9'},
+  {name:'📜 History',pct:70,color:'#FDCB6E'},
+];
+
+const weeklyScores=[71,75,80,82,78,88,94,84];
+const weekLabels=['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
+
+const quizData=[
+  {name:'Function Forge',subject:'Code',score:96,xp:192,date:'Today',time:'18 min',grade:'a'},
+  {name:'Force & Motion',subject:'Science',score:82,xp:148,date:'Yesterday',time:'24 min',grade:'b'},
+  {name:'Algebra Awakening',subject:'Math',score:90,xp:135,date:'Nov 3',time:'21 min',grade:'a'},
+  {name:'Essay Master Intro',subject:'English',score:78,xp:109,date:'Nov 1',time:'25 min',grade:'b'},
+  {name:'Medieval Quest',subject:'History',score:74,xp:111,date:'Oct 30',time:'22 min',grade:'c'},
+  {name:'Chemistry Spark',subject:'Science',score:88,xp:141,date:'Oct 28',time:'20 min',grade:'b'},
+  {name:'Hello World!',subject:'Code',score:100,xp:100,date:'Oct 25',time:'12 min',grade:'a'},
+  {name:'Number Ninja',subject:'Math',score:95,xp:95,date:'Oct 22',time:'15 min',grade:'a'},
+];
+
+function renderSubjectChart(){
+  const c=document.getElementById('subjectChart');c.innerHTML='';
+  subjects.forEach(s=>{
+    const row=document.createElement('div');row.className='subject-row';
+    row.innerHTML=`<div class="subject-name">${s.name}</div>
+      <div class="subject-track"><div class="subject-fill" style="width:0%;background:linear-gradient(90deg,${s.color},${s.color}88)" data-pct="${s.pct}"></div></div>
+      <div class="subject-pct" style="color:${s.color}">${s.pct}%</div>`;
+    c.appendChild(row);
+  });
+  setTimeout(()=>{
+    document.querySelectorAll('.subject-fill').forEach(f=>f.style.width=f.dataset.pct+'%');
+  },200);
+}
+
+function renderTrendChart(){
+  const chart=document.getElementById('trendChart');
+  const labels=document.getElementById('trendLabels');
+  const max=Math.max(...weeklyScores);
+  weeklyScores.forEach((v,i)=>{
+    const bar=document.createElement('div');bar.className='trend-bar';
+    const pct=Math.round(v/max*100);
+    const col=v>=90?'#00b894':v>=80?'#6C5CE7':v>=70?'#FDCB6E':'#FD79A8';
+    bar.style.cssText=`height:${pct}%;background:${col};`;
+    bar.innerHTML=`<div class="trend-tooltip">${weekLabels[i]}: ${v}%</div>`;
+    chart.appendChild(bar);
+    const lbl=document.createElement('div');lbl.className='trend-label';lbl.textContent=weekLabels[i];
+    labels.appendChild(lbl);
+  });
+}
+
+function renderQuizTable(){
+  const tbody=document.getElementById('quizTableBody');
+  quizData.forEach(q=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`<td><strong>${q.name}</strong></td>
+      <td style="color:rgba(255,255,255,.55)">${q.subject}</td>
+      <td><span class="score-badge score-${q.grade}">${q.score}%</span></td>
+      <td style="color:#FDCB6E">+${q.xp} XP</td>
+      <td style="color:rgba(255,255,255,.4)">${q.date}</td>
+      <td style="color:rgba(255,255,255,.4)">${q.time}</td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function updatePeriod(period){
+  // In production this would refetch data for the selected period
+  const label={'week':'This Week','month':'This Month','all':'All Time'}[period];
+  document.querySelectorAll('.card-subtitle').forEach(e=>e.textContent=label);
+}
+
+function initPage(user){
+  const name=user.displayName||user.email.split('@')[0]||'Student';
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  renderSubjectChart();renderTrendChart();renderQuizTable();
+}
+</script>
+</body>
+</html>

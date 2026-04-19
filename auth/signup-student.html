@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Signup — lvlBase</title>
+<link rel="stylesheet" href="/core/css/base.css">
+<link rel="stylesheet" href="/core/css/auth.css">
+</head>
+<body class="auth-page">
+<div class="auth-bg"><div class="auth-bg-orb"></div><div class="auth-bg-orb"></div><div class="auth-bg-grid"></div></div>
+<div class="auth-card" style="max-width:480px">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">🎓</div>
+    <div class="auth-logo-text">lvlBase</div>
+    <div class="auth-logo-sub">Student Registration</div>
+  </div>
+  <div class="step-indicator">
+    <div class="step active" id="s1">1</div><div class="step-line" id="l1"></div>
+    <div class="step" id="s2">2</div><div class="step-line" id="l2"></div>
+    <div class="step" id="s3">3</div>
+  </div>
+  <!-- Step 1: School Code -->
+  <div id="step1">
+    <h2 class="auth-title">Join Your School 🏫</h2>
+    <p class="auth-subtitle">Enter the school code provided by your school admin</p>
+    <form class="auth-form" onsubmit="nextStep(1,event)">
+      <div class="input-group">
+        <label class="input-label">School Code</label>
+        <div class="input-with-icon">
+          <span class="icon">🏫</span>
+          <input type="text" id="school-code" class="auth-input" placeholder="e.g. WESTVIEW2024" style="text-transform:uppercase" required>
+        </div>
+        <div id="school-info" style="display:none;padding:12px;background:rgba(0,184,148,.1);border:1px solid rgba(0,184,148,.2);border-radius:10px;font-size:.82rem;color:#00d2a8;margin-top:-4px"></div>
+      </div>
+      <button type="submit" class="auth-btn">Verify School Code →</button>
+      <div style="text-align:center;font-size:.8rem;color:rgba(255,255,255,.4);margin-top:4px">Don't have a code? Ask your school admin</div>
+    </form>
+  </div>
+  <!-- Step 2: Personal Info -->
+  <div id="step2" style="display:none">
+    <h2 class="auth-title">Your Details 📋</h2>
+    <p class="auth-subtitle">Tell us about yourself</p>
+    <form class="auth-form" onsubmit="nextStep(2,event)">
+      <div class="input-group">
+        <label class="input-label">Full Name</label>
+        <div class="input-with-icon">
+          <span class="icon">👤</span>
+          <input type="text" id="s-name" class="auth-input" placeholder="Your full name" required>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Email Address</label>
+        <div class="input-with-icon">
+          <span class="icon">📧</span>
+          <input type="email" id="s-email" class="auth-input" placeholder="your@email.com" required>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="input-group">
+          <label class="input-label">Grade</label>
+          <select id="s-grade" class="auth-input input">
+            <option value="">Select Grade</option>
+            <option>Grade 6</option><option>Grade 7</option><option>Grade 8</option>
+            <option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Date of Birth</label>
+          <input type="date" id="s-dob" class="auth-input">
+        </div>
+      </div>
+      <button type="submit" class="auth-btn">Continue →</button>
+    </form>
+  </div>
+  <!-- Step 3: Password -->
+  <div id="step3" style="display:none">
+    <h2 class="auth-title">Create Password 🔐</h2>
+    <p class="auth-subtitle">Choose a strong password for your account</p>
+    <form class="auth-form" id="final-form" onsubmit="createAccount(event)">
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <div class="input-with-icon">
+          <span class="icon">🔒</span>
+          <input type="password" id="s-pass" class="auth-input" placeholder="Min 8 characters" oninput="checkStrength(this.value)" required>
+          <span class="toggle-pass" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'">👁️</span>
+        </div>
+        <div class="password-strength">
+          <div class="strength-bars">
+            <div class="strength-bar" id="sb1"></div><div class="strength-bar" id="sb2"></div>
+            <div class="strength-bar" id="sb3"></div><div class="strength-bar" id="sb4"></div>
+          </div>
+          <div class="strength-label" id="strength-label">Enter a password</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Confirm Password</label>
+        <div class="input-with-icon">
+          <span class="icon">🔒</span>
+          <input type="password" id="s-pass2" class="auth-input" placeholder="Repeat password" required>
+        </div>
+      </div>
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:.8rem;color:rgba(255,255,255,.6);cursor:pointer">
+        <input type="checkbox" id="s-terms" required style="margin-top:2px">
+        I agree to the <a href="/public/legal/terms-of-service.html" style="color:#8B7CF8">Terms of Service</a> and <a href="/public/legal/privacy-policy.html" style="color:#8B7CF8">Privacy Policy</a>
+      </label>
+      <button type="submit" class="auth-btn" id="create-btn">🚀 Create Account</button>
+    </form>
+  </div>
+  <div class="auth-footer">Already have an account? <a href="/auth/portal-login.html">Sign in</a></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script>
+let schoolData=null,currentStep=1;
+async function nextStep(step,e){
+  e.preventDefault();
+  if(step===1){
+    const code=document.getElementById('school-code').value.trim().toUpperCase();
+    if(!code){LvlUI.toast('Enter school code','','error');return;}
+    LvlUI.showLoader('Verifying school code...');
+    try{
+      const snap=await LvlFire.db.collection('schools').where('code','==',code).limit(1).get();
+      if(snap.empty){LvlUI.hideLoader();LvlUI.toast('Invalid code','School not found','error');return;}
+      schoolData={id:snap.docs[0].id,...snap.docs[0].data()};
+      document.getElementById('school-info').style.display='block';
+      document.getElementById('school-info').textContent='✓ Found: '+schoolData.name;
+      LvlUI.hideLoader();
+      goStep(2);
+    }catch(er){LvlUI.hideLoader();LvlUI.toast('Error',er.message,'error');}
+  }else if(step===2){
+    const name=document.getElementById('s-name').value.trim();
+    const email=document.getElementById('s-email').value.trim();
+    if(!name||name.length<2){LvlUI.toast('Enter your name','','error');return;}
+    if(!LvlSecurity.isValidEmail(email)){LvlUI.toast('Invalid email','','error');return;}
+    goStep(3);
+  }
+}
+function goStep(n){
+  document.getElementById('step'+currentStep).style.display='none';
+  document.getElementById('s'+currentStep).classList.remove('active');
+  document.getElementById('s'+currentStep).classList.add('done');
+  document.getElementById('s'+currentStep).textContent='✓';
+  if(currentStep<3)document.getElementById('l'+currentStep).classList.add('done');
+  currentStep=n;
+  document.getElementById('step'+n).style.display='block';
+  document.getElementById('s'+n).classList.add('active');
+}
+function checkStrength(val){
+  const s=LvlSecurity.getPasswordStrength(val);
+  const bars=[sb1,sb2,sb3,sb4];
+  const fill={weak:1,fair:2,good:3,strong:4};
+  const n=fill[s.level]||0;
+  bars.forEach((b,i)=>{b.className='strength-bar'+(i<n?' filled '+s.level:'');});
+  document.getElementById('strength-label').textContent=s.label;
+}
+async function createAccount(e){
+  e.preventDefault();
+  const pass=document.getElementById('s-pass').value;
+  const pass2=document.getElementById('s-pass2').value;
+  if(pass!==pass2){LvlUI.toast('Passwords do not match','','error');return;}
+  if(pass.length<8){LvlUI.toast('Password too short','Min 8 characters','error');return;}
+  if(!document.getElementById('s-terms').checked){LvlUI.toast('Accept terms','Please agree to terms','warning');return;}
+  LvlUI.showLoader('Creating your account...');
+  try{
+    await LvlAuth.signUpEmail(
+      document.getElementById('s-email').value.trim(), pass,
+      {name:document.getElementById('s-name').value.trim(),role:'student',schoolId:schoolData?.id}
+    );
+    LvlUI.hideLoader();
+    LvlUI.toast('Account created!','Welcome to lvlBase 🎉','success');
+  }catch(er){LvlUI.hideLoader();LvlUI.toast('Signup failed',er.message,'error');}
+}
+</script>
+</body></html>

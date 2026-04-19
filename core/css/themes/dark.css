@@ -1,0 +1,47 @@
+/* ============================================================
+   lvlBase — Dark Theme Variables
+   ============================================================ */
+:root {
+  color-scheme: dark;
+}
+
+/* Seasonal theme: Halloween */
+.theme-halloween {
+  --primary:       #FF6B35;
+  --primary-light: #FF8C5A;
+  --accent:        #9B59B6;
+  --bg-base:       #0D0A12;
+}
+
+/* Seasonal theme: Christmas */
+.theme-christmas {
+  --primary:       #C0392B;
+  --primary-light: #E74C3C;
+  --accent:        #27AE60;
+  --secondary:     #F39C12;
+}
+
+/* Seasonal theme: Summer */
+.theme-summer {
+  --primary:       #F39C12;
+  --primary-light: #F1C40F;
+  --accent:        #E74C3C;
+  --secondary:     #3498DB;
+  --bg-base:       #0A0E1A;
+}
+
+/* Focus Mode */
+.theme-focus {
+  --bg-base:    #080810;
+  --bg-surface: #0D0D1C;
+  --primary:    #00CEC9;
+  --accent:     #6C5CE7;
+}
+
+/* High Contrast */
+.theme-hc {
+  --glass-bg: rgba(255,255,255,0.1);
+  --glass-border: rgba(255,255,255,0.25);
+  --text-secondary: #D0D0D0;
+  --text-muted: #999;
+}

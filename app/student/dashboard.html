@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Dashboard — lvlBase</title>
+<link rel="manifest" href="/pwa/manifest-student.json">
+<link rel="stylesheet" href="/core/css/base.css">
+<link rel="stylesheet" href="/core/css/bento-grid.css">
+<link rel="stylesheet" href="/core/css/gamification.css">
+<link rel="stylesheet" href="/core/css/data.css">
+<style>
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:149;display:none;}
+.sidebar-overlay.show{display:block;}
+#app-sidebar{display:flex;flex-direction:column;}
+.user-card{padding:16px;margin:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;}
+.user-card .name{font-weight:700;font-size:.9rem;margin:8px 0 2px;}
+.user-card .role-tag{font-size:.7rem;color:rgba(255,255,255,.4);}
+.quick-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 8px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .25s;text-align:center;text-decoration:none;color:inherit;}
+.quick-action:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.quick-action .qa-icon{font-size:1.8rem;}
+.quick-action .qa-label{font-size:.72rem;font-weight:700;color:rgba(255,255,255,.7);}
+.quest-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:all .2s;cursor:pointer;}
+.quest-item:hover{background:rgba(255,255,255,.08);}
+.quest-item-icon{font-size:1.4rem;flex-shrink:0;}
+.quest-item-info{flex:1;min-width:0;}
+.quest-item-name{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.quest-item-prog{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.notif-item:last-child{border-bottom:none;}
+.notif-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.notif-text{font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.4;}
+.notif-time{font-size:.68rem;color:rgba(255,255,255,.3);margin-top:2px;}
+@keyframes xpGain{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="app-sidebar" id="app-sidebar">
+    <div class="sidebar-logo">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">⚡</div>
+      <span class="sidebar-logo-text gradient-text">lvlBase</span>
+    </div>
+    <!-- User card -->
+    <div class="user-card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar" id="sidebar-avatar">?</div>
+        <div>
+          <div class="name" id="sidebar-name">Loading...</div>
+          <div class="role-tag">🎓 Student</div>
+        </div>
+        <div class="rank-badge rank-E rank-badge-sm" id="sidebar-rank">E</div>
+      </div>
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:4px">
+          <span>XP Progress</span><span id="sidebar-xp">0 / 500 XP</span>
+        </div>
+        <div class="xp-bar-bg xp-bar-wrap"><div class="xp-bar-fill" id="sidebar-xpbar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <nav class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="/app/student/dashboard.html" class="nav-item active"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="/app/student/quest-map.html"  class="nav-item"><span class="nav-icon">🗺️</span> Quest Map</a>
+      <a href="/app/student/profile.html"    class="nav-item"><span class="nav-icon">👤</span> Profile</a>
+      <a href="/app/student/analytics.html"  class="nav-item"><span class="nav-icon">📊</span> Analytics</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-section-label">Compete</div>
+      <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span> Arena<span class="nav-badge">LIVE</span></a>
+      <a href="/app/student/arena/leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span> Leaderboard</a>
+      <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">⚡</span> Guild</a>
+      <a href="/app/student/arena/tournaments.html" class="nav-item"><span class="nav-icon">🎯</span> Tournaments</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-section-label">Learn</div>
+      <a href="/app/student/ai/sage-chat.html"       class="nav-item"><span class="nav-icon">🤖</span> Sage AI</a>
+      <a href="/app/student/ai/smart-flashcards.html" class="nav-item"><span class="nav-icon">📇</span> Flashcards</a>
+      <a href="/app/student/ai/weak-analysis.html"   class="nav-item"><span class="nav-icon">📈</span> Weak Analysis</a>
+      <a href="/app/student/ai/notes.html"            class="nav-item"><span class="nav-icon">📝</span> AI Notes</a>
+      <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span> Code Studio</a>
+    </nav>
+    <nav class="nav-section">
+      <div class="nav-section-label">Rewards</div>
+      <a href="/app/student/backpack.html"         class="nav-item"><span class="nav-icon">🎒</span> Backpack</a>
+      <a href="/app/student/guilds/xp-shop.html"   class="nav-item"><span class="nav-icon">🛍️</span> XP Shop</a>
+      <a href="/app/student/guilds/loot-boxes.html" class="nav-item"><span class="nav-icon">📦</span> Loot Boxes</a>
+      <a href="/app/student/focus-mode.html"        class="nav-item"><span class="nav-icon">🎯</span> Focus Mode</a>
+    </nav>
+    <div style="margin-top:auto;padding:16px;">
+      <button onclick="LvlAuth.signOut()" style="width:100%;padding:10px;background:rgba(214,48,49,.1);border:1px solid rgba(214,48,49,.2);border-radius:10px;color:rgba(255,255,255,.6);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;" onmouseover="this.style.background='rgba(214,48,49,.2)'" onmouseout="this.style.background='rgba(214,48,49,.1)'">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="app-main">
+    <!-- Header -->
+    <header class="app-header">
+      <button class="btn btn-icon btn-secondary" id="sidebar-toggle" onclick="LvlUI.toggleSidebar()">☰</button>
+      <div style="flex:1">
+        <div id="greeting" style="font-weight:700;font-size:1.05rem">Good morning! 👋</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.4)" id="header-date"></div>
+      </div>
+      <div class="streak-counter" style="padding:6px 12px;">
+        <span class="streak-fire" style="font-size:1rem">🔥</span>
+        <span class="streak-number" id="header-streak" style="font-size:.9rem">0</span>
+        <span class="streak-label" style="font-size:.65rem">day streak</span>
+      </div>
+      <button class="btn btn-icon btn-secondary" onclick="document.getElementById('notif-panel').classList.toggle('open')" style="position:relative">
+        🔔<span id="notif-count" style="position:absolute;top:-4px;right:-4px;background:#D63031;color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:999px;display:none">3</span>
+      </button>
+      <div class="avatar avatar-sm" id="header-avatar">?</div>
+    </header>
+
+    <!-- Content -->
+    <div class="app-content" id="main-content">
+      <!-- Page Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:4px">My Dashboard</h2>
+          <div style="font-size:.82rem;color:rgba(255,255,255,.4)">Track your progress, quests, and achievements</div>
+        </div>
+        <a href="/app/student/arena/matchmaking.html" class="btn btn-primary btn-sm animate-glow">⚔️ Quick Battle</a>
+      </div>
+
+      <!-- BENTO GRID -->
+      <div class="bento-grid" id="bento-grid">
+
+        <!-- XP & Rank Card (2x1) -->
+        <div class="bento-card b-col-4 gradient-purple" data-id="xp-card">
+          <div class="bento-card-header">
+            <span class="bento-card-title">XP & Rank</span>
+            <div class="rank-badge rank-E rank-badge-sm" id="rank-badge">E</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <div>
+              <div class="xp-amount" id="xp-display">0</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.4)">Total XP Earned</div>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:4px">
+                <span id="rank-label-curr">Iron (E)</span>
+                <span id="rank-label-next">→ Bronze (D)</span>
+              </div>
+              <div class="xp-bar-wrap xp-bar-bg"><div class="xp-bar-fill" id="xp-bar" style="width:0%"></div></div>
+              <div style="text-align:right;font-size:.68rem;color:rgba(255,255,255,.3);margin-top:3px"><span id="xp-to-next">500</span> XP to next rank</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak Card (1x1) -->
+        <div class="bento-card b-col-2 gradient-gold" data-id="streak-card">
+          <div class="bento-card-title" style="margin-bottom:10px">Daily Streak</div>
+          <div class="streak-counter big" style="padding:8px;border:none;background:none;flex-direction:column;gap:4px">
+            <div class="streak-fire" style="font-size:2.5rem">🔥</div>
+            <div class="streak-number" id="streak-display" style="font-size:2.2rem">0</div>
+            <div class="streak-label">days</div>
+          </div>
+        </div>
+
+        <!-- Stats Row (3 small cards) -->
+        <div class="bento-card b-col-2 accent-teal" data-id="quests-card">
+          <div class="bento-card-header"><span class="bento-card-title">Quests Done</span><span>🗺️</span></div>
+          <div class="bento-card-value" id="quests-done" style="color:var(--secondary)">0</div>
+          <div class="bento-card-change up">↑ This week</div>
+        </div>
+        <div class="bento-card b-col-2 accent-pink" data-id="battles-card">
+          <div class="bento-card-header"><span class="bento-card-title">Battles Won</span><span>⚔️</span></div>
+          <div class="bento-card-value" id="battles-won" style="color:var(--accent)">0</div>
+          <div class="bento-card-change up">↑ Keep fighting!</div>
+        </div>
+        <div class="bento-card b-col-2" data-id="badges-card">
+          <div class="bento-card-header"><span class="bento-card-title">Badges</span><span>🏅</span></div>
+          <div class="bento-card-value" id="badge-count" style="color:var(--warning)">0</div>
+          <div class="bento-card-change flat">Achievements unlocked</div>
+        </div>
+
+        <!-- Quick Actions (3x1) -->
+        <div class="bento-card b-col-6" data-id="quick-actions">
+          <div class="bento-card-header"><span class="bento-card-title">Quick Actions</span></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+            <a href="/app/student/quest-map.html" class="quick-action"><div class="qa-icon">🗺️</div><div class="qa-label">Quests</div></a>
+            <a href="/app/student/arena/matchmaking.html" class="quick-action" style="border-color:rgba(253,121,168,.2);background:rgba(253,121,168,.06)"><div class="qa-icon">⚔️</div><div class="qa-label">Arena</div></a>
+            <a href="/app/student/ai/sage-chat.html" class="quick-action" style="border-color:rgba(0,206,201,.2);background:rgba(0,206,201,.06)"><div class="qa-icon">🤖</div><div class="qa-label">Sage AI</div></a>
+            <a href="/app/student/workspace/web-studio.html" class="quick-action" style="border-color:rgba(108,92,231,.2);background:rgba(108,92,231,.06)"><div class="qa-icon">💻</div><div class="qa-label">Code</div></a>
+            <a href="/app/student/focus-mode.html" class="quick-action" style="border-color:rgba(253,203,110,.2);background:rgba(253,203,110,.06)"><div class="qa-icon">🎯</div><div class="qa-label">Focus</div></a>
+          </div>
+        </div>
+
+        <!-- Active Quests -->
+        <div class="bento-card b-col-4 b-row-2" data-id="active-quests">
+          <div class="bento-card-header">
+            <span class="bento-card-title">Active Quests</span>
+            <a href="/app/student/quest-map.html" class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:4px 10px">View All</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="quest-list">
+            <div class="quest-item">
+              <div class="quest-item-icon">📐</div>
+              <div class="quest-item-info">
+                <div class="quest-item-name">Algebra — Chapter 5: Quadratics</div>
+                <div class="quest-item-prog">6/10 tasks · 60% complete</div>
+                <div class="progress-wrap progress-sm" style="margin-top:4px"><div class="progress-fill" style="width:60%"></div></div>
+              </div>
+              <div style="font-size:1rem">▶</div>
+            </div>
+            <div class="quest-item">
+              <div class="quest-item-icon">⚗️</div>
+              <div class="quest-item-info">
+                <div class="quest-item-name">Chemistry — Periodic Table</div>
+                <div class="quest-item-prog">3/8 tasks · 37% complete</div>
+                <div class="progress-wrap progress-sm" style="margin-top:4px"><div class="progress-fill" style="width:37%;background:linear-gradient(90deg,var(--secondary),var(--info))"></div></div>
+              </div>
+              <div style="font-size:1rem">▶</div>
+            </div>
+            <div class="quest-item">
+              <div class="quest-item-icon">🌍</div>
+              <div class="quest-item-info">
+                <div class="quest-item-name">History — World War II</div>
+                <div class="quest-item-prog">8/8 tasks · Review Pending</div>
+                <div class="progress-wrap progress-sm" style="margin-top:4px"><div class="progress-fill" style="width:100%;background:linear-gradient(90deg,var(--success),#00e6b8)"></div></div>
+              </div>
+              <span class="badge badge-success" style="font-size:.65rem;flex-shrink:0">Done</span>
+            </div>
+            <div class="quest-item">
+              <div class="quest-item-icon">💻</div>
+              <div class="quest-item-info">
+                <div class="quest-item-name">Python Basics — Functions</div>
+                <div class="quest-item-prog">1/6 tasks · Just started</div>
+                <div class="progress-wrap progress-sm" style="margin-top:4px"><div class="progress-fill" style="width:16%;background:linear-gradient(90deg,var(--accent),#e55b95)"></div></div>
+              </div>
+              <div style="font-size:1rem">▶</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Leaderboard -->
+        <div class="bento-card b-col-4 b-row-2" data-id="leaderboard">
+          <div class="bento-card-header">
+            <span class="bento-card-title">School Leaderboard</span>
+            <a href="/app/student/arena/leaderboard.html" class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:4px 10px">Full</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px" id="lb-list">
+            <div class="leaderboard-row rank-1"><div class="lb-rank gold">👑</div><div class="avatar avatar-sm">A</div><div class="lb-name">Arjun S.</div><div class="lb-xp">24,500 XP</div></div>
+            <div class="leaderboard-row rank-2"><div class="lb-rank silver">🥈</div><div class="avatar avatar-sm">P</div><div class="lb-name">Priya M.</div><div class="lb-xp">22,100 XP</div></div>
+            <div class="leaderboard-row rank-3"><div class="lb-rank bronze">🥉</div><div class="avatar avatar-sm">R</div><div class="lb-name">Rahul K.</div><div class="lb-xp">19,800 XP</div></div>
+            <div class="leaderboard-row"><div class="lb-rank" style="color:rgba(255,255,255,.3)">4</div><div class="avatar avatar-sm">S</div><div class="lb-name">Sneha R.</div><div class="lb-xp">17,200 XP</div></div>
+            <div class="leaderboard-row"><div class="lb-rank" style="color:rgba(255,255,255,.3)">5</div><div class="avatar avatar-sm">D</div><div class="lb-name">Dev P.</div><div class="lb-xp">15,600 XP</div></div>
+            <div class="leaderboard-row you"><div class="lb-rank" style="color:var(--primary-light)" id="lb-myrank">—</div><div class="avatar avatar-sm" id="lb-myavatar">?</div><div class="lb-name" id="lb-myname">You</div><div class="lb-xp" id="lb-myxp">0 XP</div></div>
+          </div>
+        </div>
+
+        <!-- Guild Card -->
+        <div class="bento-card b-col-4 accent-pink" data-id="guild-card">
+          <div class="bento-card-header">
+            <span class="bento-card-title">My Guild</span>
+            <a href="/app/student/guilds/guild-dashboard.html" class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:4px 10px">View</a>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px" id="guild-info">
+            <div style="font-size:2.5rem">⚔️</div>
+            <div>
+              <div style="font-weight:800;font-size:1rem" id="guild-name">No Guild Yet</div>
+              <div style="font-size:.75rem;color:rgba(255,255,255,.4)" id="guild-rank">Join a guild to compete!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Assignments -->
+        <div class="bento-card b-col-4" data-id="assignments">
+          <div class="bento-card-header">
+            <span class="bento-card-title">Due Soon</span>
+            <span class="badge badge-warning">3 pending</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(214,48,49,.08);border-radius:10px;border:1px solid rgba(214,48,49,.15)">
+              <span style="font-size:1.2rem">📝</span>
+              <div style="flex:1"><div style="font-size:.8rem;font-weight:700">Math Assignment #3</div><div style="font-size:.7rem;color:rgba(255,255,255,.4)">Due: Tomorrow</div></div>
+              <span class="badge badge-danger">Urgent</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(253,203,110,.06);border-radius:10px;border:1px solid rgba(253,203,110,.12)">
+              <span style="font-size:1.2rem">⚗️</span>
+              <div style="flex:1"><div style="font-size:.8rem;font-weight:700">Chemistry Lab Report</div><div style="font-size:.7rem;color:rgba(255,255,255,.4)">Due: In 3 days</div></div>
+              <span class="badge badge-warning">Soon</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.06)">
+              <span style="font-size:1.2rem">🌍</span>
+              <div style="flex:1"><div style="font-size:.8rem;font-weight:700">History Essay</div><div style="font-size:.7rem;color:rgba(255,255,255,.4)">Due: In 5 days</div></div>
+              <span class="badge badge-primary">Normal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Achievements -->
+        <div class="bento-card b-col-4" data-id="achievements">
+          <div class="bento-card-header">
+            <span class="bento-card-title">Recent Achievements</span>
+            <a href="/app/student/backpack.html" class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:4px 10px">All</a>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="achievements-grid">
+            <div class="achievement-card unlocked"><div class="achievement-icon">🎯</div><div class="achievement-name">First Steps</div></div>
+            <div class="achievement-card unlocked"><div class="achievement-icon">🔥</div><div class="achievement-name">On Fire!</div></div>
+            <div class="achievement-card locked"><div class="achievement-icon">🏆</div><div class="achievement-name">Gold Rank</div></div>
+            <div class="achievement-card locked"><div class="achievement-icon">👑</div><div class="achievement-name">Legendary</div></div>
+          </div>
+        </div>
+
+        <!-- Focus Timer -->
+        <div class="bento-card b-col-3 gradient-teal" data-id="focus-card">
+          <div class="bento-card-header">
+            <span class="bento-card-title">Focus Mode</span>
+            <span class="badge badge-teal">Pomodoro</span>
+          </div>
+          <div style="text-align:center;padding:8px 0">
+            <div style="font-size:2.5rem;font-weight:900;font-family:var(--font-mono);color:var(--secondary)" id="focus-timer">25:00</div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin:6px 0">Work Session</div>
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button class="btn btn-sm btn-teal" onclick="startFocus()">▶ Start</button>
+              <a href="/app/student/focus-mode.html" class="btn btn-sm btn-secondary">Open</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivational Quote -->
+        <div class="bento-card b-col-3 hero-card" data-id="quote-card">
+          <div class="bento-card-title" style="margin-bottom:12px">💬 Daily Motivation</div>
+          <div style="font-size:.9rem;font-style:italic;color:rgba(255,255,255,.8);line-height:1.6" id="daily-quote">"The secret of getting ahead is getting started." — Mark Twain</div>
+          <button onclick="newQuote()" class="btn btn-sm btn-secondary" style="margin-top:12px">New Quote 🔄</button>
+        </div>
+
+        <!-- Notifications -->
+        <div class="bento-card b-col-6" data-id="notifs">
+          <div class="bento-card-header">
+            <span class="bento-card-title">Recent Activity</span>
+            <span class="badge badge-primary" id="notif-count-b">3 new</span>
+          </div>
+          <div id="notif-list">
+            <div class="notif-item"><div class="notif-dot" style="background:var(--success)"></div><div><div class="notif-text">You completed Quest: <strong>Algebra Chapter 4</strong> and earned +100 XP!</div><div class="notif-time">2 hours ago</div></div></div>
+            <div class="notif-item"><div class="notif-dot" style="background:var(--warning)"></div><div><div class="notif-text">📢 Announcement from <strong>Mr. Sharma</strong>: Quiz tomorrow on Chapter 5</div><div class="notif-time">4 hours ago</div></div></div>
+            <div class="notif-item"><div class="notif-dot" style="background:var(--accent)"></div><div><div class="notif-text">⚔️ <strong>Arjun S.</strong> challenged you to an Arena Battle!</div><div class="notif-time">Yesterday</div></div></div>
+          </div>
+        </div>
+
+      </div><!-- end bento-grid -->
+    </div>
+  </main>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script src="/core/js/features/gamification.js"></script>
+<script src="/core/js/features/bento-drag.js"></script>
+
+<script>
+const QUOTES=[
+  '"The secret of getting ahead is getting started." — Mark Twain',
+  '"Education is the most powerful weapon which you can use to change the world." — Nelson Mandela',
+  '"Success is not final, failure is not fatal: it is the courage to continue that counts." — Churchill',
+  '"The more that you read, the more things you will know." — Dr. Seuss',
+  '"Believe you can and you\'re halfway there." — Theodore Roosevelt',
+  '"It always seems impossible until it\'s done." — Nelson Mandela',
+  '"Don\'t watch the clock; do what it does. Keep going." — Sam Levenson'
+];
+function newQuote(){document.getElementById('daily-quote').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];}
+
+// Header date/greeting
+const now=new Date();
+const hr=now.getHours();
+document.getElementById('greeting').textContent=(hr<12?'Good morning':'hr<17?'Good afternoon':'Good evening')+'! 👋';
+document.getElementById('header-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// Focus timer
+let focusInterval=null,focusTime=25*60;
+function startFocus(){
+  if(focusInterval){clearInterval(focusInterval);focusInterval=null;document.querySelector('[onclick="startFocus()"]').textContent='▶ Start';return;}
+  document.querySelector('[onclick="startFocus()"]').textContent='⏸ Pause';
+  focusInterval=setInterval(()=>{
+    focusTime--;
+    const m=Math.floor(focusTime/60),s=focusTime%60;
+    document.getElementById('focus-timer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(focusTime<=0){clearInterval(focusInterval);focusInterval=null;LvlUI.toast('Focus session complete!','Great work! Take a break 🎉','success',5000);focusTime=25*60;document.getElementById('focus-timer').textContent='25:00';}
+  },1000);
+}
+
+// Load user data
+async function loadDashboard(){
+  try{
+    const user=await LvlAuth.requireAuth(['student']);
+    if(!user)return;
+    const initials=(user.name||'?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('sidebar-name').textContent=user.name||'Student';
+    document.getElementById('sidebar-avatar').textContent=initials;
+    document.getElementById('header-avatar').textContent=initials;
+    document.getElementById('lb-myname').textContent=user.name||'You';
+    document.getElementById('lb-myavatar').textContent=initials;
+    // Load student game data
+    if(user.schoolId){
+      const student=await LvlDB.Students.get(user.schoolId,user.uid);
+      if(student){
+        updateXPDisplay(student.xp||0);
+        document.getElementById('streak-display').textContent=student.streak||0;
+        document.getElementById('header-streak').textContent=student.streak||0;
+        document.getElementById('quests-done').textContent=student.totalQuests||0;
+        document.getElementById('battles-won').textContent=student.wins||0;
+        document.getElementById('badge-count').textContent=(student.badges||[]).length;
+        document.getElementById('lb-myxp').textContent=(student.xp||0).toLocaleString()+' XP';
+        // Guild
+        if(student.guildId){
+          const guild=await LvlDB.Guilds.get(user.schoolId,student.guildId);
+          if(guild){document.getElementById('guild-name').textContent=guild.name;document.getElementById('guild-rank').textContent='⚡ '+guild.xp+' Guild XP';}
+        }
+        // Daily check-in XP
+        await LvlGame.checkAndUpdateStreak(user.schoolId,user.uid);
+      }
+    }
+    LvlBento.init(document.getElementById('bento-grid'));
+  }catch(e){console.error(e);}
+}
+
+function updateXPDisplay(xp){
+  document.getElementById('xp-display').textContent=xp.toLocaleString();
+  document.getElementById('lb-myxp').textContent=xp.toLocaleString()+' XP';
+  document.getElementById('sidebar-xp').textContent=xp.toLocaleString()+' XP';
+  const rank=LvlGame.getRankForXP(xp);
+  const prog=LvlGame.getXPToNextRank(xp);
+  // Update rank badges
+  ['rank-badge','sidebar-rank'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.textContent=rank.id;
+    el.className=el.className.replace(/rank-\S+/g,'');
+    el.classList.add('rank-'+rank.id,'rank-badge');
+    if(id==='rank-badge')el.classList.add('rank-badge-sm');else el.classList.add('rank-badge-sm');
+  });
+  document.getElementById('xp-bar').style.width=prog.progress+'%';
+  document.getElementById('sidebar-xpbar').style.width=prog.progress+'%';
+  document.getElementById('rank-label-curr').textContent=rank.label+' ('+rank.id+')';
+  document.getElementById('rank-label-next').textContent=prog.next?'→ '+prog.next.label+' ('+prog.next.id+')':'MAX RANK 👑';
+  document.getElementById('xp-to-next').textContent=prog.toNext.toLocaleString();
+}
+
+loadDashboard();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

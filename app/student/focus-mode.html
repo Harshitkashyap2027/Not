@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Focus Mode – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+
+/* Main layout */
+.focus-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+.focus-left{display:flex;flex-direction:column;align-items:center;gap:24px;}
+.focus-right{display:flex;flex-direction:column;gap:24px;}
+
+/* Mode Switcher */
+.mode-switcher{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:4px;width:100%;}
+.mode-btn{flex:1;padding:9px;border-radius:10px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center;}
+.mode-btn.active{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;font-weight:600;}
+
+/* Timer Circle */
+.timer-wrap{position:relative;width:260px;height:260px;flex-shrink:0;}
+.timer-svg{transform:rotate(-90deg);}
+.timer-bg-circle{fill:none;stroke:rgba(255,255,255,.05);stroke-width:10;}
+.timer-progress{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .5s linear,stroke .4s;}
+.timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.timer-display{font-size:52px;font-weight:800;letter-spacing:-2px;font-variant-numeric:tabular-nums;}
+.timer-mode-label{font-size:13px;color:rgba(255,255,255,.4);margin-top:4px;}
+.pomodoro-count{font-size:12px;color:#6C5CE7;font-weight:600;margin-top:2px;}
+
+/* Controls */
+.controls{display:flex;gap:12px;align-items:center;}
+.ctrl-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;font-size:20px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.ctrl-btn:hover{transform:scale(1.08);}
+.btn-play{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;box-shadow:0 8px 20px rgba(108,92,231,.4);}
+.btn-reset{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);}
+.btn-skip{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);}
+
+/* Dots indicator */
+.pomo-dots{display:flex;gap:6px;}
+.pomo-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:background .3s;}
+.pomo-dot.done{background:#6C5CE7;}
+.pomo-dot.current{background:#a29bfe;box-shadow:0 0 8px #6C5CE7;}
+
+/* Card */
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+
+/* Task List */
+.task-input-row{display:flex;gap:8px;margin-bottom:14px;}
+.task-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 14px;color:#fff;font-size:14px;outline:none;}
+.task-input:focus{border-color:rgba(108,92,231,.5);}
+.add-task-btn{background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;color:#fff;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:opacity .2s;white-space:nowrap;}
+.add-task-btn:hover{opacity:.9;}
+.task-list{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;}
+.task-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:10px;transition:all .2s;}
+.task-item.done-task{opacity:.5;}
+.task-cb{width:18px;height:18px;border-radius:5px;border:2px solid rgba(255,255,255,.2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.task-cb.checked{background:#6C5CE7;border-color:#6C5CE7;}
+.task-text{flex:1;font-size:13px;color:rgba(255,255,255,.8);}
+.task-text.crossed{text-decoration:line-through;color:rgba(255,255,255,.35);}
+.task-del{background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:color .2s;}
+.task-del:hover{color:#FD79A8;}
+
+/* Ambient Sounds */
+.sound-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.sound-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;}
+.sound-btn:hover{border-color:rgba(108,92,231,.3);background:rgba(108,92,231,.08);}
+.sound-btn.active-sound{border-color:#6C5CE7;background:rgba(108,92,231,.15);box-shadow:0 0 12px rgba(108,92,231,.2);}
+.sound-icon{font-size:22px;margin-bottom:4px;}
+.sound-name{font-size:11px;color:rgba(255,255,255,.6);}
+
+/* Today Stats */
+.today-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.today-stat{background:rgba(255,255,255,.03);border-radius:10px;padding:14px;text-align:center;}
+.today-val{font-size:24px;font-weight:700;}
+.today-key{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;}
+
+@media(max-width:900px){.focus-layout{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item active"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-level-sm">Level 7 Explorer</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🎯</span>
+    <span class="header-title">Focus Mode</span>
+    <div id="headerStatus" style="font-size:13px;color:rgba(255,255,255,.4);">Ready to focus</div>
+  </header>
+  <div class="app-content">
+    <div class="focus-layout">
+      <!-- Left: Timer -->
+      <div class="focus-left">
+        <div class="mode-switcher" style="max-width:360px;">
+          <button class="mode-btn active" onclick="setMode('focus',this)">🎯 Focus 25m</button>
+          <button class="mode-btn" onclick="setMode('short',this)">☕ Short 5m</button>
+          <button class="mode-btn" onclick="setMode('long',this)">🛌 Long 15m</button>
+        </div>
+
+        <div class="timer-wrap">
+          <svg class="timer-svg" width="260" height="260" viewBox="0 0 260 260">
+            <circle class="timer-bg-circle" cx="130" cy="130" r="115"/>
+            <circle class="timer-progress" id="timerRing" cx="130" cy="130" r="115"
+              stroke="#6C5CE7" stroke-dasharray="722.6" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-center">
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="timer-mode-label" id="timerModeLabel">Focus Session</div>
+            <div class="pomodoro-count" id="pomodoroCount">Pomodoro #1</div>
+          </div>
+        </div>
+
+        <div class="pomo-dots" id="pomoDots">
+          <div class="pomo-dot current"></div>
+          <div class="pomo-dot"></div>
+          <div class="pomo-dot"></div>
+          <div class="pomo-dot"></div>
+        </div>
+
+        <div class="controls">
+          <button class="ctrl-btn btn-reset" onclick="resetTimer()" title="Reset">↩</button>
+          <button class="ctrl-btn btn-play" id="playBtn" onclick="toggleTimer()">▶</button>
+          <button class="ctrl-btn btn-skip" onclick="skipSession()" title="Skip">⏭</button>
+        </div>
+
+        <!-- Today Stats -->
+        <div class="card" style="width:100%;max-width:360px;">
+          <div class="card-title">📅 Today's Stats</div>
+          <div class="today-stats">
+            <div class="today-stat"><div class="today-val" style="color:#6C5CE7" id="todayTime">0m</div><div class="today-key">Focus Time</div></div>
+            <div class="today-stat"><div class="today-val" style="color:#00b894" id="todayTasks">0</div><div class="today-key">Tasks Done</div></div>
+            <div class="today-stat"><div class="today-val" style="color:#FDCB6E" id="todaySessions">0</div><div class="today-key">Sessions</div></div>
+            <div class="today-stat"><div class="today-val" style="color:#FD79A8" id="todayStreak">🔥 7</div><div class="today-key">Day Streak</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Tasks & Sounds -->
+      <div class="focus-right">
+        <!-- Task List -->
+        <div class="card">
+          <div class="card-title">✅ Tasks <span style="font-size:12px;color:rgba(255,255,255,.3);font-weight:400;" id="taskProgress">0/0 done</span></div>
+          <div class="task-input-row">
+            <input class="task-input" id="taskInput" placeholder="Add a task for this session…" onkeydown="if(event.key==='Enter')addTask()">
+            <button class="add-task-btn" onclick="addTask()">+ Add</button>
+          </div>
+          <div class="task-list" id="taskList"></div>
+        </div>
+
+        <!-- Ambient Sounds -->
+        <div class="card">
+          <div class="card-title">🎵 Ambient Sounds
+            <div id="nowPlaying" style="font-size:12px;color:#6C5CE7;font-weight:500;">Off</div>
+          </div>
+          <div class="sound-grid">
+            <div class="sound-btn" onclick="setSound('rain',this)"><div class="sound-icon">🌧️</div><div class="sound-name">Rain</div></div>
+            <div class="sound-btn" onclick="setSound('forest',this)"><div class="sound-icon">🌲</div><div class="sound-name">Forest</div></div>
+            <div class="sound-btn" onclick="setSound('cafe',this)"><div class="sound-icon">☕</div><div class="sound-name">Café</div></div>
+            <div class="sound-btn" onclick="setSound('white',this)"><div class="sound-icon">🌊</div><div class="sound-name">White Noise</div></div>
+            <div class="sound-btn" onclick="setSound('fire',this)"><div class="sound-icon">🔥</div><div class="sound-name">Fireplace</div></div>
+            <div class="sound-btn active-sound" onclick="setSound('off',this)"><div class="sound-icon">🔕</div><div class="sound-name">Off</div></div>
+          </div>
+          <div style="margin-top:14px;">
+            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px;">Volume</label>
+            <input type="range" min="0" max="100" value="40" id="volumeSlider" style="width:100%;accent-color:#6C5CE7;" oninput="updateVolume(this.value)">
+            <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:right;margin-top:2px;" id="volLabel">40%</div>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card" style="background:rgba(108,92,231,.08);border-color:rgba(108,92,231,.2);">
+          <div class="card-title">💡 Focus Tips</div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="tipList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/login.html';return;}initPage(user);});
+
+const modes={focus:{label:'Focus Session',mins:25,color:'#6C5CE7'},short:{label:'Short Break',mins:5,color:'#00CEC9'},long:{label:'Long Break',mins:15,color:'#00b894'}};
+let currentMode='focus',timerInterval=null,running=false,totalSecs=25*60,remainSecs=25*60;
+let pomodoroNum=1,sessionsToday=0,focusMinsToday=0,tasksCompleted=0;
+const CIRCUM=2*Math.PI*115;
+
+const tips=[
+  '🧠 Focus on one task at a time — multitasking reduces efficiency by up to 40%.',
+  '📵 Put your phone face-down during focus sessions to reduce distraction urges.',
+  '💧 Stay hydrated — even mild dehydration impairs concentration significantly.',
+  '✏️ Write down distracting thoughts as they arise and deal with them during breaks.',
+  '🌿 Take your short breaks away from screens to give your eyes a proper rest.',
+];
+
+const defaultTasks=['Read Chapter 5 – Biology textbook','Solve 10 algebra practice problems','Review essay draft for English class','Watch Python tutorial on functions'];
+
+function setMode(m,btn){
+  currentMode=m;
+  if(running)stopTimer();
+  totalSecs=modes[m].mins*60;remainSecs=totalSecs;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('timerModeLabel').textContent=modes[m].label;
+  document.getElementById('timerRing').style.stroke=modes[m].color;
+  updateDisplay();updateRing();
+  document.getElementById('playBtn').textContent='▶';running=false;
+  document.getElementById('headerStatus').textContent='Ready to '+modes[m].label.toLowerCase();
+}
+
+function toggleTimer(){
+  if(running){stopTimer();}else{startTimer();}
+}
+function startTimer(){
+  running=true;
+  document.getElementById('playBtn').textContent='⏸';
+  document.getElementById('headerStatus').textContent=modes[currentMode].label+'…';
+  timerInterval=setInterval(()=>{
+    remainSecs--;
+    if(remainSecs<=0){clearInterval(timerInterval);onTimerEnd();return;}
+    updateDisplay();updateRing();
+    if(currentMode==='focus') focusMinsToday=Math.floor((totalSecs-remainSecs)/60);
+    document.getElementById('todayTime').textContent=focusMinsToday+'m';
+  },1000);
+}
+function stopTimer(){
+  running=false;clearInterval(timerInterval);
+  document.getElementById('playBtn').textContent='▶';
+  document.getElementById('headerStatus').textContent='Paused';
+}
+function resetTimer(){
+  stopTimer();remainSecs=totalSecs;updateDisplay();updateRing();
+  document.getElementById('headerStatus').textContent='Ready to focus';
+}
+function skipSession(){
+  stopTimer();onTimerEnd();
+}
+function onTimerEnd(){
+  running=false;document.getElementById('playBtn').textContent='▶';
+  if(currentMode==='focus'){
+    sessionsToday++;pomodoroNum++;
+    if(pomodoroNum>4)pomodoroNum=1;
+    document.getElementById('todaySessions').textContent=sessionsToday;
+    document.getElementById('pomodoroCount').textContent=`Pomodoro #${pomodoroNum}`;
+    updateDots();
+    document.getElementById('headerStatus').textContent='🎉 Session complete! Take a break.';
+  }
+  remainSecs=totalSecs;updateDisplay();updateRing();
+  if(Notification.permission==='granted') new Notification('lvlBase Focus',{body:'Session complete! Time for a break.'});
+}
+function updateDisplay(){
+  const m=Math.floor(remainSecs/60).toString().padStart(2,'0');
+  const s=(remainSecs%60).toString().padStart(2,'0');
+  document.getElementById('timerDisplay').textContent=`${m}:${s}`;
+}
+function updateRing(){
+  const pct=remainSecs/totalSecs;
+  const offset=CIRCUM*(1-pct);
+  document.getElementById('timerRing').style.strokeDashoffset=offset;
+}
+function updateDots(){
+  const dots=document.querySelectorAll('.pomo-dot');
+  dots.forEach((d,i)=>{d.classList.remove('done','current');if(i<pomodoroNum-1)d.classList.add('done');else if(i===pomodoroNum-1)d.classList.add('current');});
+}
+
+const tasks=[];
+function addTask(){
+  const inp=document.getElementById('taskInput');
+  const text=inp.value.trim();if(!text)return;
+  tasks.push({text,done:false});
+  inp.value='';renderTasks();
+}
+function toggleTask(i){
+  tasks[i].done=!tasks[i].done;
+  tasksCompleted=tasks.filter(t=>t.done).length;
+  document.getElementById('todayTasks').textContent=tasksCompleted;
+  renderTasks();
+}
+function deleteTask(i){tasks.splice(i,1);renderTasks();}
+function renderTasks(){
+  const list=document.getElementById('taskList');list.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const item=document.createElement('div');item.className='task-item'+(t.done?' done-task':'');
+    item.innerHTML=`<div class="task-cb ${t.done?'checked':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div>
+      <div class="task-text ${t.done?'crossed':''}">${t.text}</div>
+      <button class="task-del" onclick="deleteTask(${i})">✕</button>`;
+    list.appendChild(item);
+  });
+  const done=tasks.filter(t=>t.done).length;
+  document.getElementById('taskProgress').textContent=`${done}/${tasks.length} done`;
+}
+
+function setSound(s,btn){
+  document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active-sound'));
+  btn.classList.add('active-sound');
+  const names={rain:'🌧️ Rain',forest:'🌲 Forest',cafe:'☕ Café',white:'🌊 White Noise',fire:'🔥 Fireplace',off:'Off'};
+  document.getElementById('nowPlaying').textContent=names[s]||'Off';
+}
+function updateVolume(v){document.getElementById('volLabel').textContent=v+'%';}
+
+function renderTips(){
+  const list=document.getElementById('tipList');
+  tips.forEach(t=>{
+    const d=document.createElement('div');
+    d.style.cssText='font-size:13px;color:rgba(255,255,255,.65);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);';
+    d.textContent=t;list.appendChild(d);
+  });
+}
+
+function initPage(user){
+  const name=user.displayName||user.email.split('@')[0]||'Student';
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  // Pre-load some tasks
+  defaultTasks.forEach(t=>{tasks.push({text:t,done:false});});
+  renderTasks();renderTips();updateDisplay();updateRing();
+  if(Notification.permission==='default') Notification.requestPermission();
+}
+</script>
+</body>
+</html>

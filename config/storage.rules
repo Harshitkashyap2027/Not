@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // User avatars
+    match /avatars/{userId}/{file} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId && request.resource.size < 2 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+    // School-scoped files
+    match /schools/{schoolId}/{allPaths=**} {
+      allow read:  if request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.schoolId == schoolId;
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.schoolId == schoolId && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['teacher','school-admin'];
+    }
+    // Certificates (public read)
+    match /certificates/{certId} {
+      allow read:  if true;
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['teacher','school-admin','super-admin'];
+    }
+  }
+}

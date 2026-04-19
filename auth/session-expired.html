@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Expired — lvlBase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FD79A8;
+      --warning: #FDCB6E; --bg: #0D0D1A; --border: rgba(255,255,255,0.1);
+      --text: #E8E8F0; --muted: #8888AA;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 1rem;
+      background-image:
+        radial-gradient(ellipse 70% 60% at 20% 10%, rgba(108,92,231,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(253,203,110,0.2) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 55% 55%, rgba(0,206,201,0.12) 0%, transparent 50%);
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.28; animation: drift 15s ease-in-out infinite alternate; }
+    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -140px; left: -140px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--warning); bottom: -100px; right: -100px; animation-delay: -6s; }
+    .orb-3 { width: 280px; height: 280px; background: var(--secondary); top: 35%; left: 55%; animation-delay: -10s; opacity: .2; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(18px,12px) scale(1.03); } }
+    .card-wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; text-align: center; }
+    .logo { margin-bottom: 2rem; }
+    .logo-mark { display: inline-flex; align-items: center; gap: .5rem; font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 3rem 2.5rem;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    /* Lock + Clock animation */
+    .hero-icons { position: relative; display: inline-block; margin-bottom: 2rem; }
+    .lock-wrap {
+      width: 96px; height: 96px; border-radius: 50%; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(108,92,231,0.25), rgba(253,203,110,0.2));
+      border: 2px solid rgba(108,92,231,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; animation: float-lock 3s ease-in-out infinite;
+      position: relative;
+    }
+    @keyframes float-lock {
+      0%, 100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(108,92,231,0.4); }
+      50% { transform: translateY(-8px); box-shadow: 0 8px 30px rgba(108,92,231,0.3); }
+    }
+    .clock-badge {
+      position: absolute; bottom: -4px; right: -4px; width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--warning), #e6a800);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; border: 2px solid var(--bg); animation: badge-spin 10s linear infinite;
+    }
+    @keyframes badge-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    h1 { font-size: 1.9rem; font-weight: 800; margin-bottom: .5rem; }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--warning), var(--primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .subtitle { color: var(--muted); font-size: .95rem; line-height: 1.7; margin-bottom: 2rem; }
+    /* Security info cards */
+    .info-row { display: flex; gap: .75rem; margin-bottom: 2rem; }
+    .info-chip {
+      flex: 1; padding: .85rem .6rem; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 12px;
+      font-size: .78rem; color: var(--muted); line-height: 1.5;
+    }
+    .info-chip-icon { font-size: 1.4rem; display: block; margin-bottom: .3rem; }
+    .info-chip strong { display: block; color: var(--text); font-size: .82rem; margin-bottom: .15rem; }
+    /* Countdown circle */
+    .countdown-wrap { margin-bottom: 2rem; }
+    .countdown-ring-wrap { position: relative; display: inline-block; width: 80px; height: 80px; margin-bottom: .75rem; }
+    .countdown-svg { transform: rotate(-90deg); }
+    .ring-track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 5; }
+    .ring-progress {
+      fill: none; stroke: var(--warning); stroke-width: 5;
+      stroke-linecap: round; transition: stroke-dashoffset 1s linear;
+      stroke-dasharray: 220; stroke-dashoffset: 0;
+    }
+    .countdown-num {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 800; color: var(--warning);
+    }
+    .countdown-label { font-size: .82rem; color: var(--muted); }
+    /* Buttons */
+    .btn-primary {
+      width: 100%; padding: .9rem; border: none; border-radius: 12px; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), #8B78FF); color: #fff;
+      font-size: 1.05rem; font-weight: 700; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(108,92,231,0.4); margin-bottom: .75rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,92,231,0.55); }
+    .btn-secondary {
+      width: 100%; padding: .75rem; border-radius: 12px; cursor: pointer;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); font-size: .9rem; font-weight: 600; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    .help-text { font-size: .82rem; color: var(--muted); }
+    .help-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .help-text a:hover { text-decoration: underline; }
+    /* Progress bar for countdown */
+    .countdown-bar-wrap { background: rgba(255,255,255,0.08); border-radius: 4px; height: 4px; margin-top: 1rem; overflow: hidden; }
+    .countdown-bar { height: 100%; background: linear-gradient(90deg, var(--warning), var(--primary)); border-radius: 4px; transition: width 1s linear; }
+    /* Session details */
+    .session-info { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 2rem; text-align: left; }
+    .session-row { display: flex; align-items: center; justify-content: space-between; padding: .3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .session-row:last-child { border-bottom: none; }
+    .session-key { font-size: .78rem; color: var(--muted); }
+    .session-val { font-size: .78rem; color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="card-wrap">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-icon">🎓</div><span>lvl<strong>Base</strong></span></div>
+    </div>
+    <div class="card">
+      <div class="hero-icons">
+        <div class="lock-wrap">
+          🔒
+          <div class="clock-badge">⏰</div>
+        </div>
+      </div>
+      <h1><span class="gradient-text">Session Expired</span></h1>
+      <p class="subtitle">Your session has timed out for security. This helps protect your account when you're away from your device.</p>
+
+      <div class="info-row">
+        <div class="info-chip">
+          <span class="info-chip-icon">🛡️</span>
+          <strong>Auto Logout</strong>Inactive sessions expire after 30 minutes
+        </div>
+        <div class="info-chip">
+          <span class="info-chip-icon">🔐</span>
+          <strong>Your Data</strong>All unsaved work may need to be re-entered
+        </div>
+        <div class="info-chip">
+          <span class="info-chip-icon">✅</span>
+          <strong>Stay Secure</strong>Log in again to continue safely
+        </div>
+      </div>
+
+      <div class="session-info">
+        <div class="session-row">
+          <span class="session-key">Session Status</span>
+          <span class="session-val" style="color:var(--warning);">⏰ Expired</span>
+        </div>
+        <div class="session-row">
+          <span class="session-key">Expired At</span>
+          <span class="session-val" id="expiredAt">—</span>
+        </div>
+        <div class="session-row">
+          <span class="session-key">Last Page</span>
+          <span class="session-val" id="lastPage">—</span>
+        </div>
+      </div>
+
+      <div class="countdown-wrap">
+        <div class="countdown-ring-wrap">
+          <svg class="countdown-svg" width="80" height="80" viewBox="0 0 80 80">
+            <circle class="ring-track" cx="40" cy="40" r="35" />
+            <circle class="ring-progress" cx="40" cy="40" r="35" id="ringProgress" />
+          </svg>
+          <div class="countdown-num" id="countdownNum">10</div>
+        </div>
+        <div class="countdown-label">Redirecting to login in <strong id="countLabel" style="color:var(--warning);">10</strong> seconds</div>
+        <div class="countdown-bar-wrap">
+          <div class="countdown-bar" id="countBar" style="width:100%;"></div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="goToLogin()">🔑 Log In Again</button>
+      <button class="btn-secondary" id="cancelBtn" onclick="cancelRedirect()">✕ Cancel Auto-Redirect</button>
+
+      <hr class="divider" />
+      <p class="help-text">
+        Need help? <a href="mailto:support@lvlbase.app">Contact Support</a> &nbsp;•&nbsp;
+        <a href="/auth/forgot-password.html">Forgot Password?</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="/core/js/firebase/init.js"></script>
+  <script src="/core/js/core/state.js"></script>
+  <script src="/core/js/core/ui-components.js"></script>
+  <script src="/core/js/core/security.js"></script>
+  <script src="/core/js/firebase/auth.js"></script>
+  <script src="/core/js/firebase/firestore.js"></script>
+  <script>
+    const TOTAL = 10;
+    const CIRCUMFERENCE = 2 * Math.PI * 35; // ~220
+    let count = TOTAL;
+    let redirectTimer = null;
+    let cancelled = false;
+
+    const ringProgress = document.getElementById('ringProgress');
+    ringProgress.style.strokeDasharray = CIRCUMFERENCE;
+    ringProgress.style.strokeDashoffset = '0';
+
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo') || '/auth/portal-login.html';
+
+    // Set page info
+    document.getElementById('expiredAt').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('lastPage').textContent = document.referrer
+      ? new URL(document.referrer).pathname.replace(/\//g, '') || 'Dashboard'
+      : 'Dashboard';
+
+    function goToLogin() {
+      clearInterval(redirectTimer);
+      // Sign out Firebase session
+      try { firebase.auth().signOut(); } catch {}
+      window.location.href = returnTo;
+    }
+
+    function cancelRedirect() {
+      if (cancelled) return;
+      cancelled = true;
+      clearInterval(redirectTimer);
+      const countdownWrap = document.querySelector('.countdown-wrap');
+      const cancelBtn = document.getElementById('cancelBtn');
+      countdownWrap.style.opacity = '.4';
+      countdownWrap.style.pointerEvents = 'none';
+      cancelBtn.textContent = '✓ Auto-redirect cancelled';
+      cancelBtn.style.color = '#55EFC4';
+      cancelBtn.style.borderColor = 'rgba(85,239,196,0.3)';
+      cancelBtn.disabled = true;
+    }
+
+    function updateCountdown(remaining) {
+      document.getElementById('countdownNum').textContent = remaining;
+      document.getElementById('countLabel').textContent = remaining;
+      const offset = CIRCUMFERENCE * (1 - remaining / TOTAL);
+      ringProgress.style.strokeDashoffset = offset;
+      document.getElementById('countBar').style.width = (remaining / TOTAL * 100) + '%';
+      if (remaining <= 3) {
+        ringProgress.style.stroke = '#FF6B6B';
+        document.getElementById('countdownNum').style.color = '#FF6B6B';
+        document.getElementById('countLabel').style.color = '#FF6B6B';
+      }
+    }
+
+    redirectTimer = setInterval(() => {
+      if (cancelled) return;
+      count--;
+      updateCountdown(count);
+      if (count <= 0) {
+        clearInterval(redirectTimer);
+        goToLogin();
+      }
+    }, 1000);
+
+    // Sign out Firebase on page load
+    try {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) firebase.auth().signOut();
+      });
+    } catch {}
+
+    // Keyboard shortcut: Enter to login
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') goToLogin();
+      if (e.key === 'Escape') cancelRedirect();
+    });
+  </script>
+</body>
+</html>

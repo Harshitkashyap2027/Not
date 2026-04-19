@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Features — lvlBase</title>
+<link rel="stylesheet" href="/core/css/base.css">
+<style>
+.page-hero{padding:140px 0 80px;text-align:center;position:relative;overflow:hidden;}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top,rgba(108,92,231,.2),transparent 70%);}
+.tabs-nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:48px;}
+.tab-btn{padding:10px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:rgba(108,92,231,.2);border-color:rgba(108,92,231,.4);color:#8B7CF8;}
+.tab-panel{display:none;animation:fadeUp .4s ease forwards;}
+.tab-panel.active{display:block;}
+.feat-section{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:80px;}
+.feat-section:nth-child(even){direction:rtl;}
+.feat-section:nth-child(even)>*{direction:ltr;}
+.feat-visual{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:28px;min-height:300px;display:flex;align-items:center;justify-content:center;font-size:5rem;}
+.feat-bullets{display:flex;flex-direction:column;gap:14px;margin-top:24px;}
+.feat-bullet{display:flex;gap:12px;align-items:flex-start;}
+.feat-bullet-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+@media(max-width:768px){.feat-section,.feat-section:nth-child(even){grid-template-columns:1fr;direction:ltr;}}
+</style>
+</head>
+<body>
+<nav style="position:fixed;top:0;left:0;right:0;z-index:200;padding:16px 24px;background:rgba(13,13,26,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
+  <a href="/public/index.html" style="font-size:1.4rem;font-weight:900;background:linear-gradient(135deg,#8B7CF8,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none">lvlBase</a>
+  <div style="display:flex;gap:10px;"><a href="/auth/portal-login.html" class="btn btn-secondary btn-sm">Log In</a><a href="/auth/school-onboarding.html" class="btn btn-primary btn-sm">Get Started</a></div>
+</nav>
+<section class="page-hero">
+  <div class="container">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(108,92,231,.15);border:1px solid rgba(108,92,231,.3);border-radius:999px;font-size:.78rem;font-weight:700;color:#8B7CF8;margin-bottom:16px">✨ Complete Feature Overview</div>
+    <h1 style="font-size:clamp(2rem,5vw,3.5rem);font-weight:900;margin-bottom:16px;">Everything Your School <span class="gradient-text">Needs</span></h1>
+    <p style="color:rgba(255,255,255,.6);font-size:1.05rem;max-width:600px;margin:0 auto 40px">Explore every feature of lvlBase — from gamified learning to enterprise-grade school management.</p>
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('student',this)">🎓 Students</button>
+      <button class="tab-btn" onclick="switchTab('teacher',this)">👨‍🏫 Teachers</button>
+      <button class="tab-btn" onclick="switchTab('admin',this)">🏫 School Admin</button>
+      <button class="tab-btn" onclick="switchTab('parent',this)">👨‍👩‍👧 Parents</button>
+      <button class="tab-btn" onclick="switchTab('platform',this)">⚙️ Platform</button>
+    </div>
+  </div>
+</section>
+<div class="container-lg" style="padding:0 24px 80px">
+  <!-- STUDENT TAB -->
+  <div id="tab-student" class="tab-panel active">
+    <div class="feat-section">
+      <div>
+        <div class="badge badge-primary" style="margin-bottom:12px">🎮 Gamification</div>
+        <h2>Learn Like You <span class="gradient-text">Play</span></h2>
+        <p style="margin:12px 0">lvlBase turns every lesson into a game. Earn XP, climb ranks from Iron to Legendary, and battle classmates in real-time arena challenges.</p>
+        <div class="feat-bullets">
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(253,203,110,.15)">⚡</div><div><strong>XP System</strong> — Earn XP for quizzes, quests, battles, streaks, and helping peers</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(108,92,231,.15)">🏆</div><div><strong>7-Rank Progression</strong> — E → D → C → B → A → S → SS (Legendary)</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(253,121,168,.15)">⚔️</div><div><strong>Arena Battles</strong> — 1v1 real-time quiz battles via Firebase Realtime DB</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(0,184,148,.15)">🔥</div><div><strong>Streak System</strong> — Daily login streaks with bonus XP rewards</div></div>
+        </div>
+      </div>
+      <div class="feat-visual">🎮<br><br><div style="font-size:1rem;text-align:center">Arena Battle Mode<br><span style="font-size:.8rem;color:rgba(255,255,255,.5)">Real-time 1v1 Quiz Battle</span></div></div>
+    </div>
+    <div class="feat-section">
+      <div>
+        <div class="badge badge-teal" style="margin-bottom:12px">🤖 AI Tutor</div>
+        <h2>Meet <span class="gradient-text">Sage</span> — Your AI Tutor</h2>
+        <p style="margin:12px 0">Sage is an always-available AI tutor that understands your learning patterns, identifies weak areas, and creates personalized study plans.</p>
+        <div class="feat-bullets">
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(0,206,201,.15)">💬</div><div><strong>Chat Tutoring</strong> — Ask any subject question and get instant, detailed explanations</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(108,92,231,.15)">📇</div><div><strong>Smart Flashcards</strong> — AI-generated flashcards based on your study material</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(253,203,110,.15)">📊</div><div><strong>Weak Topic Analysis</strong> — Identifies and focuses on areas needing improvement</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(0,184,148,.15)">🎤</div><div><strong>Mock Interviews</strong> — Practice interviews with AI feedback on your answers</div></div>
+        </div>
+      </div>
+      <div class="feat-visual">🤖<br><br><div style="font-size:1rem;text-align:center">Sage AI Tutor<br><span style="font-size:.8rem;color:rgba(255,255,255,.5)">24/7 Learning Assistant</span></div></div>
+    </div>
+    <div class="feat-section">
+      <div>
+        <div class="badge badge-pink" style="margin-bottom:12px">💻 Coding</div>
+        <h2>Built-In <span class="gradient-text">Coding Workspace</span></h2>
+        <p style="margin:12px 0">No external tools needed. Students code in HTML/CSS/JS, Python, and Flutter directly in the browser with live preview and AI review.</p>
+        <div class="feat-bullets">
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(253,121,168,.15)">🌐</div><div><strong>Web Studio</strong> — Full HTML/CSS/JS editor with live split-view preview</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(108,92,231,.15)">🐍</div><div><strong>Python Lab</strong> — Execute Python code in-browser with Skulpt/Pyodide</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(0,206,201,.15)">📱</div><div><strong>Flutter Lab</strong> — Flutter widget preview and code exploration</div></div>
+          <div class="feat-bullet"><div class="feat-bullet-icon" style="background:rgba(253,203,110,.15)">🔍</div><div><strong>AI Code Review</strong> — Instant feedback on code quality, bugs, and best practices</div></div>
+        </div>
+      </div>
+      <div class="feat-visual">💻<br><br><div style="font-size:1rem;text-align:center">Coding Workspace<br><span style="font-size:.8rem;color:rgba(255,255,255,.5)">Web · Python · Flutter</span></div></div>
+    </div>
+  </div>
+  <!-- TEACHER TAB -->
+  <div id="tab-teacher" class="tab-panel">
+    <div class="bento-3col" style="gap:20px">
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">📊</div>
+        <h4>Smart Gradebook</h4>
+        <p>Auto-graded quizzes, manual grades, weighted averages, and exportable reports.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">🎯</div>
+        <h4>Quiz Builder</h4>
+        <p>Create MCQ, true/false, short answer, and code-based questions with a drag-drop interface.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">👁️</div>
+        <h4>Live Proctoring</h4>
+        <p>Monitor exams in real-time. Detect tab switches, fullscreen exits, and suspicious activity.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">📅</div>
+        <h4>Attendance</h4>
+        <p>One-click attendance with seating chart view. Automatic absence notifications to parents.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">🤖</div>
+        <h4>AI Grader</h4>
+        <p>Let AI grade short-answer and essay questions. Review and approve AI suggestions.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">💬</div>
+        <h4>Class Chat</h4>
+        <p>Real-time class chat, announcements, and private messaging with students and parents.</p>
+      </div>
+    </div>
+  </div>
+  <!-- ADMIN TAB -->
+  <div id="tab-admin" class="tab-panel">
+    <div class="bento-3col" style="gap:20px">
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">📊</div>
+        <h4>School Analytics</h4>
+        <p>Student performance trends, teacher effectiveness metrics, and attendance analytics.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">👥</div>
+        <h4>User Management</h4>
+        <p>Approve registrations, manage roles, bulk import via CSV, and deactivate accounts.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">🔒</div>
+        <h4>Security Center</h4>
+        <p>SSO/SAML config, IP firewall, audit logs, and session management.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">📢</div>
+        <h4>Broadcasts</h4>
+        <p>School-wide announcements via push notifications, email, and in-app messages.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">🏢</div>
+        <h4>ERP Features</h4>
+        <p>Digital hall passes, asset management, emergency alerts, and fee tracking.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:12px">📋</div>
+        <h4>Reports & Export</h4>
+        <p>Export student reports, attendance records, and gradebooks to PDF or CSV.</p>
+      </div>
+    </div>
+  </div>
+  <!-- PARENT TAB -->
+  <div id="tab-parent" class="tab-panel">
+    <div class="bento-2col" style="gap:20px;max-width:800px;margin:0 auto">
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">📈</div><h4>Performance Tracking</h4><p>See your child's grades, XP progress, rank advancement, and subject performance in real-time.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">📅</div><h4>Attendance</h4><p>Daily attendance updates with absence alerts via push notification and email.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">💬</div><h4>Teacher Connect</h4><p>Direct messaging with teachers. Schedule parent-teacher meetings with one click.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">⏰</div><h4>Screen Time Controls</h4><p>Set daily usage limits, schedule study time, and receive usage reports.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🎁</div><h4>Reward System</h4><p>Set custom rewards for your child's achievements. Motivate with physical reward pledges.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">💳</div><h4>Fee Payments</h4><p>Pay school fees, view payment history, and download receipts — all in one place.</p></div>
+    </div>
+  </div>
+  <!-- PLATFORM TAB -->
+  <div id="tab-platform" class="tab-panel">
+    <div class="bento-3col" style="gap:20px">
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🔥</div><h4>Firebase Backend</h4><p>Built on Firebase with Firestore, Realtime DB, Auth, Storage, and Cloud Functions.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🏗️</div><h4>Multi-Tenant SaaS</h4><p>Complete school data isolation. Each school is a separate tenant with its own data namespace.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">📱</div><h4>PWA Support</h4><p>Install as a native app on any device. Offline mode, push notifications, and background sync.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🔐</div><h4>Security</h4><p>Firestore security rules, SSO/SAML, 2FA, session management, and audit logging.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🚀</div><h4>Performance</h4><p>CDN-delivered assets, lazy loading, service worker caching, and 99.9% uptime SLA.</p></div>
+      <div class="card"><div style="font-size:2rem;margin-bottom:12px">🌙</div><h4>Themes</h4><p>Dark mode, seasonal themes (Halloween, Christmas, Summer), and high contrast mode.</p></div>
+    </div>
+  </div>
+</div>
+<script>
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body></html>

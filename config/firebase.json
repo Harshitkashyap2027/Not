@@ -1,0 +1,28 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "config/**", "api/**"],
+    "rewrites": [
+      { "source": "/app/**", "destination": "/public/404.html" },
+      { "source": "**", "destination": "/public/404.html" }
+    ],
+    "headers": [
+      { "source": "**/*.@(js|css)", "headers": [{ "key": "Cache-Control", "value": "max-age=31536000" }] },
+      { "source": "**", "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]}
+    ]
+  },
+  "storage": { "rules": "storage.rules" },
+  "functions": {
+    "source": "api",
+    "predeploy": ["npm --prefix api install --prefix api"],
+    "runtime": "nodejs18"
+  }
+}
