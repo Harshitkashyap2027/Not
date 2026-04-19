@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arena – Tournaments | lvlBase</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script><script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script><script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script><script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#E0E0FF;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-logo span{font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#6C5CE7,#00CEC9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-link{display:flex;align-items:center;gap:12px;padding:10px 24px;color:#A0A0C0;text-decoration:none;font-size:.85rem;transition:all .2s;border-left:3px solid transparent;}
+.nav-link:hover,.nav-link.active{color:#fff;background:rgba(108,92,231,.12);border-left-color:#6C5CE7;}
+.nav-link i{width:18px;text-align:center;}.nav-section{padding:16px 0;}
+.nav-label{font-size:.65rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.1em;padding:0 24px 8px;}
+.featured-banner{background:linear-gradient(135deg,#1A0D35,#0D1A2A);border:1px solid rgba(108,92,231,.4);border-radius:16px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;}
+.featured-banner::before{content:'🏆';position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.15;}
+.featured-tag{background:linear-gradient(135deg,#FDCB6E,#FD79A8);color:#0D0D1A;padding:4px 12px;border-radius:10px;font-size:.72rem;font-weight:800;display:inline-block;margin-bottom:10px;}
+.tabs{display:flex;gap:4px;background:#12122A;border-radius:12px;padding:6px;margin-bottom:24px;border:1px solid rgba(255,255,255,.07);}
+.tab-btn{flex:1;padding:10px;border:none;border-radius:8px;background:transparent;color:#888;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;}
+.tab-btn.active{background:linear-gradient(135deg,#6C5CE7,#FD79A8);color:#fff;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.t-card{background:#12122A;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;}
+.t-name{font-weight:700;font-size:1rem;margin-bottom:4px;}
+.t-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+.t-chip{font-size:.75rem;padding:3px 10px;border-radius:10px;background:#1A1A35;color:#aaa;}
+.btn-reg{background:linear-gradient(135deg,#6C5CE7,#00CEC9);border:none;padding:10px 22px;border-radius:20px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+.bracket{display:flex;gap:0;align-items:stretch;justify-content:center;overflow-x:auto;padding:10px 0;}
+.bracket-round{display:flex;flex-direction:column;justify-content:space-around;min-width:160px;padding:0 12px;}
+.bracket-round-title{text-align:center;font-size:.7rem;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;font-weight:700;}
+.match{background:#1A1A35;border-radius:8px;margin:6px 0;overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+.match-player{padding:8px 12px;font-size:.78rem;display:flex;justify-content:space-between;align-items:center;}
+.match-player.winner{background:rgba(0,206,201,.1);color:#00CEC9;font-weight:700;}
+.match-player.loser{color:#666;}
+.connector{width:20px;border-top:1px solid rgba(255,255,255,.1);align-self:center;}
+.past-table{width:100%;border-collapse:collapse;background:#12122A;border-radius:12px;overflow:hidden;}
+.past-table th{background:#1A1A35;padding:12px 16px;text-align:left;font-size:.75rem;color:#888;text-transform:uppercase;}
+.past-table td{padding:12px 16px;border-top:1px solid rgba(255,255,255,.05);font-size:.85rem;}
+.place-gold{color:#FDCB6E;font-weight:900;}.place-sil{color:#C0C0C0;font-weight:900;}.place-bro{color:#CD7F32;font-weight:900;}
+</style></head><body>
+<div class="app-sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-bolt" style="color:#6C5CE7;font-size:1.4rem;"></i><span>lvlBase</span></div>
+  <nav class="nav-section"><div class="nav-label">Student</div>
+    <a href="/app/student/dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-link"><i class="fa-solid fa-map"></i>Quest Map</a>
+    <a href="/app/student/profile.html" class="nav-link"><i class="fa-solid fa-user"></i>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-link"><i class="fa-solid fa-backpack"></i>Backpack</a>
+    <a href="/app/student/arena/matchmaking.html" class="nav-link active"><i class="fa-solid fa-swords"></i>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-link"><i class="fa-solid fa-shield-halved"></i>Guild</a>
+    <a href="/app/student/ai-sage.html" class="nav-link"><i class="fa-solid fa-brain"></i>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-link"><i class="fa-solid fa-circle-dot"></i>Focus Mode</a>
+    <a href="/app/student/analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i>Analytics</a>
+    <a href="/app/student/workspace.html" class="nav-link"><i class="fa-solid fa-laptop-code"></i>Workspace</a>
+    <a href="/app/student/support.html" class="nav-link"><i class="fa-solid fa-circle-question"></i>Support</a>
+  </nav>
+</div>
+<div class="app-main">
+  <div class="app-header"><i class="fa-solid fa-trophy" style="color:#FDCB6E;"></i><span style="font-weight:700;">Tournaments</span>
+    <span style="color:#666;font-size:.85rem;margin-left:4px;">/ Arena</span>
+    <div style="margin-left:auto;background:rgba(253,203,110,.15);color:#FDCB6E;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;"><i class="fa-solid fa-star" style="margin-right:4px;"></i>2,450 XP</div>
+  </div>
+  <div class="app-content">
+    <div class="featured-banner">
+      <div class="featured-tag">⭐ FEATURED</div>
+      <h2 style="font-size:1.6rem;font-weight:900;margin-bottom:6px;">Grand Math Championship</h2>
+      <p style="color:#aaa;font-size:.88rem;">Season 3 · 128 Players · Starts Dec 15 · 5,000 XP Prize Pool</p>
+      <div style="display:flex;gap:12px;margin-top:16px;">
+        <button class="btn-reg" style="padding:12px 32px;font-size:.9rem;">Register Now (200 XP)</button>
+        <div style="background:rgba(253,121,168,.15);color:#FD79A8;padding:12px 20px;border-radius:20px;font-size:.85rem;font-weight:700;">🔥 87 registered</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('upcoming',this)">Upcoming</button>
+      <button class="tab-btn" onclick="switchTab('active',this)">Active</button>
+      <button class="tab-btn" onclick="switchTab('past',this)">Past</button>
+    </div>
+    <div id="upcoming" class="tab-content active">
+      <div class="t-card"><div><div class="t-name">🔢 Weekly Math Sprint</div><p style="color:#888;font-size:.82rem;">Dec 14 · 32 players max · Starts in 2 days</p><div class="t-meta"><span class="t-chip">🎯 Math</span><span class="t-chip">⚡ Medium</span><span class="t-chip">👥 19/32 joined</span><span class="t-chip" style="color:#FDCB6E;">🏆 1,200 XP prize</span></div></div><button class="btn-reg">Register (50 XP)</button></div>
+      <div class="t-card"><div><div class="t-name">💻 Code Blitz Cup</div><p style="color:#888;font-size:.82rem;">Dec 17 · 16 players · Starts in 5 days</p><div class="t-meta"><span class="t-chip">💻 Code</span><span class="t-chip">🔥 Hard</span><span class="t-chip">👥 7/16 joined</span><span class="t-chip" style="color:#FDCB6E;">🏆 2,500 XP prize</span></div></div><button class="btn-reg">Register (150 XP)</button></div>
+      <div class="t-card"><div><div class="t-name">🔬 Science Showdown</div><p style="color:#888;font-size:.82rem;">Dec 20 · 64 players · Starts in 8 days</p><div class="t-meta"><span class="t-chip">🔬 Science</span><span class="t-chip">⚡ Easy</span><span class="t-chip">👥 41/64 joined</span><span class="t-chip" style="color:#FDCB6E;">🏆 800 XP prize</span></div></div><button class="btn-reg">Register (30 XP)</button></div>
+      <div class="t-card"><div><div class="t-name">📖 English Masters</div><p style="color:#888;font-size:.82rem;">Dec 22 · 32 players · Starts in 10 days</p><div class="t-meta"><span class="t-chip">📖 English</span><span class="t-chip">⚡ Medium</span><span class="t-chip">👥 12/32 joined</span><span class="t-chip" style="color:#FDCB6E;">🏆 1,000 XP prize</span></div></div><button class="btn-reg">Register (75 XP)</button></div>
+    </div>
+    <div id="active" class="tab-content">
+      <p style="color:#00CEC9;font-weight:700;margin-bottom:16px;">🔴 LIVE: Code Warriors Cup — Round of 4</p>
+      <div class="bracket">
+        <div class="bracket-round">
+          <div class="bracket-round-title">Quarter Finals</div>
+          <div class="match"><div class="match-player winner">⚡ You <span>24</span></div><div class="match-player loser">👾 GhostByte <span>18</span></div></div>
+          <div class="match"><div class="match-player winner">🦊 FoxCode <span>22</span></div><div class="match-player loser">🌟 StarLing <span>15</span></div></div>
+          <div class="match"><div class="match-player winner">🔥 Inferno <span>30</span></div><div class="match-player loser">🧠 Brainiac <span>12</span></div></div>
+          <div class="match"><div class="match-player winner">🎯 AimPro <span>20</span></div><div class="match-player loser">🐉 Dragonix <span>19</span></div></div>
+        </div>
+        <div class="bracket-round">
+          <div class="bracket-round-title">Semi Finals</div>
+          <div class="match" style="margin-top:24px;"><div class="match-player winner">⚡ You <span>28</span></div><div class="match-player loser">🦊 FoxCode <span>21</span></div></div>
+          <div class="match" style="margin-top:24px;"><div class="match-player" style="color:#FDCB6E;font-weight:700;">🔥 Inferno <span>TBD</span></div><div class="match-player" style="color:#FDCB6E;">🎯 AimPro <span>TBD</span></div></div>
+        </div>
+        <div class="bracket-round">
+          <div class="bracket-round-title">Final</div>
+          <div class="match" style="margin-top:60px;border-color:rgba(253,203,110,.4);"><div class="match-player" style="color:#FDCB6E;">⚡ You <span>?</span></div><div class="match-player" style="color:#FDCB6E;">TBD <span>?</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="past" class="tab-content">
+      <table class="past-table">
+        <thead><tr><th>Tournament</th><th>Subject</th><th>Place</th><th>Prize</th><th>Date</th></tr></thead>
+        <tbody>
+          <tr><td>Weekly Math Sprint #11</td><td>Math</td><td class="place-gold">🥇 1st</td><td style="color:#FDCB6E;font-weight:700;">+1,200 XP</td><td>Dec 7</td></tr>
+          <tr><td>Science Cup #4</td><td>Science</td><td class="place-sil">🥈 2nd</td><td style="color:#FDCB6E;font-weight:700;">+500 XP</td><td>Nov 29</td></tr>
+          <tr><td>Code Blitz #8</td><td>Code</td><td class="place-bro">🥉 3rd</td><td style="color:#FDCB6E;font-weight:700;">+250 XP</td><td>Nov 22</td></tr>
+          <tr><td>English Masters #2</td><td>English</td><td style="color:#888;">5th</td><td style="color:#888;">+50 XP</td><td>Nov 15</td></tr>
+          <tr><td>Grand Math Champ S2</td><td>Math</td><td class="place-gold">🥇 1st</td><td style="color:#FDCB6E;font-weight:700;">+5,000 XP</td><td>Nov 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+function switchTab(id,el){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');el.classList.add('active');}
+firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/login.html';return;}initPage(user);});
+function initPage(user){}
+</script></body></html>

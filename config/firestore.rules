@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuth() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function userDoc() { return get(/databases/$(database)/documents/users/$(uid())); }
+    function userRole() { return userDoc().data.role; }
+    function userSchool() { return userDoc().data.schoolId; }
+    function isSuperAdmin() { return isAuth() && userRole() == 'super-admin'; }
+    function isSchoolAdmin(schoolId) { return isAuth() && userSchool() == schoolId && userRole() == 'school-admin'; }
+    function isTeacher(schoolId) { return isAuth() && userSchool() == schoolId && userRole() == 'teacher'; }
+    function isStudent(schoolId) { return isAuth() && userSchool() == schoolId && userRole() == 'student'; }
+    function belongsToSchool(schoolId) { return isAuth() && userSchool() == schoolId; }
+
+    // ── Users ──
+    match /users/{userId} {
+      allow read: if isAuth() && (uid() == userId || isSuperAdmin() || (isAuth() && userSchool() == get(/databases/$(database)/documents/users/$(userId)).data.schoolId && userRole() in ['school-admin','teacher']));
+      allow create: if isAuth() && uid() == userId;
+      allow update: if isAuth() && (uid() == userId || isSuperAdmin() || isSchoolAdmin(get(/databases/$(database)/documents/users/$(userId)).data.schoolId));
+      allow delete: if isSuperAdmin();
+    }
+
+    // ── Schools ──
+    match /schools/{schoolId} {
+      allow read:  if isAuth() && (belongsToSchool(schoolId) || isSuperAdmin());
+      allow write: if isSuperAdmin() || isSchoolAdmin(schoolId);
+
+      // Students sub-collection
+      match /students/{studentId} {
+        allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+        allow write: if isSchoolAdmin(schoolId) || isTeacher(schoolId) || (isStudent(schoolId) && uid() == studentId) || isSuperAdmin();
+      }
+
+      // Classes
+      match /classes/{classId} {
+        allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+        allow write: if isTeacher(schoolId) || isSchoolAdmin(schoolId) || isSuperAdmin();
+        match /{sub=**} {
+          allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+          allow write: if isTeacher(schoolId) || isSchoolAdmin(schoolId) || isSuperAdmin();
+        }
+      }
+
+      // Guilds
+      match /guilds/{guildId} {
+        allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+        allow write: if belongsToSchool(schoolId) || isSuperAdmin();
+      }
+
+      // Announcements
+      match /announcements/{annId} {
+        allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+        allow write: if isTeacher(schoolId) || isSchoolAdmin(schoolId) || isSuperAdmin();
+      }
+
+      // Chat rooms
+      match /chatRooms/{roomId} {
+        allow read, write: if belongsToSchool(schoolId) || isSuperAdmin();
+      }
+
+      // Proctoring
+      match /proctoring/{sessionId}/{sub=**} {
+        allow read:  if isTeacher(schoolId) || isSchoolAdmin(schoolId) || isSuperAdmin();
+        allow write: if belongsToSchool(schoolId) || isSuperAdmin();
+      }
+
+      // Catch-all for other school sub-docs
+      match /{document=**} {
+        allow read:  if belongsToSchool(schoolId) || isSuperAdmin();
+        allow write: if isSchoolAdmin(schoolId) || isSuperAdmin();
+      }
+    }
+
+    // ── Super admin global reads ──
+    match /{document=**} {
+      allow read, write: if isSuperAdmin();
+    }
+  }
+}
