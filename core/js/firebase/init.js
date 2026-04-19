@@ -61,3 +61,9 @@ auth.onAuthStateChanged(user => {
 
 // ── Expose globally ──
 window.LvlFire = { auth, db, rtdb, storage, messaging, firebaseConfig };
+
+// Demo mode: set flag if using placeholder config
+if (firebaseConfig.apiKey === 'YOUR_API_KEY') {
+  window.LvlDemoMode = true;
+  console.info('lvlBase: Running in demo mode (placeholder Firebase config detected).');
+}

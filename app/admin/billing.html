@@ -1,280 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Billing – lvlBase Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Exam Manager – lvlBase Admin</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
-.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+body{font-family:'Segoe UI',sans-serif;background:#111111;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#1a1a1a;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
 .app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
-.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
-.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.app-header{height:60px;display:flex;align-items:center;padding:0 24px;background:#1a1a1a;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#111111;}
 .sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
-.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.sidebar-nav{flex:1;padding:16px 0;}
-.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
-.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
-.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
-.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
-.nav-icon{font-size:18px;width:22px;text-align:center;}
-.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
-.user-mini{display:flex;align-items:center;gap:10px;}
-.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
-.user-info-sm{flex:1;min-width:0;}
-.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
-.user-role-sm{font-size:11px;color:#6C5CE7;}
-.header-title{font-size:18px;font-weight:700;flex:1;}
-.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;cursor:pointer;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.signout-btn{display:flex;align-items:center;gap:12px;padding:10px 0;color:#E53935;font-size:14px;cursor:pointer;background:none;border:none;width:100%;font-family:inherit;}
+.header-title{font-size:20px;font-weight:700;flex:1;}
+.card{background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
-.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
-.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
-.top-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px;}
-.plan-card{background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(162,155,254,.1));border:1px solid rgba(108,92,231,.3);border-radius:20px;padding:28px;position:relative;overflow:hidden;}
-.plan-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(108,92,231,.2),transparent);pointer-events:none;}
-.plan-name{font-size:22px;font-weight:800;margin-bottom:4px;}
-.plan-price{font-size:36px;font-weight:900;color:#a29bfe;margin:8px 0;}
-.plan-price span{font-size:16px;font-weight:400;color:rgba(255,255,255,.4);}
-.plan-features{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px;}
-.plan-features li{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.75);}
-.plan-features li::before{content:'✅';font-size:12px;}
-.usage-card{display:flex;flex-direction:column;gap:14px;}
-.usage-item{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;}
-.usage-label{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-.usage-nums{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
-.usage-current{font-size:20px;font-weight:800;}
-.usage-max{font-size:13px;color:rgba(255,255,255,.35);}
-.usage-track{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
-.usage-fill{height:100%;border-radius:4px;transition:width 1s ease;}
-.payment-card-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
-.payment-method{background:linear-gradient(135deg,#1a1a35,#12122A);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px;position:relative;}
-.card-chip{width:36px;height:28px;background:linear-gradient(135deg,#FDCB6E,#e17055);border-radius:6px;margin-bottom:16px;}
-.card-number{font-size:15px;letter-spacing:3px;color:rgba(255,255,255,.7);margin-bottom:12px;font-family:monospace;}
-.card-footer{display:flex;justify-content:space-between;align-items:flex-end;}
-.card-name{font-size:13px;font-weight:600;}
-.card-expiry{font-size:11px;color:rgba(255,255,255,.4);}
-.card-brand{position:absolute;top:20px;right:20px;font-size:24px;}
-.invoice-table{width:100%;border-collapse:collapse;}
-.invoice-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
-.invoice-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
-.invoice-table tr:last-child td{border-bottom:none;}
-.inv-status{display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;}
-.inv-paid{background:rgba(0,184,148,.15);color:#00b894;}
-.inv-pending{background:rgba(253,203,110,.15);color:#FDCB6E;}
-.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-.plan-opt{border:2px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;}
-.plan-opt:hover{border-color:rgba(255,255,255,.15);}
-.plan-opt.current{border-color:#6C5CE7;background:rgba(108,92,231,.08);}
-.plan-opt-name{font-size:14px;font-weight:700;margin-bottom:4px;}
-.plan-opt-price{font-size:22px;font-weight:800;margin:8px 0;}
-.plan-opt-desc{font-size:12px;color:rgba(255,255,255,.45);line-height:1.5;}
-.plan-opt-feats{list-style:none;margin-top:12px;font-size:12px;color:rgba(255,255,255,.6);display:flex;flex-direction:column;gap:6px;}
-.plan-opt-feats li::before{content:'• ';color:inherit;}
-@media(max-width:1000px){.top-grid{grid-template-columns:1fr;}.payment-card-wrap{grid-template-columns:1fr;}.plan-grid{grid-template-columns:1fr 1fr;}}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;padding:0 12px 12px;}
+td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
 </style>
 </head>
 <body>
 <aside class="app-sidebar">
-  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
   <nav class="sidebar-nav">
-    <div class="nav-section-title">Admin</div>
-    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏫</span>Dashboard</a>
-    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👥</span>User Management</a>
-    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Class Management</a>
-    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📊</span>Reports</a>
-    <div class="nav-section-title">Communication</div>
-    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📣</span>Announcements</a>
-    <div class="nav-section-title">Account</div>
-    <a href="/app/admin/billing.html" class="nav-item active"><span class="nav-icon">💳</span>Billing</a>
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
     <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/billing.html" class="nav-item active"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👤</span>Students</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
   </nav>
   <div class="sidebar-footer">
-    <div class="user-mini">
-      <div class="user-avatar-sm" id="avatarInitial">A</div>
-      <div class="user-info-sm">
-        <div class="user-name-sm" id="sidebarName">Admin</div>
-        <div class="user-role-sm">School Administrator</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
       </div>
     </div>
+    <button class="signout-btn" onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'">
+      <span style="font-size:16px;">🔴</span> Sign Out
+    </button>
   </div>
 </aside>
 
-<main class="app-main">
+<div class="app-main">
   <header class="app-header">
-    <span style="font-size:22px">💳</span>
-    <span class="header-title">Billing &amp; Subscription</span>
-    <div style="background:rgba(0,184,148,.15);color:#00b894;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">✅ Pro School Plan — Active</div>
-    <button onclick="LvlAuth.signOut()" class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:13px;padding:8px 16px;border-radius:10px;cursor:pointer;border:none;">Sign Out</button>
-    <div class="user-avatar-sm" id="headerAvatar" style="width:36px;height:36px;font-size:15px;">A</div>
+    <div class="header-title">Exam Manager</div>
+    <span style="background:rgba(0,184,148,.15);color:#00b894;border:1px solid rgba(0,184,148,.3);padding:6px 14px;border-radius:10px;font-size:13px;font-weight:700;">✅ Pro School Plan — Active</span>
+    <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">A</div>
   </header>
+
   <div class="app-content">
+    <!-- Current Plan -->
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(229,57,53,.1) 0%,rgba(26,26,26,1) 60%);border-color:rgba(229,57,53,.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#E53935;margin-bottom:6px;">Current Plan</div>
+          <div style="font-size:28px;font-weight:900;margin-bottom:4px;">Pro School Plan</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.55);">Annual subscription — Renews January 15, 2026</div>
+          <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="font-size:13px;color:rgba(255,255,255,.6);">✅ Unlimited AI Sage</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);">✅ Arena Battles</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);">✅ Advanced Analytics</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);">✅ Priority Support</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:36px;font-weight:900;color:#E53935;">$4,350<span style="font-size:16px;color:rgba(255,255,255,.4)">/yr</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;">$362.50/month equivalent</div>
+          <button class="btn btn-dark" onclick="showPlans()">📋 View All Plans</button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Current Plan + Usage -->
-    <div class="top-grid">
-      <div class="plan-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <span style="font-size:28px;">🏫</span>
+    <!-- Usage Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#E53935;margin-bottom:4px;">348</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;">Student Seats Used</div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:69.6%;background:#E53935;border-radius:3px;"></div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">348 / 500 seats (69.6%)</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#00b894;margin-bottom:4px;">72%</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;">Storage Used</div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:72%;background:#FDCB6E;border-radius:3px;"></div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">36 GB / 50 GB</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#a29bfe;margin-bottom:4px;">12,480</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;">AI Sage Calls This Month</div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:41.6%;background:#a29bfe;border-radius:3px;"></div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">12,480 / 30,000 calls</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;color:#FDCB6E;margin-bottom:4px;">18</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px;">Active Classes</div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:36%;background:#FDCB6E;border-radius:3px;"></div>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">18 / 50 classes</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <!-- Payment Method -->
+      <div class="card">
+        <div class="card-title">💳 Payment Method <button class="btn btn-dark" style="font-size:12px;padding:6px 14px;">Update</button></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;">
+          <div style="font-size:32px;">💳</div>
           <div>
-            <div style="font-size:12px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Current Plan</div>
-            <div class="plan-name">Pro School Plan</div>
+            <div style="font-size:14px;font-weight:700;">Visa ending in 4242</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);">Expires 12/2027 · Billing auto-renews annually</div>
           </div>
-          <div style="margin-left:auto;background:rgba(0,184,148,.15);color:#00b894;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">ACTIVE</div>
-        </div>
-        <div class="plan-price">$12.00 <span>/ student / year</span></div>
-        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:16px;">Next billing: <strong style="color:#FDCB6E;">December 1, 2024</strong> · 400 seats · <strong style="color:#a29bfe;">$4,800 / year</strong></div>
-        <ul class="plan-features">
-          <li>Up to 400 student seats</li>
-          <li>Unlimited teachers & classes</li>
-          <li>Full AI Sage access (GPT-4o)</li>
-          <li>Arena battles & guilds</li>
-          <li>Advanced analytics & reports</li>
-          <li>Priority support (24h SLA)</li>
-          <li>Custom branding & school logo</li>
-          <li>SSO / SAML integration</li>
-        </ul>
-        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="showPlans()">⬆️ Upgrade Plan</button>
-          <button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);">📄 Download Invoice</button>
-          <button class="btn" style="background:rgba(214,48,49,.1);color:#D63031;border:1px solid rgba(214,48,49,.2);">Cancel Plan</button>
+          <span style="margin-left:auto;background:rgba(0,184,148,.15);color:#00b894;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">Primary</span>
         </div>
       </div>
-
-      <!-- Usage Stats -->
-      <div class="usage-card">
-        <div class="usage-item">
-          <div class="usage-label">👨‍🎓 Student Seats</div>
-          <div class="usage-nums">
-            <div class="usage-current" style="color:#6C5CE7;">348</div>
-            <div class="usage-max">of 400</div>
-          </div>
-          <div class="usage-track"><div class="usage-fill" style="width:87%;background:linear-gradient(90deg,#6C5CE7,#a29bfe)"></div></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:5px;">52 seats remaining (87% used)</div>
-        </div>
-        <div class="usage-item">
-          <div class="usage-label">👩‍🏫 Teacher Seats</div>
-          <div class="usage-nums">
-            <div class="usage-current" style="color:#00CEC9;">24</div>
-            <div class="usage-max">Unlimited</div>
-          </div>
-          <div class="usage-track"><div class="usage-fill" style="width:100%;background:linear-gradient(90deg,#00CEC9,#00b894)"></div></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:5px;">Unlimited on Pro plan</div>
-        </div>
-        <div class="usage-item">
-          <div class="usage-label">💾 Storage Used</div>
-          <div class="usage-nums">
-            <div class="usage-current" style="color:#FDCB6E;">14.2 GB</div>
-            <div class="usage-max">of 50 GB</div>
-          </div>
-          <div class="usage-track"><div class="usage-fill" style="width:28%;background:linear-gradient(90deg,#FDCB6E,#e17055)"></div></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:5px;">35.8 GB available (28% used)</div>
-        </div>
-        <div class="usage-item">
-          <div class="usage-label">🤖 AI Sage Calls</div>
-          <div class="usage-nums">
-            <div class="usage-current" style="color:#FD79A8;">8,240</div>
-            <div class="usage-max">of 10,000/mo</div>
-          </div>
-          <div class="usage-track"><div class="usage-fill" style="width:82%;background:linear-gradient(90deg,#FD79A8,#e84393)"></div></div>
-          <div style="font-size:11px;color:#FDCB6E;margin-top:5px;">⚠️ 82% used — resets Dec 1</div>
+      <!-- Billing Info -->
+      <div class="card">
+        <div class="card-title">📋 Billing Info <button class="btn btn-dark" style="font-size:12px;padding:6px 14px;">Edit</button></div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.5);">Company</span><span>Riverside Academy Trust</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.5);">GST / Tax ID</span><span>27AABCR1234F1Z5</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.5);">Address</span><span>123 Education Ave, Mumbai</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.5);">Billing Email</span><span>billing@riverside.edu</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.5);">Next Invoice</span><span style="color:#E53935;font-weight:700;">Jan 15, 2026</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Payment Method -->
-    <div class="payment-card-wrap">
-      <div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:14px;">💳 Payment Method</div>
-        <div class="payment-method">
-          <div class="card-brand">💳</div>
-          <div class="card-chip"></div>
-          <div class="card-number">•••• •••• •••• 4242</div>
-          <div class="card-footer">
-            <div>
-              <div class="card-name">Westfield Academy</div>
-              <div class="card-expiry">Expires 08/27</div>
-            </div>
-            <div style="font-size:22px;background:linear-gradient(135deg,#6C5CE7,#FD79A8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">VISA</div>
+    <!-- Plans Comparison -->
+    <div id="plansSection" style="display:none;margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">📊 Plan Comparison</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:8px;">Starter</div>
+            <div style="font-size:28px;font-weight:900;color:rgba(255,255,255,.6);">$1,200<span style="font-size:14px;color:rgba(255,255,255,.3)">/yr</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px;">Up to 100 students</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">✅ Basic Features<br>✅ 5 GB Storage<br>✅ Email Support<br>❌ Arena Battles<br>❌ Advanced Analytics</div>
           </div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:12px;">
-          <button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);font-size:13px;">🔄 Update Card</button>
-          <button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);font-size:13px;">➕ Add Method</button>
-        </div>
-      </div>
-
-      <!-- Billing Contact -->
-      <div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:14px;">🏢 Billing Information</div>
-        <div class="card" style="padding:20px;">
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">School Name</div><div style="font-size:14px;font-weight:600;">Westfield Academy</div></div>
-            <div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Billing Contact</div><div style="font-size:14px;font-weight:600;">admin@westfield.edu</div></div>
-            <div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Tax ID / EIN</div><div style="font-size:14px;font-weight:600;">47-1234567</div></div>
-            <div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Billing Address</div><div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.5;">123 Westfield Blvd<br>Springfield, IL 62701</div></div>
+          <div style="background:rgba(229,57,53,.08);border:2px solid rgba(229,57,53,.4);border-radius:14px;padding:20px;position:relative;">
+            <div style="position:absolute;top:-10px;right:16px;background:#E53935;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;">CURRENT</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:8px;color:#E53935;">Pro School</div>
+            <div style="font-size:28px;font-weight:900;color:#E53935;">$4,350<span style="font-size:14px;color:rgba(255,255,255,.3)">/yr</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px;">Up to 500 students</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.65);">✅ All Features<br>✅ 50 GB Storage<br>✅ Priority Support<br>✅ Arena Battles<br>✅ Advanced Analytics</div>
           </div>
-          <button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);font-size:13px;margin-top:14px;width:100%;justify-content:center;">✏️ Edit Billing Info</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Plan Comparison (hidden by default) -->
-    <div id="plansSection" style="display:none;margin-bottom:24px;">
-      <div style="font-size:16px;font-weight:700;margin-bottom:16px;">📦 Available Plans</div>
-      <div class="plan-grid">
-        <div class="plan-opt">
-          <div class="plan-opt-name">🌱 Starter</div>
-          <div class="plan-opt-price" style="color:#00CEC9;">$8 <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,.4);">/student/yr</span></div>
-          <div class="plan-opt-desc">For small schools &amp; classes up to 100 students</div>
-          <ul class="plan-opt-feats">
-            <li>Up to 100 students</li><li>10 teacher seats</li><li>Basic AI Sage (limited)</li><li>5 GB storage</li><li>Email support</li>
-          </ul>
-          <button class="btn" style="width:100%;justify-content:center;margin-top:14px;background:rgba(0,206,201,.15);color:#00CEC9;border:1px solid rgba(0,206,201,.3);">Downgrade</button>
-        </div>
-        <div class="plan-opt current">
-          <div style="font-size:11px;color:#6C5CE7;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">✅ Current Plan</div>
-          <div class="plan-opt-name">🏫 Pro School</div>
-          <div class="plan-opt-price" style="color:#6C5CE7;">$12 <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,.4);">/student/yr</span></div>
-          <div class="plan-opt-desc">Our most popular plan for mid-size schools</div>
-          <ul class="plan-opt-feats">
-            <li>Up to 400 students</li><li>Unlimited teachers</li><li>Full AI Sage (GPT-4o)</li><li>50 GB storage</li><li>Priority support</li>
-          </ul>
-          <button class="btn" style="width:100%;justify-content:center;margin-top:14px;background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.3);" disabled>Current Plan</button>
-        </div>
-        <div class="plan-opt">
-          <div style="font-size:11px;color:#FDCB6E;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⭐ Most Features</div>
-          <div class="plan-opt-name">🏛️ District</div>
-          <div class="plan-opt-price" style="color:#FDCB6E;">$10 <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,.4);">/student/yr</span></div>
-          <div class="plan-opt-desc">For large schools &amp; school districts 500+ students</div>
-          <ul class="plan-opt-feats">
-            <li>Unlimited students</li><li>Unlimited teachers</li><li>AI Sage + Custom training</li><li>1 TB storage</li><li>Dedicated account manager</li>
-          </ul>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px;">Upgrade to District</button>
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:8px;">Enterprise</div>
+            <div style="font-size:28px;font-weight:900;color:#FDCB6E;">Custom</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px;">Unlimited students</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">✅ Everything in Pro<br>✅ Unlimited Storage<br>✅ Dedicated Support<br>✅ Custom Integrations<br>✅ SLA Guarantee</div>
+            <button class="btn btn-dark" style="margin-top:14px;width:100%;justify-content:center;font-size:12px;">Contact Sales</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Billing History -->
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div style="font-size:16px;font-weight:700;">🧾 Billing History</div>
-        <button class="btn" style="background:rgba(0,206,201,.15);color:#00CEC9;border:1px solid rgba(0,206,201,.25);font-size:13px;">⬇️ Export All</button>
+      <div class="card-title">📜 Billing History <button class="btn btn-dark" style="font-size:12px;padding:6px 14px;">Download All</button></div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr>
+            <th>Invoice</th><th>Date</th><th>Description</th><th>Amount</th><th>Status</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-family:monospace;color:rgba(255,255,255,.7);">INV-2025-001</td>
+              <td style="color:rgba(255,255,255,.5)">Jan 15, 2025</td>
+              <td>Pro School Plan — Annual</td>
+              <td style="font-weight:700;color:#E53935;">$4,350.00</td>
+              <td><span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">Paid</span></td>
+              <td><button class="btn btn-dark" style="padding:5px 12px;font-size:12px;">📥 PDF</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;color:rgba(255,255,255,.7);">INV-2024-012</td>
+              <td style="color:rgba(255,255,255,.5)">Jan 15, 2024</td>
+              <td>Pro School Plan — Annual</td>
+              <td style="font-weight:700;color:#E53935;">$4,100.00</td>
+              <td><span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">Paid</span></td>
+              <td><button class="btn btn-dark" style="padding:5px 12px;font-size:12px;">📥 PDF</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;color:rgba(255,255,255,.7);">INV-2024-006</td>
+              <td style="color:rgba(255,255,255,.5)">Jun 15, 2023</td>
+              <td>Pro School Plan — Annual</td>
+              <td style="font-weight:700;color:#E53935;">$3,900.00</td>
+              <td><span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">Paid</span></td>
+              <td><button class="btn btn-dark" style="padding:5px 12px;font-size:12px;">📥 PDF</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:monospace;color:rgba(255,255,255,.7);">INV-2023-001</td>
+              <td style="color:rgba(255,255,255,.5)">Jan 15, 2023</td>
+              <td>Starter Plan — Annual</td>
+              <td style="font-weight:700;color:rgba(255,255,255,.6);">$1,200.00</td>
+              <td><span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">Paid</span></td>
+              <td><button class="btn btn-dark" style="padding:5px 12px;font-size:12px;">📥 PDF</button></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table class="invoice-table">
-        <thead><tr><th>Invoice</th><th>Description</th><th>Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>
-          <tr><td style="font-weight:600;">#INV-2024-012</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Dec 2024 · 400 seats</td><td style="color:rgba(255,255,255,.4)">Dec 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$4,800</td><td><span class="inv-status inv-pending">🟡 Upcoming</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">—</button></td></tr>
-          <tr><td style="font-weight:600;">#INV-2024-011</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Nov 2024 · 400 seats</td><td style="color:rgba(255,255,255,.4)">Nov 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$4,800</td><td><span class="inv-status inv-paid">✅ Paid</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">📄 PDF</button></td></tr>
-          <tr><td style="font-weight:600;">#INV-2024-010</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Oct 2024 · 380 seats</td><td style="color:rgba(255,255,255,.4)">Oct 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$4,560</td><td><span class="inv-status inv-paid">✅ Paid</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">📄 PDF</button></td></tr>
-          <tr><td style="font-weight:600;">#INV-2024-009</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Sep 2024 · 360 seats</td><td style="color:rgba(255,255,255,.4)">Sep 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$4,320</td><td><span class="inv-status inv-paid">✅ Paid</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">📄 PDF</button></td></tr>
-          <tr><td style="font-weight:600;">#INV-2024-008</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Aug 2024 · 340 seats</td><td style="color:rgba(255,255,255,.4)">Aug 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$4,080</td><td><span class="inv-status inv-paid">✅ Paid</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">📄 PDF</button></td></tr>
-          <tr><td style="font-weight:600;">#INV-2024-007</td><td style="color:rgba(255,255,255,.6)">Pro Plan · Jul 2024 · 320 seats</td><td style="color:rgba(255,255,255,.4)">Jul 1, 2024</td><td style="font-weight:700;color:#FDCB6E;">$3,840</td><td><span class="inv-status inv-paid">✅ Paid</span></td><td><button class="btn" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:12px;padding:5px 12px;border:none;border-radius:8px;">📄 PDF</button></td></tr>
-        </tbody>
-      </table>
     </div>
-
   </div>
-</main>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -292,22 +256,27 @@ function showPlans() {
   s.style.display = s.style.display === 'none' ? 'block' : 'none';
   s.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
 function loadPage() {
   LvlAuth.requireAuth(['schoolAdmin']);
 }
 
-firebase.auth().onAuthStateChanged(user => {
-  if (!user) { window.location.href = '/auth/login.html'; return; }
-  const name = user.displayName || user.email.split('@')[0] || 'Admin';
-  document.getElementById('sidebarName').textContent = name;
-  const init = name.charAt(0).toUpperCase();
-  document.getElementById('avatarInitial').textContent = init;
-  document.getElementById('headerAvatar').textContent = init;
-  loadPage();
-});
-
-LvlSecurity.initActivityTracking();
+const _isDemoMode = typeof window.LvlDemoMode !== 'undefined' && window.LvlDemoMode;
+if (_isDemoMode) {
+  document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = 'Administrator');
+  document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = 'A');
+  document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = 'A');
+  typeof loadPage === 'function' && loadPage();
+} else {
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) { window.location.href = '/auth/portal-login.html'; return; }
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = name);
+    const init = name.charAt(0).toUpperCase();
+    document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = init);
+    document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = init);
+    typeof loadPage === 'function' && loadPage();
+  });
+}
 </script>
 </body>
 </html>
