@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Backpack – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.header-count{font-size:13px;color:rgba(255,255,255,.5);}
+
+/* Tabs */
+.tab-bar{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:4px;margin-bottom:24px;width:fit-content;}
+.tab-btn{padding:8px 20px;border-radius:10px;border:none;background:transparent;color:rgba(255,255,255,.5);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;font-weight:600;}
+
+/* Filters */
+.filter-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.rarity-btn{padding:5px 14px;border-radius:20px;border:1px solid;font-size:12px;font-weight:600;cursor:pointer;background:transparent;transition:all .2s;}
+.rarity-btn.active-filter{opacity:1!important;}
+
+/* Badge Grid */
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.badge-card{background:#12122A;border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.badge-card.earned{border:1px solid rgba(255,255,255,.08);}
+.badge-card.locked{border:1px solid rgba(255,255,255,.04);opacity:.6;}
+.badge-card.earned:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.badge-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;}
+.badge-card.earned:hover::before{opacity:.07;background:radial-gradient(circle at 50% 0%,var(--rc,#fff),transparent);}
+.rarity-glow{position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0;}
+.badge-card-icon{font-size:40px;margin-bottom:10px;position:relative;z-index:1;}
+.badge-card.locked .badge-card-icon{filter:grayscale(1);opacity:.4;}
+.badge-card-name{font-size:13px;font-weight:700;margin-bottom:4px;position:relative;z-index:1;}
+.badge-card-rarity{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.badge-card-desc{font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;line-height:1.4;position:relative;z-index:1;}
+.lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,13,26,.7);border-radius:16px;font-size:12px;color:rgba(255,255,255,.4);}
+.lock-overlay .lock-icon{font-size:20px;margin-bottom:4px;}
+
+/* Power-ups */
+.powerup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.powerup-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;display:flex;gap:16px;align-items:center;transition:all .2s;cursor:pointer;}
+.powerup-card:hover{border-color:rgba(108,92,231,.3);background:rgba(108,92,231,.05);}
+.powerup-icon-wrap{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.powerup-qty{position:absolute;top:-4px;right:-4px;background:#FD79A8;color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.powerup-rel{position:relative;}
+.powerup-name{font-size:14px;font-weight:700;margin-bottom:4px;}
+.powerup-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.4;}
+.use-btn{margin-top:10px;background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.3);color:#a29bfe;padding:5px 14px;border-radius:8px;font-size:12px;cursor:pointer;border-radius:20px;}
+.use-btn:hover{background:rgba(108,92,231,.35);}
+
+/* Cosmetics */
+.cosmetics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.cosmetic-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;}
+.cosmetic-card:hover{transform:translateY(-3px);border-color:rgba(253,121,168,.3);}
+.cosmetic-card.equipped{border-color:#FD79A8;background:rgba(253,121,168,.05);}
+.cosmetic-preview{font-size:48px;margin-bottom:8px;}
+.cosmetic-name{font-size:13px;font-weight:600;}
+.cosmetic-type{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;}
+.equipped-tag{display:inline-block;background:rgba(253,121,168,.2);border:1px solid rgba(253,121,168,.4);color:#FD79A8;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-top:6px;}
+
+/* Certs */
+.cert-list{display:flex;flex-direction:column;gap:12px;}
+.cert-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;transition:all .2s;}
+.cert-card:hover{border-color:rgba(253,203,110,.3);background:rgba(253,203,110,.04);}
+.cert-seal{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,rgba(253,203,110,.2),rgba(253,203,110,.05));border:1px solid rgba(253,203,110,.3);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.cert-info{flex:1;}
+.cert-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.cert-meta{font-size:12px;color:rgba(255,255,255,.45);}
+.cert-dl-btn{background:rgba(253,203,110,.1);border:1px solid rgba(253,203,110,.3);color:#FDCB6E;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.cert-dl-btn:hover{background:rgba(253,203,110,.2);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:420px;width:90%;transform:scale(.95);transition:transform .2s;text-align:center;}
+.modal-overlay.open .modal-box{transform:scale(1);}
+
+@media(max-width:1100px){.badge-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.badge-grid{grid-template-columns:repeat(2,1fr);}.powerup-grid{grid-template-columns:1fr 1fr;}.cosmetics-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item active"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-level-sm">Level 7 Explorer</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🎒</span>
+    <span class="header-title">Backpack</span>
+    <span class="header-count" id="itemCount">Loading items…</span>
+  </header>
+  <div class="app-content">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('badges',this)">🏆 Badges</button>
+      <button class="tab-btn" onclick="switchTab('powerups',this)">⚡ Power-Ups</button>
+      <button class="tab-btn" onclick="switchTab('cosmetics',this)">🎨 Cosmetics</button>
+      <button class="tab-btn" onclick="switchTab('certs',this)">📜 Certificates</button>
+    </div>
+
+    <!-- Badges Tab -->
+    <div id="tab-badges">
+      <div class="filter-row">
+        <span style="font-size:13px;color:rgba(255,255,255,.5);">Rarity:</span>
+        <button class="rarity-btn active-filter" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="filterRarity('all',this)">All</button>
+        <button class="rarity-btn" style="color:#a29bfe;border-color:#a29bfe;opacity:.6" onclick="filterRarity('Common',this)">Common</button>
+        <button class="rarity-btn" style="color:#00CEC9;border-color:#00CEC9;opacity:.6" onclick="filterRarity('Rare',this)">Rare</button>
+        <button class="rarity-btn" style="color:#6C5CE7;border-color:#6C5CE7;opacity:.6" onclick="filterRarity('Epic',this)">Epic</button>
+        <button class="rarity-btn" style="color:#FDCB6E;border-color:#FDCB6E;opacity:.6" onclick="filterRarity('Legendary',this)">Legendary</button>
+      </div>
+      <div class="badge-grid" id="badgeGrid"></div>
+    </div>
+
+    <!-- Power-Ups Tab -->
+    <div id="tab-powerups" style="display:none">
+      <div class="powerup-grid" id="powerupGrid"></div>
+    </div>
+
+    <!-- Cosmetics Tab -->
+    <div id="tab-cosmetics" style="display:none">
+      <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:16px;">Equip cosmetics to customise your profile appearance.</p>
+      <div class="cosmetics-grid" id="cosmeticsGrid"></div>
+    </div>
+
+    <!-- Certificates Tab -->
+    <div id="tab-certs" style="display:none">
+      <p style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:16px;">Certificates are awarded when you complete full subject paths.</p>
+      <div class="cert-list" id="certList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Badge Modal -->
+<div class="modal-overlay" id="badgeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div id="mBadgeIcon" style="font-size:64px;margin-bottom:12px;"></div>
+    <div id="mBadgeName" style="font-size:20px;font-weight:700;margin-bottom:6px;"></div>
+    <div id="mBadgeRarity" style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;"></div>
+    <div id="mBadgeDesc" style="font-size:14px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:20px;"></div>
+    <div id="mBadgeEarned" style="font-size:12px;color:rgba(255,255,255,.4);"></div>
+    <button onclick="document.getElementById('badgeModal').classList.remove('open')" style="margin-top:20px;background:rgba(255,255,255,.08);border:none;color:#fff;padding:10px 24px;border-radius:10px;cursor:pointer;font-size:13px;">Close</button>
+  </div>
+</div>
+
+<script>
+firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/login.html';return;}initPage(user);});
+
+const rarityColors={Common:'#a29bfe',Rare:'#00CEC9',Epic:'#6C5CE7',Legendary:'#FDCB6E'};
+const allBadges=[
+  {id:1,icon:'🏆',name:'First Quest',rarity:'Common',desc:'Complete your very first learning quest on lvlBase.',earned:true,earnedDate:'Sep 15, 2024',points:0},
+  {id:2,icon:'⚡',name:'Speed Demon',rarity:'Rare',desc:'Finish a quest in under 10 minutes with a score above 90%.',earned:true,earnedDate:'Sep 22, 2024',points:0},
+  {id:3,icon:'🔥',name:'7-Day Streak',rarity:'Rare',desc:'Log in and complete at least one quest every day for 7 consecutive days.',earned:true,earnedDate:'Oct 1, 2024',points:0},
+  {id:4,icon:'💻',name:'Code Master',rarity:'Epic',desc:'Complete all quests in the Code subject path with an average score of 90%+.',earned:true,earnedDate:'Oct 10, 2024',points:0},
+  {id:5,icon:'⚔️',name:'Battle-Hardened',rarity:'Epic',desc:'Win 15 arena battles against other students.',earned:true,earnedDate:'Oct 18, 2024',points:0},
+  {id:6,icon:'🌟',name:'Top Scholar',rarity:'Legendary',desc:'Reach the top 10% of all students globally on the leaderboard.',earned:true,earnedDate:'Nov 2, 2024',points:0},
+  {id:7,icon:'🎯',name:'Perfect Score',rarity:'Epic',desc:'Score 100% on any quest without using hints.',earned:false,earnedDate:null,points:500},
+  {id:8,icon:'🛡️',name:'Guild Guardian',rarity:'Rare',desc:'Contribute 1,000 XP to your guild in a single week.',earned:false,earnedDate:null,points:300},
+  {id:9,icon:'🧠',name:'AI Collaborator',rarity:'Common',desc:'Use the AI Sage to help solve 10 different quest questions.',earned:false,earnedDate:null,points:100},
+  {id:10,icon:'📅',name:'30-Day Streak',rarity:'Legendary',desc:'Maintain an unbroken 30-day learning streak.',earned:false,earnedDate:null,points:1500},
+  {id:11,icon:'🚀',name:'Quest Speedrun',rarity:'Epic',desc:'Complete 5 quests in a single day, each scoring 80%+.',earned:false,earnedDate:null,points:750},
+  {id:12,icon:'👑',name:'Leaderboard King',rarity:'Legendary',desc:'Hold the #1 rank on the weekly leaderboard for 3 consecutive weeks.',earned:false,earnedDate:null,points:3000},
+];
+
+const powerUps=[
+  {icon:'⏱️',name:'Time Freeze',desc:'Pause the quiz timer for 30 seconds once per quest.',bg:'rgba(108,92,231,.15)',qty:2,color:'#6C5CE7'},
+  {icon:'💡',name:'Hint Token',desc:'Reveal one answer hint without penalty to your score.',bg:'rgba(253,203,110,.12)',qty:5,color:'#FDCB6E'},
+  {icon:'🛡️',name:'Shield',desc:'Protect your streak for one day if you miss a daily quest.',bg:'rgba(0,206,201,.12)',qty:1,color:'#00CEC9'},
+  {icon:'🔥',name:'XP Booster',desc:'Earn 2× XP on your next completed quest.',bg:'rgba(253,121,168,.12)',qty:3,color:'#FD79A8'},
+  {icon:'👁️',name:'Eagle Eye',desc:'See which answer category a correct answer falls into.',bg:'rgba(0,184,148,.12)',qty:4,color:'#00b894'},
+  {icon:'⚡',name:'Streak Saver',desc:'Automatically save your streak if you forget to log in.',bg:'rgba(108,92,231,.15)',qty:0,color:'#6C5CE7'},
+];
+
+const cosmetics=[
+  {icon:'🦊',name:'Fox Avatar',type:'Avatar Frame',equipped:true},
+  {icon:'🌙',name:'Dark Moon',type:'Profile Banner',equipped:false},
+  {icon:'⚡',name:'Electric Frame',type:'Avatar Frame',equipped:false},
+  {icon:'🎮',name:'Gamer Tag',type:'Title',equipped:false},
+  {icon:'🌸',name:'Cherry Blossom',type:'Profile Banner',equipped:false},
+  {icon:'🔮',name:'Crystal Ball',type:'Avatar Frame',equipped:false},
+  {icon:'🏆',name:'Champion Theme',type:'Profile Theme',equipped:false},
+  {icon:'🌊',name:'Ocean Waves',type:'Profile Banner',equipped:false},
+];
+
+const certs=[
+  {seal:'💻',name:'Python Fundamentals Certificate',subject:'Code Path – Levels 1-3',date:'Issued Oct 10, 2024',issuer:'lvlBase Education'},
+  {seal:'🔬',name:'Science Explorer Certificate',subject:'Science Path – Levels 1-2',date:'Issued Sep 28, 2024',issuer:'lvlBase Education'},
+  {seal:'🔢',name:'Algebra Proficiency Certificate',subject:'Math Path – Levels 1-2',date:'Issued Sep 20, 2024',issuer:'lvlBase Education'},
+];
+
+let currentRarityFilter='all';
+
+function switchTab(tab,btn){
+  ['badges','powerups','cosmetics','certs'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  document.getElementById('tab-'+tab).style.display='';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function filterRarity(r,btn){
+  currentRarityFilter=r;
+  document.querySelectorAll('.rarity-btn').forEach(b=>{b.classList.remove('active-filter');b.style.opacity='.6';});
+  btn.classList.add('active-filter');btn.style.opacity='1';
+  renderBadges();
+}
+
+function renderBadges(){
+  const grid=document.getElementById('badgeGrid');grid.innerHTML='';
+  const filtered=currentRarityFilter==='all'?allBadges:allBadges.filter(b=>b.rarity===currentRarityFilter);
+  filtered.forEach(b=>{
+    const col=rarityColors[b.rarity];
+    const card=document.createElement('div');
+    card.className='badge-card '+(b.earned?'earned':'locked');
+    card.style.setProperty('--rc',col);
+    card.innerHTML=`<div class="rarity-glow" style="background:${col}"></div>
+      <div class="badge-card-icon">${b.earned?b.icon:'❓'}</div>
+      <div class="badge-card-name">${b.name}</div>
+      <div class="badge-card-rarity" style="color:${col}">${b.rarity}</div>
+      <div class="badge-card-desc">${b.desc}</div>
+      ${!b.earned?`<div class="lock-overlay"><div class="lock-icon">🔒</div><div>${b.points} pts needed</div></div>`:''}`;
+    if(b.earned) card.addEventListener('click',()=>openBadgeModal(b));
+    grid.appendChild(card);
+  });
+}
+
+function renderPowerUps(){
+  const grid=document.getElementById('powerupGrid');
+  powerUps.forEach(p=>{
+    const card=document.createElement('div');card.className='powerup-card';
+    card.innerHTML=`<div class="powerup-rel"><div class="powerup-icon-wrap" style="background:${p.bg};">${p.icon}</div>
+      ${p.qty>0?`<div class="powerup-qty">${p.qty}</div>`:''}</div>
+      <div><div class="powerup-name">${p.name}</div><div class="powerup-desc">${p.desc}</div>
+      <button class="use-btn" style="${p.qty===0?'opacity:.35;cursor:not-allowed':''}" ${p.qty===0?'disabled':''} onclick="event.stopPropagation();${p.qty>0?`usePowerUp('${p.name}')`:''}">${p.qty>0?'Use Now':'Out of Stock'}</button></div>`;
+    grid.appendChild(card);
+  });
+}
+
+function renderCosmetics(){
+  const grid=document.getElementById('cosmeticsGrid');
+  cosmetics.forEach((c,i)=>{
+    const card=document.createElement('div');card.className='cosmetic-card'+(c.equipped?' equipped':'');
+    card.innerHTML=`<div class="cosmetic-preview">${c.icon}</div>
+      <div class="cosmetic-name">${c.name}</div>
+      <div class="cosmetic-type">${c.type}</div>
+      ${c.equipped?'<div class="equipped-tag">EQUIPPED</div>':'<button style="margin-top:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:5px 14px;border-radius:10px;font-size:11px;cursor:pointer;" onclick="equipCosmetic(${i})">Equip</button>'}`;
+    grid.appendChild(card);
+  });
+}
+
+function renderCerts(){
+  const list=document.getElementById('certList');
+  certs.forEach(c=>{
+    const card=document.createElement('div');card.className='cert-card';
+    card.innerHTML=`<div class="cert-seal">${c.seal}</div>
+      <div class="cert-info"><div class="cert-name">${c.name}</div>
+        <div class="cert-meta">${c.subject} &nbsp;·&nbsp; ${c.date} &nbsp;·&nbsp; ${c.issuer}</div></div>
+      <button class="cert-dl-btn" onclick="alert('Downloading certificate PDF…')">⬇ Download PDF</button>`;
+    list.appendChild(card);
+  });
+}
+
+function openBadgeModal(b){
+  const col=rarityColors[b.rarity];
+  document.getElementById('mBadgeIcon').textContent=b.icon;
+  document.getElementById('mBadgeName').textContent=b.name;
+  document.getElementById('mBadgeRarity').textContent=b.rarity;
+  document.getElementById('mBadgeRarity').style.color=col;
+  document.getElementById('mBadgeDesc').textContent=b.desc;
+  document.getElementById('mBadgeEarned').textContent=b.earnedDate?`✅ Earned on ${b.earnedDate}`:'';
+  document.getElementById('badgeModal').classList.add('open');
+}
+
+function usePowerUp(name){
+  alert(`Using "${name}"! Effect will apply to your next quest.`);
+}
+function equipCosmetic(i){
+  cosmetics.forEach((c,j)=>c.equipped=(i===j));
+  document.getElementById('cosmeticsGrid').innerHTML='';
+  renderCosmetics();
+}
+
+function initPage(user){
+  const name=user.displayName||user.email.split('@')[0]||'Student';
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  const earned=allBadges.filter(b=>b.earned).length;
+  document.getElementById('itemCount').textContent=`${earned} badges · ${powerUps.filter(p=>p.qty>0).length} power-ups · ${certs.length} certificates`;
+  renderBadges();renderPowerUps();renderCosmetics();renderCerts();
+}
+</script>
+</body>
+</html>

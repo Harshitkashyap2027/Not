@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Support Desk – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;color:#fff;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;gap:6px;}
+.btn-primary:hover{opacity:.9;}
+
+/* Layout */
+.support-layout{display:grid;grid-template-columns:1fr 320px;gap:24px;}
+
+/* Hero banner */
+.support-hero{background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(0,206,201,.08));border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;}
+.hero-text h2{font-size:20px;font-weight:700;margin-bottom:4px;}
+.hero-text p{font-size:13px;color:rgba(255,255,255,.5);max-width:500px;}
+
+/* Ticket Table */
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;margin-bottom:20px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ticket-table{width:100%;border-collapse:collapse;}
+.ticket-table th{text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;padding:0 0 12px;}
+.ticket-table td{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:rgba(255,255,255,.8);vertical-align:middle;}
+.ticket-table tr:last-child td{border-bottom:none;}
+.ticket-table tr:hover td{background:rgba(255,255,255,.02);}
+.ticket-id{color:#6C5CE7;font-weight:700;font-family:monospace;}
+.ticket-subject{font-weight:600;}
+.ticket-subject span{display:block;font-weight:400;font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-open{background:rgba(253,121,168,.15);color:#FD79A8;border:1px solid rgba(253,121,168,.25);}
+.status-progress{background:rgba(253,203,110,.15);color:#FDCB6E;border:1px solid rgba(253,203,110,.25);}
+.status-resolved{background:rgba(0,184,148,.15);color:#00b894;border:1px solid rgba(0,184,148,.25);}
+.status-closed{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.08);}
+.action-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;}
+.action-btn:hover{background:rgba(108,92,231,.15);border-color:rgba(108,92,231,.3);color:#a29bfe;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .2s;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.modal-overlay.open .modal-box{transform:scale(1);}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:rgba(255,255,255,.05);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;}
+.form-field{margin-bottom:16px;}
+.form-label{font-size:12px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px;font-weight:500;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:rgba(108,92,231,.5);}
+.form-select{width:100%;background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;cursor:pointer;}
+.form-textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;resize:vertical;min-height:110px;font-family:inherit;transition:border-color .2s;}
+.form-textarea:focus{border-color:rgba(108,92,231,.5);}
+.file-upload{background:rgba(255,255,255,.03);border:2px dashed rgba(255,255,255,.12);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;}
+.file-upload:hover{border-color:rgba(108,92,231,.4);background:rgba(108,92,231,.05);}
+.file-upload input{display:none;}
+.submit-btn{background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;color:#fff;padding:12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:opacity .2s;margin-top:4px;}
+.submit-btn:hover{opacity:.9;}
+
+/* FAQ */
+.faq-list{display:flex;flex-direction:column;gap:8px;}
+.faq-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:12px;overflow:hidden;}
+.faq-q{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;transition:background .2s;}
+.faq-q:hover{background:rgba(108,92,231,.06);}
+.faq-a{padding:0 16px;max-height:0;overflow:hidden;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;transition:max-height .3s,padding .3s;}
+.faq-a.open{max-height:200px;padding:0 16px 14px;}
+.faq-chevron{font-size:12px;transition:transform .3s;}
+.faq-item.expanded .faq-chevron{transform:rotate(180deg);}
+
+/* Quick Links */
+.quick-links{display:flex;flex-direction:column;gap:8px;}
+.quick-link{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;text-decoration:none;color:rgba(255,255,255,.7);font-size:13px;transition:all .2s;cursor:pointer;}
+.quick-link:hover{background:rgba(108,92,231,.08);border-color:rgba(108,92,231,.2);color:#a29bfe;}
+.quick-link-icon{font-size:18px;width:22px;text-align:center;}
+
+/* View Ticket Detail Modal */
+.detail-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px;}
+.detail-key{color:rgba(255,255,255,.4);width:110px;flex-shrink:0;}
+.detail-val{color:rgba(255,255,255,.8);}
+.message-thread{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
+.msg-bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.5;max-width:90%;}
+.msg-staff{background:rgba(108,92,231,.12);border:1px solid rgba(108,92,231,.2);align-self:flex-start;}
+.msg-user{background:rgba(0,206,201,.1);border:1px solid rgba(0,206,201,.15);align-self:flex-end;text-align:right;}
+.msg-meta{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;}
+
+@media(max-width:1000px){.support-layout{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item active"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-level-sm">Level 7 Explorer</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🎫</span>
+    <span class="header-title">Support Desk</span>
+    <button class="btn-primary" onclick="openNewTicket()">+ New Ticket</button>
+  </header>
+  <div class="app-content">
+
+    <div class="support-hero">
+      <div style="font-size:48px">🛟</div>
+      <div class="hero-text">
+        <h2>How can we help you?</h2>
+        <p>Our support team typically responds within 2–4 hours during school hours. Browse the FAQ below for instant answers, or submit a ticket for anything else.</p>
+      </div>
+      <div style="margin-left:auto;display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+        <div style="background:rgba(0,184,148,.1);border:1px solid rgba(0,184,148,.2);border-radius:10px;padding:10px 16px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:#00b894">2–4h</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4)">Avg Response</div>
+        </div>
+        <div style="background:rgba(108,92,231,.1);border:1px solid rgba(108,92,231,.2);border-radius:10px;padding:10px 16px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:#a29bfe">98%</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4)">Satisfaction</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="support-layout">
+      <!-- Left: Tickets -->
+      <div>
+        <div class="card">
+          <div class="card-title">
+            🎫 My Tickets
+            <div style="display:flex;gap:8px;">
+              <select id="statusFilter" onchange="filterTickets(this.value)" style="background:#0D0D1A;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:5px 10px;border-radius:8px;font-size:12px;outline:none;cursor:pointer;">
+                <option value="all">All Status</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+          </div>
+          <table class="ticket-table">
+            <thead><tr>
+              <th>Ticket ID</th><th>Subject</th><th>Category</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="ticketTableBody"></tbody>
+          </table>
+          <div id="noTickets" style="display:none;text-align:center;padding:32px;color:rgba(255,255,255,.3);font-size:14px;">No tickets found for this filter.</div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card">
+          <div class="card-title">❓ Frequently Asked Questions</div>
+          <div class="faq-list" id="faqList"></div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div>
+        <div class="card">
+          <div class="card-title" style="font-size:14px;">🔗 Quick Links</div>
+          <div class="quick-links">
+            <div class="quick-link" onclick="openNewTicket()"><span class="quick-link-icon">✉️</span>Submit a Ticket</div>
+            <div class="quick-link" onclick="alert('Opening live chat…')"><span class="quick-link-icon">💬</span>Live Chat (School Hours)</div>
+            <div class="quick-link" onclick="alert('Opening documentation…')"><span class="quick-link-icon">📖</span>Platform Documentation</div>
+            <div class="quick-link" onclick="alert('Opening video guides…')"><span class="quick-link-icon">🎥</span>Video Tutorials</div>
+            <div class="quick-link" onclick="alert('Opening bug reporter…')"><span class="quick-link-icon">🐛</span>Report a Bug</div>
+            <div class="quick-link" onclick="alert('Opening feedback form…')"><span class="quick-link-icon">💡</span>Suggest a Feature</div>
+          </div>
+        </div>
+        <div class="card" style="background:rgba(0,184,148,.06);border-color:rgba(0,184,148,.15);">
+          <div style="font-size:14px;font-weight:700;color:#00b894;margin-bottom:12px;">🟢 System Status</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.6)">Platform</span><span style="color:#00b894;font-weight:600">● Operational</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.6)">Quest Engine</span><span style="color:#00b894;font-weight:600">● Operational</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.6)">AI Sage</span><span style="color:#00b894;font-weight:600">● Operational</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(255,255,255,.6)">Arena Battles</span><span style="color:#FDCB6E;font-weight:600">● Degraded</span></div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.3);">Last checked: 5 minutes ago</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- New Ticket Modal -->
+<div class="modal-overlay" id="newTicketModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="modal-title">✉️ Submit New Ticket <button class="modal-close" onclick="document.getElementById('newTicketModal').classList.remove('open')">✕</button></div>
+    <div class="form-field"><label class="form-label">Subject *</label><input class="form-input" id="ticketSubject" placeholder="Brief description of your issue"></div>
+    <div class="form-field"><label class="form-label">Category *</label>
+      <select class="form-select" id="ticketCategory">
+        <option value="">Select a category…</option>
+        <option>Account & Login</option><option>Quests & Content</option><option>Technical Bug</option>
+        <option>Billing & Subscription</option><option>Arena & Battles</option><option>AI Sage</option>
+        <option>XP & Badges</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Priority</label>
+      <select class="form-select" id="ticketPriority">
+        <option value="Low">Low – No rush</option><option value="Normal" selected>Normal – Needs attention</option><option value="High">High – Blocking me</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Description *</label>
+      <textarea class="form-textarea" id="ticketDesc" placeholder="Describe your issue in detail. Include any error messages, steps to reproduce, or screenshots if relevant."></textarea>
+    </div>
+    <div class="form-field"><label class="form-label">Attachment (optional)</label>
+      <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/*,.pdf" onchange="fileSelected(this)">
+        <div style="font-size:24px;margin-bottom:6px;">📎</div>
+        <div id="fileLabel" style="font-size:13px;color:rgba(255,255,255,.4);">Click to attach a file (image or PDF)</div>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="submitTicket()">Submit Ticket ➜</button>
+  </div>
+</div>
+
+<!-- View Ticket Modal -->
+<div class="modal-overlay" id="viewTicketModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="modal-title"><span id="vTitle">Ticket Details</span><button class="modal-close" onclick="document.getElementById('viewTicketModal').classList.remove('open')">✕</button></div>
+    <div id="vDetails"></div>
+    <div class="message-thread" id="vThread"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <input class="form-input" id="replyInput" placeholder="Add a reply…" style="flex:1;">
+      <button onclick="sendReply()" style="background:rgba(108,92,231,.3);border:1px solid rgba(108,92,231,.4);color:#a29bfe;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/login.html';return;}initPage(user);});
+
+let tickets=[
+  {id:'TKT-1042',subject:'XP not updating after completing quest',category:'Quests & Content',status:'In Progress',date:'Nov 5, 2024',priority:'High',desc:"After completing the 'Function Forge' quest (scored 96%), my XP bar didn't update. I still show 3,250 XP instead of the expected 3,450 XP. Tried refreshing but issue persists.",messages:[{from:'Support',text:'Hi! We\'ve reproduced this issue. It\'s a sync delay between the quest engine and your profile. We\'ll push a fix within 24 hours and your XP will be credited.',time:'Nov 5, 14:32'}]},
+  {id:'TKT-1038',subject:'Arena matchmaking stuck on loading screen',category:'Arena & Battles',status:'Resolved',date:'Nov 2, 2024',priority:'Normal',desc:"Every time I try to start an arena battle, the matchmaking screen spins for 5+ minutes and never finds an opponent.",messages:[{from:'Support',text:'This was caused by a server issue that has now been fixed. Arena battles should work normally. Let us know if it persists!',time:'Nov 3, 09:15'},{from:'You',text:'Thanks, it works now!',time:'Nov 3, 10:02'}]},
+  {id:'TKT-1031',subject:'Cannot access AI Sage – blank screen',category:'AI Sage',status:'Resolved',date:'Oct 28, 2024',priority:'Normal',desc:'The AI Sage page loads but shows a completely blank chat area with no input field visible.',messages:[{from:'Support',text:'This was a browser compatibility issue with Safari v16. We have deployed a fix. Please clear your browser cache and try again.',time:'Oct 29, 08:00'}]},
+  {id:'TKT-1024',subject:'Badge not awarded after completing Code path',category:'XP & Badges',status:'Closed',date:'Oct 15, 2024',priority:'Low',desc:"Completed all Code quests but didn't receive the 'Code Master' badge. My backpack still shows it as locked.",messages:[{from:'Support',text:'Badge awarded manually and fix deployed for the automation trigger. Apologies for the delay!',time:'Oct 16, 11:20'}]},
+  {id:'TKT-1019',subject:'Question about subscription renewal date',category:'Billing & Subscription',status:'Closed',date:'Oct 10, 2024',priority:'Low',desc:'When does my school subscription renew? I want to make sure my access continues.',messages:[{from:'Support',text:'Your school\'s subscription renews on January 15, 2025. You will have uninterrupted access until then. Reach out if you need anything else!',time:'Oct 10, 15:45'}]},
+];
+
+const faqs=[
+  {q:'Why is my XP not updating after a quest?',a:'XP updates can take up to 5 minutes to sync. If it hasn\'t updated after 10 minutes, try a hard refresh (Ctrl+Shift+R). If the problem persists, please submit a ticket.'},
+  {q:'How do I join or create a Guild?',a:'Go to the Guild page from the sidebar. You can browse open guilds and request to join, or create your own if you\'re Level 5 or above. Guild creation requires 100 coins.'},
+  {q:'My streak broke even though I logged in — can it be restored?',a:'If you believe your streak was broken due to a technical issue, submit a support ticket with your login timestamps. We can manually restore streaks caused by platform errors.'},
+  {q:'Can I change my username?',a:'Yes! Go to Profile → Edit Profile → Display Name. Username changes are limited to once every 30 days.'},
+  {q:'How does the Arena matchmaking work?',a:'The arena matches you with students of a similar skill level based on your XP and recent quest scores. If no match is found within 60 seconds, the range widens. You\'ll typically be matched within 2–3 minutes.'},
+  {q:'How do I report inappropriate content or a cheating student?',a:'Use the flag icon (🚩) on any quest, leaderboard entry, or chat message. All reports are reviewed by our moderation team within 24 hours.'},
+];
+
+let currentFilter='all';
+let viewingTicket=null;
+
+function renderTickets(){
+  const tbody=document.getElementById('ticketTableBody');tbody.innerHTML='';
+  const filtered=currentFilter==='all'?tickets:tickets.filter(t=>t.status===currentFilter);
+  document.getElementById('noTickets').style.display=filtered.length?'none':'';
+  filtered.forEach(t=>{
+    const statusClass={Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed'}[t.status]||'open';
+    const row=document.createElement('tr');
+    row.innerHTML=`<td><span class="ticket-id">${t.id}</span></td>
+      <td><div class="ticket-subject">${t.subject}<span>${t.category}</span></div></td>
+      <td style="color:rgba(255,255,255,.5);font-size:12px;">${t.priority}</td>
+      <td><span class="status-badge status-${statusClass}">${t.status==='In Progress'?'⏳':t.status==='Resolved'?'✅':t.status==='Open'?'🔴':'⬜'} ${t.status}</span></td>
+      <td style="color:rgba(255,255,255,.4)">${t.date}</td>
+      <td><button class="action-btn" onclick="viewTicket('${t.id}')">View</button></td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function filterTickets(val){currentFilter=val;renderTickets();}
+
+function viewTicket(id){
+  const t=tickets.find(x=>x.id===id);if(!t)return;viewingTicket=t;
+  const statusClass={Open:'open','In Progress':'progress',Resolved:'resolved',Closed:'closed'}[t.status]||'open';
+  document.getElementById('vTitle').textContent=t.id+' – '+t.subject;
+  document.getElementById('vDetails').innerHTML=`
+    <div class="detail-row"><div class="detail-key">Status</div><div class="detail-val"><span class="status-badge status-${statusClass}">${t.status}</span></div></div>
+    <div class="detail-row"><div class="detail-key">Category</div><div class="detail-val">${t.category}</div></div>
+    <div class="detail-row"><div class="detail-key">Priority</div><div class="detail-val">${t.priority}</div></div>
+    <div class="detail-row"><div class="detail-key">Date</div><div class="detail-val">${t.date}</div></div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px;margin-top:8px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;">${t.desc}</div>`;
+  const thread=document.getElementById('vThread');thread.innerHTML='';
+  if(t.messages&&t.messages.length){
+    t.messages.forEach(m=>{
+      const d=document.createElement('div');
+      d.className='msg-bubble '+(m.from==='Support'?'msg-staff':'msg-user');
+      d.innerHTML=`<strong>${m.from}:</strong> ${m.text}<div class="msg-meta">${m.time}</div>`;
+      thread.appendChild(d);
+    });
+  }
+  document.getElementById('viewTicketModal').classList.add('open');
+}
+
+function sendReply(){
+  const inp=document.getElementById('replyInput');const text=inp.value.trim();if(!text||!viewingTicket)return;
+  viewingTicket.messages=viewingTicket.messages||[];
+  viewingTicket.messages.push({from:'You',text,time:'Just now'});
+  inp.value='';
+  const d=document.createElement('div');d.className='msg-bubble msg-user';
+  d.innerHTML=`<strong>You:</strong> ${text}<div class="msg-meta">Just now</div>`;
+  document.getElementById('vThread').appendChild(d);
+}
+
+function openNewTicket(){document.getElementById('newTicketModal').classList.add('open');}
+
+function submitTicket(){
+  const subj=document.getElementById('ticketSubject').value.trim();
+  const cat=document.getElementById('ticketCategory').value;
+  const desc=document.getElementById('ticketDesc').value.trim();
+  const pri=document.getElementById('ticketPriority').value;
+  if(!subj){alert('Please enter a subject.');return;}
+  if(!cat){alert('Please select a category.');return;}
+  if(!desc||desc.length<10){alert('Please describe your issue (at least 10 characters).');return;}
+  const newId='TKT-'+(1043+tickets.length);
+  tickets.unshift({id:newId,subject:subj,category:cat,status:'Open',date:'Today',priority:pri,desc,messages:[]});
+  renderTickets();
+  document.getElementById('newTicketModal').classList.remove('open');
+  document.getElementById('ticketSubject').value='';document.getElementById('ticketDesc').value='';
+  document.getElementById('ticketCategory').value='';document.getElementById('fileLabel').textContent='Click to attach a file (image or PDF)';
+  alert(`✅ Ticket ${newId} submitted! We'll respond within 2–4 hours.`);
+}
+
+function fileSelected(inp){
+  if(inp.files[0]) document.getElementById('fileLabel').textContent='📎 '+inp.files[0].name;
+}
+
+function renderFAQ(){
+  const list=document.getElementById('faqList');
+  faqs.forEach((f,i)=>{
+    const item=document.createElement('div');item.className='faq-item';
+    item.innerHTML=`<div class="faq-q" onclick="toggleFAQ(${i},this.parentElement)"><span>${f.q}</span><span class="faq-chevron">▼</span></div>
+      <div class="faq-a">${f.a}</div>`;
+    list.appendChild(item);
+  });
+}
+function toggleFAQ(i,el){
+  el.classList.toggle('expanded');
+  el.querySelector('.faq-a').classList.toggle('open');
+}
+
+function initPage(user){
+  const name=user.displayName||user.email.split('@')[0]||'Student';
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  renderTickets();renderFAQ();
+}
+</script>
+</body>
+</html>

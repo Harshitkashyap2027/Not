@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Profile – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.btn-outline{background:transparent;border:1px solid rgba(108,92,231,.5);color:#a29bfe;padding:8px 18px;border-radius:10px;font-size:13px;cursor:pointer;transition:all .2s;}
+.btn-outline:hover{background:rgba(108,92,231,.2);}
+
+/* Profile Hero */
+.profile-hero{background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(0,206,201,.08));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px;display:flex;align-items:center;gap:32px;margin-bottom:24px;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(108,92,231,.15),transparent);border-radius:50%;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar-circle{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:700;border:3px solid rgba(255,255,255,.2);box-shadow:0 0 30px rgba(108,92,231,.4);}
+.level-badge{position:absolute;bottom:-4px;right:-4px;background:linear-gradient(135deg,#FDCB6E,#e17055);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;color:#fff;border:2px solid #0D0D1A;}
+.profile-info{flex:1;}
+.profile-name{font-size:28px;font-weight:700;margin-bottom:4px;}
+.profile-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:16px;}
+.profile-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.meta-tag{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.7);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:4px 12px;}
+.xp-bar-wrap{width:100%;max-width:400px;}
+.xp-bar-label{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px;}
+.xp-bar-track{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);border-radius:5px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+
+/* Stats Row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-icon{font-size:28px;margin-bottom:8px;}
+.stat-value{font-size:28px;font-weight:700;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;}
+
+/* Grid layout */
+.profile-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;margin-bottom:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+
+/* Achievement Wall */
+.badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.badge-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center;transition:all .2s;cursor:pointer;}
+.badge-item.earned{border-color:rgba(108,92,231,.3);background:rgba(108,92,231,.05);}
+.badge-item.earned:hover{border-color:#6C5CE7;transform:translateY(-2px);box-shadow:0 8px 20px rgba(108,92,231,.2);}
+.badge-item.locked{opacity:.35;cursor:default;}
+.badge-icon{font-size:28px;margin-bottom:6px;}
+.badge-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.8);}
+.badge-rarity{font-size:10px;margin-top:3px;}
+
+/* Activity Chart */
+.chart-bar-row{display:flex;align-items:flex-end;gap:8px;height:80px;margin-bottom:8px;}
+.chart-bar{flex:1;border-radius:4px 4px 0 0;min-height:4px;transition:height .5s;}
+.chart-labels{display:flex;gap:8px;}
+.chart-label{flex:1;text-align:center;font-size:11px;color:rgba(255,255,255,.4);}
+
+/* Activity Feed */
+.activity-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.activity-item:last-child{border-bottom:none;}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.activity-text{flex:1;font-size:13px;color:rgba(255,255,255,.7);}
+.activity-time{font-size:11px;color:rgba(255,255,255,.3);}
+
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .profile-grid{grid-template-columns:1fr;}
+  .profile-hero{flex-direction:column;text-align:center;}
+}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item active"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Loading…</div>
+        <div class="user-level-sm">Level 7 Explorer</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">👤</span>
+    <span class="header-title">My Profile</span>
+    <button class="btn-outline" onclick="document.getElementById('editModal').style.display='flex'">✏️ Edit Profile</button>
+  </header>
+  <div class="app-content">
+
+    <!-- Hero -->
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar-circle" id="heroAvatar">A</div>
+        <div class="level-badge">Lv 7</div>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" id="heroName">Alex Rivera</div>
+        <div class="profile-sub" id="heroEmail">alex.rivera@school.edu</div>
+        <div class="profile-meta">
+          <div class="meta-tag">🏫 Westview Academy</div>
+          <div class="meta-tag">📚 Grade 10</div>
+          <div class="meta-tag">🔥 7-day streak</div>
+          <div class="meta-tag">🏆 Explorer Tier</div>
+        </div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-label"><span>⚡ 3,450 XP</span><span>5,000 XP → Level 8</span></div>
+          <div class="xp-bar-track"><div class="xp-bar-fill" id="xpFill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value" style="color:#6C5CE7">42</div><div class="stat-label">Quests Completed</div></div>
+      <div class="stat-card"><div class="stat-icon">⚔️</div><div class="stat-value" style="color:#FD79A8">18</div><div class="stat-label">Battles Won</div></div>
+      <div class="stat-card"><div class="stat-icon">🛡️</div><div class="stat-value" style="color:#FDCB6E">#3</div><div class="stat-label">Guild Rank</div></div>
+      <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value" style="color:#e17055">7</div><div class="stat-label">Day Streak</div></div>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <!-- Achievement Wall -->
+        <div class="card">
+          <div class="card-title">🏆 Achievement Wall</div>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </div>
+        <!-- Weekly Activity -->
+        <div class="card">
+          <div class="card-title">📅 Weekly Activity</div>
+          <div class="chart-bar-row" id="activityChart"></div>
+          <div class="chart-labels">
+            <div class="chart-label">Mon</div><div class="chart-label">Tue</div><div class="chart-label">Wed</div>
+            <div class="chart-label">Thu</div><div class="chart-label">Fri</div><div class="chart-label">Sat</div><div class="chart-label">Sun</div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:12px;">
+            <div style="font-size:12px;color:rgba(255,255,255,.5)">📖 Best Day: <span style="color:#6C5CE7;font-weight:600">Wednesday (3h 20min)</span></div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5)">⚡ Total: <span style="color:#FDCB6E;font-weight:600">12.5 hrs this week</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- Recent Activity -->
+        <div class="card">
+          <div class="card-title">⏰ Recent Activity</div>
+          <div id="activityFeed"></div>
+        </div>
+        <!-- Quick Stats -->
+        <div class="card">
+          <div class="card-title">📈 Quick Stats</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Average Score</span><span style="color:#00CEC9;font-weight:700">84%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Rank Percentile</span><span style="color:#FDCB6E;font-weight:700">Top 8%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Total Study Time</span><span style="color:#a29bfe;font-weight:700">48.5 hrs</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Best Subject</span><span style="color:#00b894;font-weight:700">💻 Code (95%)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Badges Earned</span><span style="color:#FD79A8;font-weight:700">6 / 20</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:rgba(255,255,255,.5)">Member Since</span><span style="color:rgba(255,255,255,.7);font-weight:600">Sep 2024</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Edit Modal -->
+<div id="editModal" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:440px;width:90%;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div style="font-size:18px;font-weight:700;">✏️ Edit Profile</div>
+      <button onclick="document.getElementById('editModal').style.display='none'" style="background:rgba(255,255,255,.05);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><label style="font-size:12px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Display Name</label>
+        <input id="editName" type="text" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;" placeholder="Your name"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">School</label>
+        <input type="text" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;" placeholder="School name" value="Westview Academy"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;">Grade Level</label>
+        <select style="width:100%;background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;">
+          <option>Grade 9</option><option selected>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select></div>
+      <button onclick="saveProfile()" style="background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;color:#fff;padding:12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+firebase.auth().onAuthStateChanged(user=>{ if(!user){window.location.href='/auth/login.html';return;} initPage(user); });
+
+const badges=[
+  {icon:'🏆',name:'First Quest',rarity:'Common',color:'#a29bfe',earned:true},
+  {icon:'⚡',name:'Speed Demon',rarity:'Rare',color:'#00CEC9',earned:true},
+  {icon:'🔥',name:'7-Day Streak',rarity:'Rare',color:'#00CEC9',earned:true},
+  {icon:'💻',name:'Code Master',rarity:'Epic',color:'#6C5CE7',earned:true},
+  {icon:'⚔️',name:'Battle-Hardened',rarity:'Epic',color:'#6C5CE7',earned:true},
+  {icon:'🌟',name:'Top Scholar',rarity:'Legendary',color:'#FDCB6E',earned:true},
+  {icon:'🎯',name:'Perfect Score',rarity:'Epic',color:'#6C5CE7',earned:false},
+  {icon:'🛡️',name:'Guild Guardian',rarity:'Rare',color:'#00CEC9',earned:false},
+  {icon:'🧠',name:'AI Collaborator',rarity:'Common',color:'#a29bfe',earned:false},
+  {icon:'📅',name:'30-Day Streak',rarity:'Legendary',color:'#FDCB6E',earned:false},
+  {icon:'🚀',name:'Quest Speedrun',rarity:'Epic',color:'#6C5CE7',earned:false},
+  {icon:'👑',name:'Leaderboard King',rarity:'Legendary',color:'#FDCB6E',earned:false},
+];
+
+const activities=[
+  {icon:'✅',text:'Completed "Force & Motion" quest',time:'2h ago',color:'#00b894'},
+  {icon:'⚔️',text:'Won arena battle vs CodeNinja99',time:'5h ago',color:'#FD79A8'},
+  {icon:'⚡',text:'Earned 200 XP in Science path',time:'Yesterday',color:'#FDCB6E'},
+  {icon:'🏆',text:'Unlocked "Top Scholar" badge',time:'2 days ago',color:'#6C5CE7'},
+  {icon:'🔁',text:'Reviewed Algebra Awakening quest',time:'3 days ago',color:'#a29bfe'},
+  {icon:'🛡️',text:'Joined Phoenix Guild – rank #3',time:'4 days ago',color:'#00CEC9'},
+];
+
+const weekActivity=[45,80,200,160,120,90,55]; // minutes per day
+
+function initPage(user){
+  const name=user.displayName||user.email.split('@')[0]||'Student';
+  document.getElementById('heroAvatar').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('heroName').textContent=name;
+  document.getElementById('heroEmail').textContent=user.email;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('editName').value=name;
+  setTimeout(()=>document.getElementById('xpFill').style.width='69%',300);
+  renderBadges(); renderActivity(); renderChart();
+}
+
+function renderBadges(){
+  const grid=document.getElementById('badgeGrid');
+  badges.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='badge-item '+(b.earned?'earned':'locked');
+    d.innerHTML=`<div class="badge-icon">${b.earned?b.icon:'❓'}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-rarity" style="color:${b.color}">${b.rarity}</div>`;
+    grid.appendChild(d);
+  });
+}
+
+function renderActivity(){
+  const feed=document.getElementById('activityFeed');
+  activities.forEach(a=>{
+    const d=document.createElement('div');
+    d.className='activity-item';
+    d.innerHTML=`<div class="activity-dot" style="background:${a.color}"></div>
+      <div class="activity-text">${a.icon} ${a.text}</div>
+      <div class="activity-time">${a.time}</div>`;
+    feed.appendChild(d);
+  });
+}
+
+function renderChart(){
+  const chart=document.getElementById('activityChart');
+  const max=Math.max(...weekActivity);
+  weekActivity.forEach(v=>{
+    const bar=document.createElement('div');
+    bar.className='chart-bar';
+    const pct=Math.round(v/max*100);
+    bar.style.cssText=`height:${pct}%;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));`;
+    chart.appendChild(bar);
+  });
+}
+
+function saveProfile(){
+  const n=document.getElementById('editName').value.trim();
+  if(n){document.getElementById('heroName').textContent=n;document.getElementById('sidebarName').textContent=n;}
+  document.getElementById('editModal').style.display='none';
+}
+</script>
+</body>
+</html>

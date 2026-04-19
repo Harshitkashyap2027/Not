@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quest Map – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;overflow-x:hidden;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-level-sm{font-size:11px;color:#6C5CE7;}
+
+/* Header */
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.xp-chip{background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.4);border-radius:20px;padding:4px 14px;font-size:13px;color:#a29bfe;font-weight:600;}
+
+/* Map */
+.map-container{position:relative;width:100%;min-height:800px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:#0a0a18;}
+.map-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(108,92,231,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,92,231,.04) 1px,transparent 1px);background-size:40px 40px;}
+.map-bg-glow{position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(108,92,231,.08),transparent);}
+.path-label{position:absolute;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;opacity:.5;}
+
+/* Quest Nodes */
+.quest-node{position:absolute;transform:translate(-50%,-50%);cursor:pointer;transition:transform .2s;}
+.quest-node:hover{transform:translate(-50%,-50%) scale(1.1);}
+.node-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:3px solid;position:relative;}
+.node-label{position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;text-align:center;background:rgba(13,13,26,.8);padding:2px 8px;border-radius:10px;}
+.node-xp{position:absolute;top:-20px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#FDCB6E;background:rgba(253,203,110,.1);border:1px solid rgba(253,203,110,.3);padding:1px 6px;border-radius:8px;}
+.node-completed .node-circle{background:rgba(0,184,148,.15);border-color:#00b894;color:#00b894;}
+.node-active .node-circle{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;animation:pulse-node 2s infinite;}
+.node-available .node-circle{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.7);}
+.node-locked .node-circle{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.2);}
+@keyframes pulse-node{0%,100%{box-shadow:0 0 0 0 rgba(108,92,231,.4);}50%{box-shadow:0 0 0 12px rgba(108,92,231,0);}}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:480px;width:90%;transform:scale(.95);transition:transform .2s;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.modal-overlay.open .modal-box{transform:scale(1);}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.modal-close{background:rgba(255,255,255,.05);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.modal-icon{font-size:48px;margin-bottom:12px;}
+.modal-title{font-size:20px;font-weight:700;}
+.modal-subject-tag{display:inline-block;background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.4);border-radius:20px;padding:2px 12px;font-size:12px;color:#a29bfe;margin:8px 0 16px;}
+.modal-desc{color:rgba(255,255,255,.7);font-size:14px;line-height:1.6;margin-bottom:20px;}
+.modal-rewards{display:flex;gap:12px;margin-bottom:24px;}
+.reward-chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 16px;font-size:13px;text-align:center;}
+.reward-val{font-size:18px;font-weight:700;color:#FDCB6E;}
+.reward-key{font-size:11px;color:rgba(255,255,255,.5);display:block;}
+.btn-primary{background:linear-gradient(135deg,#6C5CE7,#a29bfe);border:none;color:#fff;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.btn-disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed;}
+.quest-path-line{position:absolute;pointer-events:none;}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.filter-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all .2s;}
+.filter-btn.active,.filter-btn:hover{background:rgba(108,92,231,.2);border-color:#6C5CE7;color:#a29bfe;}
+.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.5);}
+.legend-dot{width:12px;height:12px;border-radius:50%;border:2px solid;}
+</style>
+</head>
+<body>
+
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">lvlBase</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Learn</div>
+    <a href="/app/student/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/student/quest-map.html" class="nav-item active"><span class="nav-icon">🗺️</span>Quest Map</a>
+    <a href="/app/student/ai/sage-chat.html" class="nav-item"><span class="nav-icon">🧠</span>AI Sage</a>
+    <a href="/app/student/focus-mode.html" class="nav-item"><span class="nav-icon">🎯</span>Focus Mode</a>
+    <div class="nav-section-title">Compete</div>
+    <a href="/app/student/arena/matchmaking.html" class="nav-item"><span class="nav-icon">⚔️</span>Arena</a>
+    <a href="/app/student/guilds/guild-dashboard.html" class="nav-item"><span class="nav-icon">🛡️</span>Guild</a>
+    <div class="nav-section-title">Profile</div>
+    <a href="/app/student/profile.html" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    <a href="/app/student/backpack.html" class="nav-item"><span class="nav-icon">🎒</span>Backpack</a>
+    <a href="/app/student/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/student/workspace/web-studio.html" class="nav-item"><span class="nav-icon">💻</span>Workspace</a>
+    <a href="/app/student/support-desk.html" class="nav-item"><span class="nav-icon">🎫</span>Support</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">?</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Loading…</div>
+        <div class="user-level-sm">Level 7 Explorer</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🗺️</span>
+    <span class="header-title">Quest Map</span>
+    <div class="xp-chip">⚡ 3,450 XP Total</div>
+    <div style="background:rgba(0,184,148,.15);border:1px solid rgba(0,184,148,.3);border-radius:20px;padding:4px 14px;font-size:13px;color:#00b894;font-weight:600;">42 Quests Done</div>
+  </header>
+
+  <div class="app-content">
+    <div class="filter-bar">
+      <span style="font-size:13px;color:rgba(255,255,255,.5);margin-right:4px;">Filter:</span>
+      <button class="filter-btn active" onclick="filterSubject('all')">All Subjects</button>
+      <button class="filter-btn" onclick="filterSubject('math')">🔢 Math</button>
+      <button class="filter-btn" onclick="filterSubject('science')">🔬 Science</button>
+      <button class="filter-btn" onclick="filterSubject('english')">📖 English</button>
+      <button class="filter-btn" onclick="filterSubject('history')">📜 History</button>
+      <button class="filter-btn" onclick="filterSubject('code')">💻 Code</button>
+    </div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="border-color:#00b894;background:rgba(0,184,148,.2);"></div>Completed</div>
+      <div class="legend-item"><div class="legend-dot" style="border-color:#6C5CE7;background:rgba(108,92,231,.2);"></div>Active</div>
+      <div class="legend-item"><div class="legend-dot" style="border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05);"></div>Available</div>
+      <div class="legend-item"><div class="legend-dot" style="border-color:rgba(255,255,255,.1);background:transparent;"></div>Locked</div>
+    </div>
+
+    <div class="map-container" id="questMap">
+      <div class="map-bg"></div>
+      <div class="map-bg-glow"></div>
+      <!-- SVG paths drawn by JS -->
+      <svg id="pathSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></svg>
+      <!-- Nodes injected by JS -->
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="questModal" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon" id="mIcon">🔢</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-title" id="mTitle">Quest Title</div>
+    <div class="modal-subject-tag" id="mTag">Math</div>
+    <div class="modal-desc" id="mDesc">Quest description goes here.</div>
+    <div class="modal-rewards">
+      <div class="reward-chip"><div class="reward-val" id="mXP">+150</div><span class="reward-key">XP Reward</span></div>
+      <div class="reward-chip"><div class="reward-val" id="mTime">20 min</div><span class="reward-key">Est. Time</span></div>
+      <div class="reward-chip"><div class="reward-val" id="mDiff">⭐⭐</div><span class="reward-key">Difficulty</span></div>
+    </div>
+    <button class="btn-primary" id="mBtn" onclick="startQuest()">Start Quest ➜</button>
+  </div>
+</div>
+
+<script>
+firebase.auth().onAuthStateChanged(user => { if(!user){window.location.href='/auth/login.html';return;} initPage(user); });
+
+const quests = [
+  // Math path
+  {id:'m1',subject:'math',title:'Number Ninja',icon:'🔢',desc:'Master integers, fractions, and order of operations. Build your arithmetic foundation to unlock algebraic thinking.',xp:100,time:'15 min',diff:'⭐',status:'completed',x:8,y:12},
+  {id:'m2',subject:'math',title:'Algebra Awakening',icon:'➕',desc:'Solve linear equations and inequalities. Learn to express real-world problems as algebraic expressions.',xp:150,time:'20 min',diff:'⭐⭐',status:'completed',x:16,y:20},
+  {id:'m3',subject:'math',title:'Geometry Gate',icon:'📐',desc:'Explore shapes, angles, and area calculations. Prove theorems using logical deduction.',xp:200,time:'25 min',diff:'⭐⭐',status:'active',x:24,y:12},
+  {id:'m4',subject:'math',title:'Trigonometry Tower',icon:'📏',desc:'Master sine, cosine, and tangent. Apply trig ratios to solve triangles and wave problems.',xp:250,time:'30 min',diff:'⭐⭐⭐',status:'available',x:32,y:20},
+  {id:'m5',subject:'math',title:'Calculus Summit',icon:'∫',desc:'Conquer derivatives and integrals. Understand limits, rates of change, and area under curves.',xp:400,time:'45 min',diff:'⭐⭐⭐⭐',status:'locked',x:40,y:12},
+
+  // Science path
+  {id:'s1',subject:'science',title:'Cell Explorer',icon:'🔬',desc:'Journey into the microscopic world of cells. Learn about organelles, cell division, and DNA structure.',xp:120,time:'18 min',diff:'⭐',status:'completed',x:8,y:38},
+  {id:'s2',subject:'science',title:'Chemistry Spark',icon:'⚗️',desc:'Understand atomic structure, periodic table trends, and chemical bonding.',xp:160,time:'22 min',diff:'⭐⭐',status:'completed',x:16,y:46},
+  {id:'s3',subject:'science',title:'Force & Motion',icon:'🚀',desc:"Apply Newton's Laws to real situations. Calculate velocity, acceleration, and momentum.",xp:180,time:'25 min',diff:'⭐⭐',status:'active',x:24,y:38},
+  {id:'s4',subject:'science',title:'Ecology Quest',icon:'🌱',desc:'Study ecosystems, food webs, and environmental impact. Understand biodiversity and conservation.',xp:200,time:'28 min',diff:'⭐⭐⭐',status:'available',x:32,y:46},
+  {id:'s5',subject:'science',title:'Quantum Realm',icon:'⚛️',desc:'Introduction to quantum mechanics, wave-particle duality, and the uncertainty principle.',xp:380,time:'40 min',diff:'⭐⭐⭐⭐',status:'locked',x:40,y:38},
+
+  // English path
+  {id:'e1',subject:'english',title:'Word Wizard',icon:'📖',desc:'Expand vocabulary with roots, prefixes, and suffixes. Learn context clues and dictionary skills.',xp:90,time:'12 min',diff:'⭐',status:'completed',x:8,y:62},
+  {id:'e2',subject:'english',title:'Story Architect',icon:'✍️',desc:'Build compelling narratives with strong story structure, character development, and conflict.',xp:140,time:'20 min',diff:'⭐⭐',status:'completed',x:16,y:70},
+  {id:'e3',subject:'english',title:'Essay Master',icon:'📝',desc:'Write persuasive and analytical essays. Structure arguments, cite evidence, and craft conclusions.',xp:170,time:'25 min',diff:'⭐⭐',status:'available',x:24,y:62},
+  {id:'e4',subject:'english',title:'Poetry Forge',icon:'🎭',desc:'Analyze and create poetry using rhyme, meter, metaphor, and imagery techniques.',xp:190,time:'22 min',diff:'⭐⭐⭐',status:'locked',x:32,y:70},
+
+  // History path
+  {id:'h1',subject:'history',title:'Ancient Empires',icon:'🏛️',desc:'Explore civilizations of Egypt, Greece, and Rome. Understand how ancient societies shaped modern culture.',xp:110,time:'16 min',diff:'⭐',status:'completed',x:50,y:18},
+  {id:'h2',subject:'history',title:'Medieval Quest',icon:'⚔️',desc:'Life in the Middle Ages: feudalism, the Crusades, Black Death, and the rise of nation-states.',xp:150,time:'20 min',diff:'⭐⭐',status:'completed',x:60,y:26},
+  {id:'h3',subject:'history',title:'Revolution Road',icon:'🔥',desc:'American, French, and Industrial Revolutions. How ideas of liberty and innovation transformed the world.',xp:180,time:'24 min',diff:'⭐⭐',status:'active',x:70,y:18},
+  {id:'h4',subject:'history',title:'World Wars',icon:'��',desc:'WWI and WWII causes, key events, and consequences. Holocaust, treaties, and the birth of the UN.',xp:220,time:'30 min',diff:'⭐⭐⭐',status:'available',x:80,y:26},
+  {id:'h5',subject:'history',title:'Modern World',icon:'🌐',desc:'Cold War, Civil Rights, tech revolution, and globalization. How the 20th century built today.',xp:280,time:'35 min',diff:'⭐⭐⭐',status:'locked',x:90,y:18},
+
+  // Code path
+  {id:'c1',subject:'code',title:'Hello, World!',icon:'💻',desc:'Write your first programs in Python. Variables, data types, input/output, and basic operators.',xp:100,time:'15 min',diff:'⭐',status:'completed',x:50,y:50},
+  {id:'c2',subject:'code',title:'Loop Legend',icon:'🔁',desc:'Master for loops, while loops, and nested iterations. Solve pattern problems and build algorithms.',xp:150,time:'20 min',diff:'⭐⭐',status:'completed',x:60,y:58},
+  {id:'c3',subject:'code',title:'Function Forge',icon:'⚙️',desc:'Write reusable functions, understand scope, parameters, and return values. DRY coding principles.',xp:200,time:'25 min',diff:'⭐⭐',status:'active',x:70,y:50},
+  {id:'c4',subject:'code',title:'Data Structures',icon:'🗄️',desc:'Lists, dictionaries, sets, and stacks. Understand how data is organized and accessed efficiently.',xp:280,time:'35 min',diff:'⭐⭐⭐',status:'available',x:80,y:58},
+  {id:'c5',subject:'code',title:'Web Builder',icon:'🌐',desc:'Create full web pages with HTML, CSS, and JavaScript. Responsive design and DOM manipulation.',xp:350,time:'45 min',diff:'⭐⭐⭐⭐',status:'available',x:90,y:50},
+];
+
+const subjectColors = {math:'#6C5CE7',science:'#00CEC9',english:'#FD79A8',history:'#FDCB6E',code:'#00b894'};
+let currentSubject = 'all';
+let selectedQuest = null;
+
+function renderMap(filter){
+  const map = document.getElementById('questMap');
+  // Remove old nodes
+  map.querySelectorAll('.quest-node').forEach(n=>n.remove());
+  const svg = document.getElementById('pathSvg');
+  svg.innerHTML='';
+  const mW=map.offsetWidth||900, mH=map.offsetHeight||800;
+
+  const filtered = filter==='all' ? quests : quests.filter(q=>q.subject===filter);
+
+  // Draw paths within each subject chain
+  const bySubject = {};
+  filtered.forEach(q=>{if(!bySubject[q.subject])bySubject[q.subject]=[];bySubject[q.subject].push(q);});
+  Object.values(bySubject).forEach(chain=>{
+    for(let i=0;i<chain.length-1;i++){
+      const a=chain[i], b=chain[i+1];
+      const x1=a.x/100*mW, y1=a.y/100*mH, x2=b.x/100*mW, y2=b.y/100*mH;
+      const isDone = a.status==='completed'&&b.status==='completed';
+      const isActive = a.status==='completed'&&(b.status==='active'||b.status==='available');
+      const col = isDone?subjectColors[a.subject]:isActive?subjectColors[a.subject]:'rgba(255,255,255,.1)';
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2);
+      line.setAttribute('stroke',col);line.setAttribute('stroke-width',isDone||isActive?'3':'1');
+      line.setAttribute('stroke-dasharray',isDone?'none':'6,4');line.setAttribute('opacity',isDone?'.6':'.3');
+      svg.appendChild(line);
+    }
+  });
+
+  // Draw nodes
+  filtered.forEach(q=>{
+    const x=q.x/100*mW, y=q.y/100*mH;
+    const node=document.createElement('div');
+    node.className=`quest-node node-${q.status}`;
+    node.style.cssText=`left:${x}px;top:${y}px;`;
+    node.dataset.id=q.id;
+    const icon = q.status==='locked'?'🔒':q.status==='completed'?'✅':q.icon;
+    node.innerHTML=`
+      <div class="node-xp">+${q.xp} XP</div>
+      <div class="node-circle">${icon}</div>
+      <div class="node-label" style="color:${subjectColors[q.subject]}">${q.title}</div>`;
+    node.addEventListener('click',()=>openModal(q));
+    map.appendChild(node);
+  });
+}
+
+function filterSubject(s){
+  currentSubject=s;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderMap(s);
+}
+
+function openModal(q){
+  selectedQuest=q;
+  document.getElementById('mIcon').textContent=q.icon;
+  document.getElementById('mTitle').textContent=q.title;
+  document.getElementById('mTag').textContent=q.subject.charAt(0).toUpperCase()+q.subject.slice(1);
+  document.getElementById('mTag').style.background=`${subjectColors[q.subject]}22`;
+  document.getElementById('mTag').style.borderColor=`${subjectColors[q.subject]}66`;
+  document.getElementById('mTag').style.color=subjectColors[q.subject];
+  document.getElementById('mDesc').textContent=q.desc;
+  document.getElementById('mXP').textContent='+'+q.xp;
+  document.getElementById('mTime').textContent=q.time;
+  document.getElementById('mDiff').textContent=q.diff;
+  const btn=document.getElementById('mBtn');
+  if(q.status==='locked'){btn.textContent='🔒 Locked';btn.classList.add('btn-disabled');btn.disabled=true;}
+  else if(q.status==='completed'){btn.textContent='✅ Review Quest';btn.classList.remove('btn-disabled');btn.disabled=false;}
+  else{btn.textContent='Start Quest ➜';btn.classList.remove('btn-disabled');btn.disabled=false;}
+  document.getElementById('questModal').classList.add('open');
+}
+function closeModal(e){if(!e||e.target===document.getElementById('questModal'))document.getElementById('questModal').classList.remove('open');}
+function startQuest(){alert(`Launching: ${selectedQuest.title}! (Quest engine coming soon)`);closeModal();}
+
+function initPage(user){
+  const name = user.displayName||user.email||'Student';
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('avatarInitial').textContent=name.charAt(0).toUpperCase();
+  setTimeout(()=>renderMap('all'),100);
+}
+window.addEventListener('resize',()=>renderMap(currentSubject));
+</script>
+</body>
+</html>
