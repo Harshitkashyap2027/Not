@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Support Tickets – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#111111;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#1a1a1a;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:60px;display:flex;align-items:center;padding:0 24px;background:#1a1a1a;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#111111;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;cursor:pointer;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.signout-btn{display:flex;align-items:center;gap:12px;padding:10px 0;color:#E53935;font-size:14px;cursor:pointer;background:none;border:none;width:100%;font-family:inherit;}
+.header-title{font-size:20px;font-weight:700;flex:1;}
+.card{background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+.form-select{background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#fff;font-size:14px;outline:none;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">��️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item active"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">��</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">��</span>Exam Manager</a>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👤</span>Students</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button class="signout-btn" onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'">
+      <span style="font-size:16px;">🔴</span> Sign Out
+    </button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">Support Tickets</div>
+    <button class="btn btn-primary">🔄 Refresh</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">A</div>
+  </header>
+
+  <div class="app-content">
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-top:2px solid #E53935;border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#E53935;">6</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Total Tickets</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-top:2px solid #FDCB6E;border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#FDCB6E;">2</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Open</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-top:2px solid #E53935;border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#E53935;">2</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Urgent</div>
+      </div>
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-top:2px solid #00b894;border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#00b894;">2</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;">Resolved</div>
+      </div>
+    </div>
+
+    <!-- Search + Filter -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;">
+      <input class="form-input" type="text" placeholder="🔍 Search tickets…" style="flex:1;">
+      <select class="form-select">
+        <option>All Status</option><option>Open</option><option>Urgent</option><option>Resolved</option>
+      </select>
+      <select class="form-select">
+        <option>All Categories</option><option>Course Content</option><option>Certificate Error</option>
+        <option>Payment Issue</option><option>Account Access</option><option>Technical Bug</option><option>General Inquiry</option>
+      </select>
+    </div>
+
+    <!-- Tickets Grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+      <!-- Ticket 1 -->
+      <div class="card" style="border-left:4px solid #FDCB6E;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">Course Content</span>
+          <span style="background:rgba(253,203,110,.15);color:#FDCB6E;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">Open</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Video not loading in Module 3</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">student@example.com · Jan 15, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:13px;">Reply</button>
+          <button class="btn btn-dark" style="font-size:13px;">Close</button>
+        </div>
+      </div>
+
+      <!-- Ticket 2 -->
+      <div class="card" style="border-left:4px solid #E53935;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">Certificate Error</span>
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">🚨 Urgent</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Certificate not generated after completion</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">john.d@email.com · Jan 14, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:13px;">Reply</button>
+          <button class="btn btn-dark" style="font-size:13px;">Close</button>
+        </div>
+      </div>
+
+      <!-- Ticket 3 -->
+      <div class="card" style="border-left:4px solid #E53935;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">Payment Issue</span>
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">🚨 Urgent</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Double charged for subscription</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">mary.k@email.com · Jan 14, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:13px;">Reply</button>
+          <button class="btn btn-dark" style="font-size:13px;">Close</button>
+        </div>
+      </div>
+
+      <!-- Ticket 4 -->
+      <div class="card" style="border-left:4px solid #00b894;opacity:.7;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">Account Access</span>
+          <span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">✅ Resolved</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Cannot login after password reset</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">alex.t@email.com · Jan 13, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-dark" style="flex:1;justify-content:center;font-size:13px;">View</button>
+          <button class="btn btn-dark" style="font-size:13px;">Reopen</button>
+        </div>
+      </div>
+
+      <!-- Ticket 5 -->
+      <div class="card" style="border-left:4px solid #FDCB6E;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(229,57,53,.15);color:#E53935;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">Technical Bug</span>
+          <span style="background:rgba(253,203,110,.15);color:#FDCB6E;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">Open</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">Quiz timer freezes on mobile</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">priya.s@email.com · Jan 12, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:13px;">Reply</button>
+          <button class="btn btn-dark" style="font-size:13px;">Close</button>
+        </div>
+      </div>
+
+      <!-- Ticket 6 -->
+      <div class="card" style="border-left:4px solid #00b894;opacity:.7;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+          <span style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;">General Inquiry</span>
+          <span style="background:rgba(0,184,148,.15);color:#00b894;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;">✅ Resolved</span>
+        </div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:8px;">How to download course materials?</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">tom.w@email.com · Jan 11, 2025</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-dark" style="flex:1;justify-content:center;font-size:13px;">View</button>
+          <button class="btn btn-dark" style="font-size:13px;">Reopen</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+function loadPage() {
+  typeof LvlAuth !== 'undefined' && LvlAuth.requireAuth && LvlAuth.requireAuth(['schoolAdmin']);
+}
+
+const _isDemoMode = typeof window.LvlDemoMode !== 'undefined' && window.LvlDemoMode;
+if (_isDemoMode) {
+  document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = 'Administrator');
+  document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = 'A');
+  document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = 'A');
+  typeof loadPage === 'function' && loadPage();
+} else {
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) { window.location.href = '/auth/portal-login.html'; return; }
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = name);
+    const init = name.charAt(0).toUpperCase();
+    document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = init);
+    document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = init);
+    typeof loadPage === 'function' && loadPage();
+  });
+}
+</script>
+</body>
+</html>

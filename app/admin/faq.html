@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FAQ Management – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#111111;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#1a1a1a;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:60px;display:flex;align-items:center;padding:0 24px;background:#1a1a1a;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#111111;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;cursor:pointer;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.signout-btn{display:flex;align-items:center;gap:12px;padding:10px 0;color:#E53935;font-size:14px;cursor:pointer;background:none;border:none;width:100%;font-family:inherit;}
+.header-title{font-size:20px;font-weight:700;flex:1;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-primary{background:#E53935;color:#fff;}
+.btn-dark{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">🛡️</div><span class="logo-text">lvlBase Admin</span></div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item active"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👤</span>Students</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">A</div>
+      <div><div style="font-size:13px;font-weight:600;" id="sidebarName">Administrator</div><div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div></div>
+    </div>
+    <button class="signout-btn" onclick="typeof LvlAuth!=='undefined'?LvlAuth.signOut():window.location.href='/auth/portal-login.html'"><span style="font-size:16px;">🔴</span>Sign Out</button>
+  </div>
+</aside>
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">FAQ Management</div>
+    <button class="btn btn-primary">+ Add FAQ</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">A</div>
+  </header>
+  <div class="app-content">
+    <div style="max-width:800px;display:flex;flex-direction:column;gap:10px;">
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(1)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">GENERAL</span><span style="font-size:14px;font-weight:600;">How do I reset a student's password?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-1" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Go to User Management, find the student, click Edit and use the Reset Password option. An email will be sent to the student automatically.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(2)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">GENERAL</span><span style="font-size:14px;font-weight:600;">How do students access the platform?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-2" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Students log in via the student portal at /auth/portal-login.html using their school email and password provided during registration.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(3)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(229,57,53,.15);color:#E53935;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">TECHNICAL</span><span style="font-size:14px;font-weight:600;">Why is the AI Sage not responding?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-3" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Check if AI Sage is enabled in Settings > Features. If enabled but not working, check the API usage limits in Billing. Contact support if the issue persists.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(4)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(229,57,53,.15);color:#E53935;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">TECHNICAL</span><span style="font-size:14px;font-weight:600;">How do I fix video playback issues?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-4" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Ensure the video files are under 500MB and in MP4/WebM format. Check the storage usage in Billing. Clear the CDN cache from Settings if needed.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(5)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(253,203,110,.15);color:#FDCB6E;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">PAYMENT</span><span style="font-size:14px;font-weight:600;">How is billing calculated?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-5" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Billing is per active student seat per year. Seats are counted at the beginning of each billing period based on active student accounts.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(6)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(253,203,110,.15);color:#FDCB6E;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">PAYMENT</span><span style="font-size:14px;font-weight:600;">Can I get a refund?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-6" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Refunds are available within 30 days of purchase for unused seats. Contact billing@lvlbase.io with your invoice number.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(7)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(0,184,148,.15);color:#00b894;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">ACCOUNT</span><span style="font-size:14px;font-weight:600;">How do I add a new admin user?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-7" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Go to Team Management and click Add Member. Assign the appropriate role and permissions. The new admin will receive an invitation email.</div>
+      </div>
+
+      <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;">
+        <div onclick="toggleFAQ(8)" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="background:rgba(0,184,148,.15);color:#00b894;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;">ACCOUNT</span><span style="font-size:14px;font-weight:600;">How do I export student data?</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><button class="btn btn-dark" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">✏️</button><button class="btn" style="background:rgba(229,57,53,.08);color:#E53935;border:1px solid rgba(229,57,53,.2);padding:4px 10px;font-size:11px;" onclick="event.stopPropagation()">🗑</button><span style="color:rgba(255,255,255,.4);font-size:12px;">▼</span></div>
+        </div>
+        <div id="faq-8" style="display:none;padding:0 20px 16px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);">Go to Reports > Export CSV or User Management > Export CSV to download student data in CSV format for your records.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+function toggleFAQ(id){const el=document.getElementById('faq-'+id);el.style.display=el.style.display==='none'?'block':'none';}
+function loadPage(){typeof LvlAuth!=='undefined'&&LvlAuth.requireAuth&&LvlAuth.requireAuth(['schoolAdmin']);}
+const _isDemoMode=typeof window.LvlDemoMode!=='undefined'&&window.LvlDemoMode;
+if(_isDemoMode){document.getElementById('sidebarName')&&(document.getElementById('sidebarName').textContent='Administrator');document.getElementById('avatarInitial')&&(document.getElementById('avatarInitial').textContent='A');document.getElementById('headerAvatar')&&(document.getElementById('headerAvatar').textContent='A');typeof loadPage==='function'&&loadPage();}
+else{firebase.auth().onAuthStateChanged(user=>{if(!user){window.location.href='/auth/portal-login.html';return;}const name=user.displayName||user.email.split('@')[0]||'Admin';document.getElementById('sidebarName')&&(document.getElementById('sidebarName').textContent=name);const init=name.charAt(0).toUpperCase();document.getElementById('avatarInitial')&&(document.getElementById('avatarInitial').textContent=init);document.getElementById('headerAvatar')&&(document.getElementById('headerAvatar').textContent=init);typeof loadPage==='function'&&loadPage();});}
+</script>
+</body>
+</html>

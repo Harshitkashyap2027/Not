@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Activity Log – lvlBase Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#111111;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#1a1a1a;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:60px;display:flex;align-items:center;padding:0 24px;background:#1a1a1a;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#111111;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:rgba(229,57,53,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(229,57,53,0.3);}
+.logo-text{font-size:16px;font-weight:700;color:#fff;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;cursor:pointer;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(229,57,53,.12);color:#fff;border-left-color:#E53935;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);}
+.signout-btn{display:flex;align-items:center;gap:12px;padding:10px 0;color:#E53935;font-size:14px;cursor:pointer;background:none;border:none;width:100%;font-family:inherit;}
+.card{background:#1a1a1a;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🛡️</div>
+    <span class="logo-text">lvlBase Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/app/admin/dashboard.html" class="nav-item"><span class="nav-icon">��</span>Overview</a>
+    <a href="/app/admin/tickets.html" class="nav-item"><span class="nav-icon">🎫</span>Tickets</a>
+    <a href="/app/admin/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/admin/reports.html" class="nav-item"><span class="nav-icon">📈</span>Reports</a>
+    <a href="/app/admin/class-management.html" class="nav-item"><span class="nav-icon">📚</span>Content</a>
+    <a href="/app/admin/activity.html" class="nav-item active"><span class="nav-icon">🔄</span>Activity</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">📝</span>Registrations</a>
+    <a href="/app/admin/submissions.html" class="nav-item"><span class="nav-icon">📋</span>Submissions</a>
+    <a href="/app/admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+    <a href="/app/admin/notifications.html" class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+    <a href="/app/admin/team.html" class="nav-item"><span class="nav-icon">👥</span>Team</a>
+    <a href="/app/admin/faq.html" class="nav-item"><span class="nav-icon">❓</span>FAQ</a>
+    <a href="/app/admin/billing.html" class="nav-item"><span class="nav-icon">📝</span>Exam Manager</a>
+    <a href="/app/admin/announcements.html" class="nav-item"><span class="nav-icon">📧</span>Mail Center</a>
+    <a href="/app/admin/user-management.html" class="nav-item"><span class="nav-icon">👤</span>Students</a>
+    <a href="/app/admin/security.html" class="nav-item"><span class="nav-icon">🔒</span>Security</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;" id="avatarInitial">A</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;" id="sidebarName">Administrator</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">School Administrator</div>
+      </div>
+    </div>
+    <button class="signout-btn" onclick="typeof LvlAuth !== 'undefined' ? LvlAuth.signOut() : window.location.href='/auth/portal-login.html'">
+      <span style="font-size:16px;">🔴</span> Sign Out
+    </button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div style="flex:1;">
+      <div style="font-size:20px;font-weight:700;">Activity Log</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:1px;">Recent Admin Changes</div>
+    </div>
+    <a href="#" style="font-size:13px;color:#E53935;text-decoration:none;font-weight:600;">View Full Log →</a>
+    <div style="width:36px;height:36px;border-radius:50%;background:#E53935;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;cursor:pointer;" id="headerAvatar">A</div>
+  </header>
+
+  <div class="app-content">
+    <div class="card" style="max-width:900px;">
+      <div style="font-size:16px;font-weight:700;margin-bottom:20px;">🔄 Recent Activity</div>
+
+      <!-- Item 1 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#00b894;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Admin login from Chrome on Windows</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 15 · 10:42 AM</div>
+          <span style="background:rgba(0,184,148,.15);color:#00b894;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">LOGIN</span>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#74b9ff;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Updated course: Advanced Mathematics</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 15 · 10:30 AM</div>
+          <span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">UPDATE</span>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#a29bfe;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">New student account created: Priya Sharma</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 15 · 09:15 AM</div>
+          <span style="background:rgba(162,155,254,.15);color:#a29bfe;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">CREATE</span>
+        </div>
+      </div>
+
+      <!-- Item 4 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#74b9ff;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Settings: Email notifications enabled</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 14 · 05:22 PM</div>
+          <span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">UPDATE</span>
+        </div>
+      </div>
+
+      <!-- Item 5 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#a29bfe;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">New class created: Advanced Physics 11-A</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 14 · 03:10 PM</div>
+          <span style="background:rgba(162,155,254,.15);color:#a29bfe;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">CREATE</span>
+        </div>
+      </div>
+
+      <!-- Item 6 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#74b9ff;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Student record updated: James Okeke</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 14 · 01:45 PM</div>
+          <span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">UPDATE</span>
+        </div>
+      </div>
+
+      <!-- Item 7 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#00b894;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Admin login from Safari on MacOS</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Delhi, India · 10.0.0.42 · Safari 17</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 13 · 11:00 AM</div>
+          <span style="background:rgba(0,184,148,.15);color:#00b894;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">LOGIN</span>
+        </div>
+      </div>
+
+      <!-- Item 8 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#a29bfe;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Announcement sent to all students</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Delhi, India · 10.0.0.42 · Safari 17</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 13 · 10:50 AM</div>
+          <span style="background:rgba(162,155,254,.15);color:#a29bfe;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">CREATE</span>
+        </div>
+      </div>
+
+      <!-- Item 9 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div style="width:10px;height:10px;border-radius:50%;background:#74b9ff;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Billing plan renewed: Pro Annual</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Mumbai, India · 192.168.1.1 · Chrome 120</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 12 · 09:00 AM</div>
+          <span style="background:rgba(116,185,255,.15);color:#74b9ff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">UPDATE</span>
+        </div>
+      </div>
+
+      <!-- Item 10 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#00b894;flex-shrink:0;margin-top:5px;"></div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px;">Admin login from Firefox on Linux</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Pune, India · 172.16.0.5 · Firefox 121</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px;">Jan 11 · 08:30 AM</div>
+          <span style="background:rgba(0,184,148,.15);color:#00b894;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">LOGIN</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>
+function loadPage() {
+  typeof LvlAuth !== 'undefined' && LvlAuth.requireAuth && LvlAuth.requireAuth(['schoolAdmin']);
+}
+
+const _isDemoMode = typeof window.LvlDemoMode !== 'undefined' && window.LvlDemoMode;
+if (_isDemoMode) {
+  document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = 'Administrator');
+  document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = 'A');
+  document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = 'A');
+  typeof loadPage === 'function' && loadPage();
+} else {
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) { window.location.href = '/auth/portal-login.html'; return; }
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName') && (document.getElementById('sidebarName').textContent = name);
+    const init = name.charAt(0).toUpperCase();
+    document.getElementById('avatarInitial') && (document.getElementById('avatarInitial').textContent = init);
+    document.getElementById('headerAvatar') && (document.getElementById('headerAvatar').textContent = init);
+    typeof loadPage === 'function' && loadPage();
+  });
+}
+</script>
+</body>
+</html>
