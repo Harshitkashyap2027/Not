@@ -257,8 +257,8 @@ function loadPage() {
   LvlAuth.requireAuth(['teacher']);
   document.getElementById('sidebarName').textContent = 'Ms. Johnson';
   document.getElementById('avatarInitial').textContent = 'J';
-  const today = new Date(); today.setDate(today.getDate() + 7);
-  document.getElementById('assignDue').value = today.toISOString().split('T')[0];
+  const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  document.getElementById('assignDue').value = dueDate.toISOString().split('T')[0];
   renderTable(assignments);
 }
 loadPage();
