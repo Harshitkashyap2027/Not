@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School Onboarding — lvlBase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FD79A8;
+      --warning: #FDCB6E; --bg: #0D0D1A; --border: rgba(255,255,255,0.1);
+      --text: #E8E8F0; --muted: #8888AA;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh; padding: 2rem 1rem;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 10% 5%, rgba(108,92,231,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 95%, rgba(0,206,201,0.2) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(253,121,168,0.1) 0%, transparent 50%);
+      display: flex; align-items: flex-start; justify-content: center;
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: drift 14s ease-in-out infinite alternate; }
+    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -120px; left: -120px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; animation-delay: -5s; }
+    .orb-3 { width: 300px; height: 300px; background: var(--accent); top: 30%; left: 55%; animation-delay: -9s; }
+    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(20px,15px); } }
+    .page-wrap { position: relative; z-index: 1; width: 100%; max-width: 600px; }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo-mark { display: inline-flex; align-items: center; gap: .5rem; font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem 2rem;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    /* Progress bar */
+    .progress-header { margin-bottom: 2rem; }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+    .progress-title { font-size: .85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .progress-step-count { font-size: .85rem; font-weight: 700; color: var(--primary); }
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .progress-steps { display: flex; justify-content: space-between; margin-top: .6rem; }
+    .ps-item { font-size: .75rem; color: var(--muted); text-align: center; transition: color .3s; }
+    .ps-item.active { color: var(--primary); font-weight: 600; }
+    .ps-item.done { color: var(--secondary); }
+    /* Form sections */
+    .form-section { display: none; animation: slide-in .35s ease; }
+    .form-section.active { display: block; }
+    @keyframes slide-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slide-back { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    .form-section.back { animation: slide-back .35s ease; }
+    h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: .4rem; }
+    .step-subtitle { color: var(--muted); font-size: .9rem; margin-bottom: 1.75rem; line-height: 1.6; }
+    .form-grid { display: grid; gap: 1.1rem; }
+    .form-grid-2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 500px) { .form-grid-2 { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    label { font-size: .8rem; font-weight: 600; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; }
+    .input-wrap { position: relative; }
+    .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: .95rem; pointer-events: none; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select {
+      width: 100%; padding: .75rem 1rem .75rem 2.7rem;
+      background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: .95rem;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,92,231,0.2); }
+    input::placeholder { color: var(--muted); }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%238888AA' d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; cursor: pointer; }
+    select option { background: #1a1a2e; color: var(--text); }
+    .toggle-pw { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); transition: color .2s; }
+    .toggle-pw:hover { color: var(--text); }
+    /* School type cards */
+    .type-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+    @media (max-width: 480px) { .type-cards { grid-template-columns: 1fr; } }
+    .type-card {
+      padding: 1rem .75rem; background: rgba(255,255,255,0.06); border: 2px solid var(--border);
+      border-radius: 12px; cursor: pointer; text-align: center; transition: all .2s; user-select: none;
+    }
+    .type-card:hover { border-color: rgba(108,92,231,0.4); background: rgba(108,92,231,0.08); }
+    .type-card.selected { border-color: var(--primary); background: rgba(108,92,231,0.15); }
+    .type-icon { font-size: 1.8rem; margin-bottom: .35rem; }
+    .type-name { font-size: .85rem; font-weight: 700; color: var(--text); }
+    .type-desc { font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+    /* Plan cards */
+    .plan-cards { display: grid; gap: .75rem; }
+    .plan-card {
+      padding: 1.25rem 1.25rem; background: rgba(255,255,255,0.06); border: 2px solid var(--border);
+      border-radius: 14px; cursor: pointer; transition: all .2s; position: relative;
+      display: flex; align-items: flex-start; gap: 1rem; user-select: none;
+    }
+    .plan-card:hover { border-color: rgba(108,92,231,0.35); background: rgba(108,92,231,0.07); }
+    .plan-card.selected { border-color: var(--primary); background: rgba(108,92,231,0.12); }
+    .plan-card.popular { border-color: rgba(0,206,201,0.4); }
+    .plan-card.popular.selected { border-color: var(--secondary); background: rgba(0,206,201,0.1); }
+    .plan-badge {
+      position: absolute; top: -10px; right: 16px;
+      background: linear-gradient(135deg, var(--secondary), #00a8a5);
+      color: #fff; font-size: .68rem; font-weight: 800; padding: .25rem .7rem;
+      border-radius: 20px; letter-spacing: .05em; text-transform: uppercase;
+    }
+    .plan-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); background: transparent; flex-shrink: 0; margin-top: 2px; transition: all .2s; display: flex; align-items: center; justify-content: center; }
+    .plan-card.selected .plan-radio { border-color: var(--primary); background: var(--primary); }
+    .plan-card.popular.selected .plan-radio { border-color: var(--secondary); background: var(--secondary); }
+    .plan-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; display: none; }
+    .plan-card.selected .plan-radio::after { display: block; }
+    .plan-info { flex: 1; }
+    .plan-name { font-size: 1rem; font-weight: 700; margin-bottom: .15rem; }
+    .plan-price { font-size: 1.4rem; font-weight: 800; color: var(--secondary); }
+    .plan-price span { font-size: .8rem; font-weight: 400; color: var(--muted); }
+    .plan-features { margin-top: .6rem; display: flex; flex-wrap: wrap; gap: .3rem; }
+    .plan-feature { font-size: .75rem; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 20px; padding: .2rem .6rem; color: var(--muted); }
+    /* Password strength */
+    .pw-strength-bars { display: flex; gap: 3px; margin-top: .5rem; }
+    .pw-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; transition: background .3s; }
+    .pw-label { font-size: .74rem; color: var(--muted); margin-top: .3rem; }
+    /* Buttons */
+    .btn-row { display: flex; gap: .75rem; margin-top: 1.75rem; }
+    .btn-primary {
+      flex: 2; padding: .85rem; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), #8B78FF); color: #fff;
+      font-size: 1rem; font-weight: 700; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(108,92,231,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,92,231,0.55); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .btn-back { flex: 1; padding: .85rem; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; background: transparent; color: var(--muted); font-size: .95rem; font-weight: 600; transition: all .2s; }
+    .btn-back:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+    .alert { padding: .75rem 1rem; border-radius: 10px; font-size: .875rem; margin-bottom: 1rem; display: none; }
+    .alert.show { display: flex; align-items: center; gap: .6rem; }
+    .alert-error { background: rgba(255,100,100,0.12); border: 1px solid rgba(255,100,100,0.3); color: #FF8888; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .success-wrap { display: none; text-align: center; padding: 1rem 0; }
+    .success-wrap.show { display: block; }
+    .success-icon { font-size: 4.5rem; margin-bottom: 1rem; animation: bounce-in .6s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes bounce-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .back-link { display: block; text-align: center; margin-top: 1.25rem; color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    .back-link em { color: var(--primary); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="page-wrap">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-icon">🎓</div><span>lvl<strong>Base</strong></span></div>
+    </div>
+    <div class="card">
+      <!-- Progress -->
+      <div class="progress-header" id="progressHeader">
+        <div class="progress-top">
+          <span class="progress-title">School Setup</span>
+          <span class="progress-step-count" id="stepCount">Step 1 of 3</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:33.3%"></div></div>
+        <div class="progress-steps">
+          <span class="ps-item active" id="ps1">School Info</span>
+          <span class="ps-item" id="ps2">Admin Account</span>
+          <span class="ps-item" id="ps3">Choose Plan</span>
+        </div>
+      </div>
+
+      <div class="alert alert-error" id="errorAlert"><span>⚠️</span><span id="errorText"></span></div>
+
+      <!-- Step 1: School Info -->
+      <div class="form-section active" id="step1">
+        <h2>🏫 Your School</h2>
+        <p class="step-subtitle">Tell us about your institution so we can tailor lvlBase for you.</p>
+        <div style="margin-bottom:1.25rem;">
+          <label style="margin-bottom:.6rem;display:block;">School Type</label>
+          <div class="type-cards">
+            <div class="type-card selected" data-type="k12" onclick="selectType(this)">
+              <div class="type-icon">🏫</div>
+              <div class="type-name">K-12 School</div>
+              <div class="type-desc">Primary & Secondary</div>
+            </div>
+            <div class="type-card" data-type="university" onclick="selectType(this)">
+              <div class="type-icon">🎓</div>
+              <div class="type-name">University</div>
+              <div class="type-desc">Higher Education</div>
+            </div>
+            <div class="type-card" data-type="coaching" onclick="selectType(this)">
+              <div class="type-icon">📚</div>
+              <div class="type-name">Coaching</div>
+              <div class="type-desc">Test Prep & Tutoring</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>School / Institution Name</label>
+            <div class="input-wrap">
+              <span class="input-icon">🏫</span>
+              <input type="text" id="schoolName" placeholder="e.g. Greenwood Academy" />
+            </div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="form-group">
+              <label>Country</label>
+              <div class="input-wrap">
+                <span class="input-icon">🌍</span>
+                <select id="country">
+                  <option value="">Select country</option>
+                  <option>United States</option><option>United Kingdom</option>
+                  <option>India</option><option>Canada</option><option>Australia</option>
+                  <option>Germany</option><option>France</option><option>Japan</option>
+                  <option>Brazil</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>City</label>
+              <div class="input-wrap">
+                <span class="input-icon">📍</span>
+                <input type="text" id="city" placeholder="e.g. New York" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-wrap">
+              <span class="input-icon">📞</span>
+              <input type="tel" id="phone" placeholder="+1 (555) 000-0000" />
+            </div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="btn-primary" onclick="nextStep(1)">Next: Admin Account →</button></div>
+      </div>
+
+      <!-- Step 2: Admin Account -->
+      <div class="form-section" id="step2">
+        <h2>👤 Admin Account</h2>
+        <p class="step-subtitle">Create the main administrator account for your school on lvlBase.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <div class="input-wrap">
+              <span class="input-icon">👤</span>
+              <input type="text" id="adminName" placeholder="Jane Smith" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Work Email</label>
+            <div class="input-wrap">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="adminEmail" placeholder="admin@school.edu" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="adminPw" placeholder="Create a strong password" oninput="updatePwStrength(this.value)" />
+              <button type="button" class="toggle-pw" onclick="togglePw('adminPw', this)">👁️</button>
+            </div>
+            <div class="pw-strength-bars">
+              <div class="pw-bar" id="pwbar1"></div><div class="pw-bar" id="pwbar2"></div>
+              <div class="pw-bar" id="pwbar3"></div><div class="pw-bar" id="pwbar4"></div>
+            </div>
+            <div class="pw-label" id="pwLabel">Enter a password</div>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="adminPwConfirm" placeholder="Repeat your password" />
+              <button type="button" class="toggle-pw" onclick="togglePw('adminPwConfirm', this)">👁️</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="prevStep(2)">← Back</button>
+          <button class="btn-primary" onclick="nextStep(2)">Next: Choose Plan →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Plan -->
+      <div class="form-section" id="step3">
+        <h2>🚀 Choose Your Plan</h2>
+        <p class="step-subtitle">Start free and upgrade anytime. No credit card required for the free plan.</p>
+        <div class="plan-cards">
+          <div class="plan-card selected" data-plan="starter" onclick="selectPlan(this)">
+            <div class="plan-radio"></div>
+            <div class="plan-info">
+              <div class="plan-name">Starter</div>
+              <div class="plan-price">Free <span>forever</span></div>
+              <div class="plan-features">
+                <span class="plan-feature">Up to 50 students</span>
+                <span class="plan-feature">3 teachers</span>
+                <span class="plan-feature">Basic analytics</span>
+                <span class="plan-feature">5 courses</span>
+              </div>
+            </div>
+          </div>
+          <div class="plan-card popular" data-plan="growth" onclick="selectPlan(this)">
+            <div class="plan-badge">Most Popular</div>
+            <div class="plan-radio"></div>
+            <div class="plan-info">
+              <div class="plan-name">Growth</div>
+              <div class="plan-price">$9 <span>/month per teacher</span></div>
+              <div class="plan-features">
+                <span class="plan-feature">Unlimited students</span>
+                <span class="plan-feature">Unlimited teachers</span>
+                <span class="plan-feature">Advanced analytics</span>
+                <span class="plan-feature">Unlimited courses</span>
+                <span class="plan-feature">Priority support</span>
+              </div>
+            </div>
+          </div>
+          <div class="plan-card" data-plan="enterprise" onclick="selectPlan(this)">
+            <div class="plan-radio"></div>
+            <div class="plan-info">
+              <div class="plan-name">Enterprise</div>
+              <div class="plan-price">Custom <span>pricing</span></div>
+              <div class="plan-features">
+                <span class="plan-feature">White-label</span>
+                <span class="plan-feature">SSO / SAML</span>
+                <span class="plan-feature">Dedicated support</span>
+                <span class="plan-feature">SLA guarantee</span>
+                <span class="plan-feature">Custom integrations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="prevStep(3)">← Back</button>
+          <button class="btn-primary" id="completeBtn" onclick="completeSetup()">
+            <span id="completeBtnText">🎉 Complete Setup</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="success-wrap" id="successWrap">
+        <div class="success-icon">🎊</div>
+        <h2>Welcome to lvlBase!</h2>
+        <p style="color:var(--muted);font-size:.95rem;line-height:1.7;margin:1rem 0 1.5rem;">
+          Your school <strong id="successSchool" style="color:var(--secondary)"></strong> has been set up successfully.<br>
+          Check your email for a verification link to activate your account.
+        </p>
+        <a href="/app/dashboard.html" style="display:block;padding:.85rem;border-radius:10px;background:linear-gradient(135deg,var(--primary),#8B78FF);color:#fff;text-align:center;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(108,92,231,0.4);">Go to Dashboard →</a>
+      </div>
+
+      <a href="/auth/portal-login.html" class="back-link" id="loginLink">Already have an account? <em>Log In</em></a>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="/core/js/firebase/init.js"></script>
+  <script src="/core/js/core/state.js"></script>
+  <script src="/core/js/core/ui-components.js"></script>
+  <script src="/core/js/core/security.js"></script>
+  <script src="/core/js/firebase/auth.js"></script>
+  <script src="/core/js/firebase/firestore.js"></script>
+  <script>
+    let schoolType = 'k12';
+    let selectedPlan = 'starter';
+    let currentStep = 1;
+
+    function selectType(el) {
+      document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      schoolType = el.dataset.type;
+    }
+
+    function selectPlan(el) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPlan = el.dataset.plan;
+    }
+
+    function togglePw(id, btn) {
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+      btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function updatePwStrength(pw) {
+      const bars = [1,2,3,4].map(i => document.getElementById('pwbar' + i));
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      const colors = ['', '#FF6B6B', '#FDCB6E', '#00CEC9', '#55EFC4'];
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+      bars.forEach((b, i) => { b.style.background = i < score ? colors[score] : 'rgba(255,255,255,0.1)'; });
+      const lbl = document.getElementById('pwLabel');
+      lbl.textContent = pw ? (labels[score] || 'Very Strong') : 'Enter a password';
+      lbl.style.color = pw ? colors[score] : '';
+    }
+
+    function showError(msg) {
+      document.getElementById('errorText').textContent = msg;
+      document.getElementById('errorAlert').classList.add('show');
+      setTimeout(() => document.getElementById('errorAlert').classList.remove('show'), 5000);
+    }
+
+    function updateProgress(step) {
+      const pcts = [33.3, 66.6, 100];
+      document.getElementById('progressFill').style.width = pcts[step - 1] + '%';
+      document.getElementById('stepCount').textContent = `Step ${step} of 3`;
+      [1,2,3].forEach(s => {
+        const el = document.getElementById('ps' + s);
+        el.className = 'ps-item' + (s < step ? ' done' : (s === step ? ' active' : ''));
+      });
+    }
+
+    function nextStep(from) {
+      if (from === 1) {
+        const name = document.getElementById('schoolName').value.trim();
+        const country = document.getElementById('country').value;
+        const city = document.getElementById('city').value.trim();
+        if (!name) { showError('Please enter your school name.'); return; }
+        if (!country) { showError('Please select your country.'); return; }
+        if (!city) { showError('Please enter your city.'); return; }
+      } else if (from === 2) {
+        const name = document.getElementById('adminName').value.trim();
+        const email = document.getElementById('adminEmail').value.trim();
+        const pw = document.getElementById('adminPw').value;
+        const cpw = document.getElementById('adminPwConfirm').value;
+        if (!name) { showError('Please enter your full name.'); return; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('Please enter a valid email address.'); return; }
+        if (pw.length < 8) { showError('Password must be at least 8 characters.'); return; }
+        if (pw !== cpw) { showError('Passwords do not match.'); return; }
+      }
+      document.getElementById('step' + from).classList.remove('active');
+      document.getElementById('step' + (from + 1)).classList.add('active');
+      currentStep = from + 1;
+      updateProgress(currentStep);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function prevStep(from) {
+      document.getElementById('step' + from).classList.remove('active');
+      document.getElementById('step' + (from - 1)).classList.add('active');
+      currentStep = from - 1;
+      updateProgress(currentStep);
+    }
+
+    async function completeSetup() {
+      const btn = document.getElementById('completeBtn');
+      const btnText = document.getElementById('completeBtnText');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span>Creating account...';
+
+      const schoolName = document.getElementById('schoolName').value.trim();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPw').value;
+      const adminName = document.getElementById('adminName').value.trim();
+
+      try {
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        await cred.user.updateProfile({ displayName: adminName });
+        await firebase.firestore().collection('schools').doc(cred.user.uid).set({
+          name: schoolName, type: schoolType,
+          country: document.getElementById('country').value,
+          city: document.getElementById('city').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          adminName, adminEmail: email, plan: selectedPlan,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          status: 'active'
+        });
+        await firebase.firestore().collection('users').doc(cred.user.uid).set({
+          name: adminName, email, role: 'school_admin',
+          schoolId: cred.user.uid, plan: selectedPlan,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await cred.user.sendEmailVerification();
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('progressHeader').style.display = 'none';
+        document.getElementById('loginLink').style.display = 'none';
+        document.getElementById('successSchool').textContent = schoolName;
+        document.getElementById('successWrap').classList.add('show');
+      } catch (err) {
+        const msgs = {
+          'auth/email-already-in-use': 'An account with this email already exists.',
+          'auth/weak-password': 'Password is too weak.',
+          'auth/invalid-email': 'Invalid email address.'
+        };
+        showError(msgs[err.code] || err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '🎉 Complete Setup';
+      }
+    }
+  </script>
+</body>
+</html>

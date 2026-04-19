@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accept Invitation — lvlBase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FD79A8;
+      --warning: #FDCB6E; --bg: #0D0D1A; --border: rgba(255,255,255,0.1);
+      --text: #E8E8F0; --muted: #8888AA;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh; padding: 2rem 1rem;
+      background-image:
+        radial-gradient(ellipse 70% 60% at 15% 10%, rgba(253,121,168,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 85% 90%, rgba(108,92,231,0.3) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,206,201,0.15) 0%, transparent 50%);
+      display: flex; align-items: flex-start; justify-content: center;
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.32; animation: drift 14s ease-in-out infinite alternate; }
+    .orb-1 { width: 450px; height: 450px; background: var(--accent); top: -120px; left: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--primary); bottom: -100px; right: -100px; animation-delay: -5s; }
+    .orb-3 { width: 250px; height: 250px; background: var(--secondary); top: 40%; left: 60%; animation-delay: -9s; }
+    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(22px,14px); } }
+    .page-wrap { position: relative; z-index: 1; width: 100%; max-width: 500px; }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo-mark { display: inline-flex; align-items: center; gap: .5rem; font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem 2rem;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    /* Invite hero */
+    .invite-hero { text-align: center; margin-bottom: 2rem; }
+    .invite-envelope {
+      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem;
+      background: linear-gradient(135deg, rgba(253,121,168,0.3), rgba(108,92,231,0.25));
+      border: 1px solid rgba(253,121,168,0.4);
+      display: flex; align-items: center; justify-content: center; font-size: 2.2rem;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(253,121,168,0.4); } 50% { box-shadow: 0 0 0 14px rgba(253,121,168,0); } }
+    .invite-from {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      border-radius: 40px; padding: .5rem 1.2rem; font-size: .875rem; color: var(--muted);
+    }
+    .inviter-name { color: var(--text); font-weight: 700; }
+    /* Role badge */
+    .role-display { margin: 1.25rem 0 1.75rem; }
+    .role-card {
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(108,92,231,0.3);
+      border-radius: 14px; padding: 1rem 1.25rem;
+    }
+    .role-icon-wrap {
+      width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    }
+    .role-info { flex: 1; }
+    .role-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .2rem; }
+    .role-name { font-size: 1rem; font-weight: 700; }
+    .role-desc { font-size: .8rem; color: var(--muted); margin-top: .15rem; }
+    .role-badge-pill {
+      display: inline-flex; align-items: center; padding: .35rem .9rem;
+      border-radius: 20px; font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    /* Token display */
+    .token-wrap {
+      background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 10px; padding: .75rem 1rem; margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+    }
+    .token-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .2rem; }
+    .token-val { font-family: monospace; font-size: .85rem; color: var(--secondary); letter-spacing: .06em; word-break: break-all; }
+    .token-status { display: inline-flex; align-items: center; gap: .35rem; font-size: .75rem; font-weight: 600; color: #55EFC4; white-space: nowrap; }
+    .dot-valid { width: 7px; height: 7px; border-radius: 50%; background: #55EFC4; animation: blink 1.5s ease-in-out infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+    /* Form */
+    .form-grid { display: grid; gap: 1.1rem; }
+    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    label { font-size: .8rem; font-weight: 600; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; }
+    .input-wrap { position: relative; }
+    .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: .95rem; pointer-events: none; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: .75rem 1rem .75rem 2.7rem;
+      background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: .95rem;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,92,231,0.2); }
+    input::placeholder { color: var(--muted); }
+    .toggle-pw { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); transition: color .2s; }
+    .toggle-pw:hover { color: var(--text); }
+    .pw-match { font-size: .78rem; margin-top: .35rem; }
+    .match-ok { color: #55EFC4; } .match-fail { color: #FF8888; }
+    .btn-primary {
+      width: 100%; padding: .9rem; border: none; border-radius: 12px; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #e84393);
+      color: #fff; font-size: 1rem; font-weight: 700;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(253,121,168,0.4); margin-top: .5rem;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(253,121,168,0.55); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .alert { padding: .8rem 1rem; border-radius: 10px; font-size: .875rem; margin-bottom: 1rem; display: none; }
+    .alert.show { display: flex; align-items: center; gap: .6rem; }
+    .alert-error { background: rgba(255,100,100,0.12); border: 1px solid rgba(255,100,100,0.3); color: #FF8888; }
+    .alert-warn { background: rgba(253,203,110,0.1); border: 1px solid rgba(253,203,110,0.3); color: var(--warning); }
+    .invalid-state { display: none; text-align: center; }
+    .invalid-state.show { display: block; }
+    .success-wrap { display: none; text-align: center; padding: 1rem 0; }
+    .success-wrap.show { display: block; }
+    .big-icon { font-size: 4rem; margin-bottom: 1rem; animation: bounce-in .5s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes bounce-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    .back-link em { color: var(--primary); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="page-wrap">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-icon">🎓</div><span>lvl<strong>Base</strong></span></div>
+    </div>
+    <div class="card">
+      <!-- Invalid token state -->
+      <div class="invalid-state" id="invalidState">
+        <div style="font-size:3.5rem;margin-bottom:1rem;">🔗</div>
+        <h2 style="margin-bottom:.5rem;">Invalid Invitation</h2>
+        <p style="color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:1.5rem;">This invitation link is invalid, has expired, or has already been used.</p>
+        <a href="/auth/portal-login.html" style="display:inline-block;padding:.75rem 2rem;border-radius:10px;background:linear-gradient(135deg,var(--primary),#8B78FF);color:#fff;text-decoration:none;font-weight:700;box-shadow:0 4px 20px rgba(108,92,231,0.4);">Back to Login</a>
+      </div>
+      <!-- Main claim form -->
+      <div id="claimForm">
+        <div class="invite-hero">
+          <div class="invite-envelope">✉️</div>
+          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:.6rem;">You're Invited!</h2>
+          <div class="invite-from">
+            <span>From:</span>
+            <span class="inviter-name" id="inviterName">Loading...</span>
+          </div>
+        </div>
+        <div class="token-wrap">
+          <div>
+            <div class="token-label">Invitation Token</div>
+            <div class="token-val" id="tokenDisplay">—</div>
+          </div>
+          <div class="token-status"><div class="dot-valid"></div>Valid</div>
+        </div>
+        <!-- Role display -->
+        <div class="role-display">
+          <div class="role-card" id="roleCard">
+            <div class="role-icon-wrap" id="roleIconWrap" style="background:rgba(108,92,231,0.2);">📚</div>
+            <div class="role-info">
+              <div class="role-label">Invited as</div>
+              <div class="role-name" id="roleName">Teacher</div>
+              <div class="role-desc" id="roleDesc">Create and manage courses, assignments and quizzes</div>
+            </div>
+            <div class="role-badge-pill" id="rolePill" style="background:rgba(108,92,231,0.2);color:var(--primary);">Teacher</div>
+          </div>
+        </div>
+        <div class="alert alert-error" id="errorAlert"><span>⚠️</span><span id="errorText"></span></div>
+        <div class="alert alert-warn" id="warnAlert"><span>⚡</span><span id="warnText">Complete your profile to accept this invitation.</span></div>
+        <form id="acceptForm" novalidate>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Your Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="fullName" placeholder="Enter your full name" autocomplete="name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Create Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="password" placeholder="Create a secure password" autocomplete="new-password" />
+                <button type="button" class="toggle-pw" onclick="togglePw('password', this)">👁️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="confirmPw" placeholder="Repeat your password" autocomplete="new-password" oninput="checkMatch()" />
+                <button type="button" class="toggle-pw" onclick="togglePw('confirmPw', this)">👁️</button>
+              </div>
+              <div id="matchMsg" class="pw-match"></div>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" id="acceptBtn">
+            <span id="acceptBtnText">✅ Accept Invitation</span>
+          </button>
+        </form>
+        <a href="/auth/portal-login.html" class="back-link">← Back to <em>Login</em></a>
+      </div>
+      <!-- Success -->
+      <div class="success-wrap" id="successWrap">
+        <div class="big-icon">🎊</div>
+        <h2 style="margin-bottom:.5rem;">Welcome Aboard!</h2>
+        <p style="color:var(--muted);font-size:.95rem;line-height:1.7;margin:1rem 0 1.5rem;">
+          You've successfully joined as <strong id="successRole" style="color:var(--secondary)"></strong>.<br>
+          Your account is ready to go!
+        </p>
+        <a href="/app/dashboard.html" style="display:block;padding:.85rem;border-radius:10px;background:linear-gradient(135deg,var(--accent),#e84393);color:#fff;text-align:center;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(253,121,168,0.4);">Go to Dashboard →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="/core/js/firebase/init.js"></script>
+  <script src="/core/js/core/state.js"></script>
+  <script src="/core/js/core/ui-components.js"></script>
+  <script src="/core/js/core/security.js"></script>
+  <script src="/core/js/firebase/auth.js"></script>
+  <script src="/core/js/firebase/firestore.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token') || params.get('invite');
+    const claimForm = document.getElementById('claimForm');
+    const invalidState = document.getElementById('invalidState');
+
+    const roleConfig = {
+      teacher: { icon: '📚', color: 'rgba(108,92,231,0.2)', textColor: 'var(--primary)', name: 'Teacher', desc: 'Create and manage courses, assignments and quizzes' },
+      student: { icon: '🎓', color: 'rgba(0,206,201,0.2)', textColor: 'var(--secondary)', name: 'Student', desc: 'Access courses, submit assignments and track progress' },
+      admin: { icon: '⚙️', color: 'rgba(253,203,110,0.2)', textColor: 'var(--warning)', name: 'Admin', desc: 'Full administrative access to school management' },
+      parent: { icon: '👪', color: 'rgba(253,121,168,0.2)', textColor: 'var(--accent)', name: 'Parent', desc: 'Monitor your child\'s progress and stay updated' },
+      staff: { icon: '💼', color: 'rgba(85,239,196,0.2)', textColor: '#55EFC4', name: 'Staff', desc: 'School staff access to relevant tools and reports' }
+    };
+
+    let inviteData = null;
+
+    function togglePw(id, btn) {
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+      btn.textContent = el.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function checkMatch() {
+      const pw = document.getElementById('password').value;
+      const cpw = document.getElementById('confirmPw').value;
+      const msg = document.getElementById('matchMsg');
+      if (!cpw) { msg.textContent = ''; return; }
+      if (pw === cpw) { msg.textContent = '✓ Passwords match'; msg.className = 'pw-match match-ok'; }
+      else { msg.textContent = '✗ Passwords do not match'; msg.className = 'pw-match match-fail'; }
+    }
+
+    function setRole(role) {
+      const cfg = roleConfig[role] || roleConfig.teacher;
+      document.getElementById('roleIconWrap').textContent = cfg.icon;
+      document.getElementById('roleIconWrap').style.background = cfg.color;
+      document.getElementById('roleName').textContent = cfg.name;
+      document.getElementById('roleDesc').textContent = cfg.desc;
+      document.getElementById('rolePill').textContent = cfg.name;
+      document.getElementById('rolePill').style.background = cfg.color;
+      document.getElementById('rolePill').style.color = cfg.textColor;
+    }
+
+    async function loadInvite() {
+      if (!token) { claimForm.style.display = 'none'; invalidState.classList.add('show'); return; }
+      document.getElementById('tokenDisplay').textContent = token;
+      try {
+        const snap = await firebase.firestore().collection('invitations').doc(token).get();
+        if (!snap.exists) throw new Error('not-found');
+        inviteData = snap.data();
+        if (inviteData.claimed) throw new Error('claimed');
+        const expiresAt = inviteData.expiresAt?.toDate?.();
+        if (expiresAt && expiresAt < new Date()) throw new Error('expired');
+        document.getElementById('inviterName').textContent = inviteData.inviterName || 'Your Administrator';
+        setRole(inviteData.role || 'teacher');
+        document.getElementById('warnAlert').classList.add('show');
+      } catch (err) {
+        if (['not-found','claimed','expired'].includes(err.message)) {
+          claimForm.style.display = 'none'; invalidState.classList.add('show');
+        } else {
+          // Fallback: show form with defaults (token may still be valid)
+          document.getElementById('inviterName').textContent = 'Your Administrator';
+          setRole(params.get('role') || 'teacher');
+          document.getElementById('warnAlert').classList.add('show');
+        }
+      }
+    }
+
+    document.getElementById('acceptForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('fullName').value.trim();
+      const pw = document.getElementById('password').value;
+      const cpw = document.getElementById('confirmPw').value;
+      const errorAlert = document.getElementById('errorAlert');
+      const errorText = document.getElementById('errorText');
+
+      const showError = (msg) => { errorText.textContent = msg; errorAlert.classList.add('show'); };
+      errorAlert.classList.remove('show');
+
+      if (!name) { showError('Please enter your full name.'); return; }
+      if (pw.length < 8) { showError('Password must be at least 8 characters.'); return; }
+      if (pw !== cpw) { showError('Passwords do not match.'); return; }
+
+      const btn = document.getElementById('acceptBtn');
+      const btnText = document.getElementById('acceptBtnText');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span>Accepting...';
+
+      const email = inviteData?.email || params.get('email');
+      if (!email) { showError('Invitation email not found. Please contact your admin.'); btn.disabled = false; btnText.textContent = '✅ Accept Invitation'; return; }
+
+      try {
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, pw);
+        await cred.user.updateProfile({ displayName: name });
+        const role = inviteData?.role || params.get('role') || 'teacher';
+        await firebase.firestore().collection('users').doc(cred.user.uid).set({
+          name, email, role, schoolId: inviteData?.schoolId || '',
+          inviteToken: token,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'active'
+        });
+        if (token) {
+          await firebase.firestore().collection('invitations').doc(token).update({
+            claimed: true, claimedBy: cred.user.uid, claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        await cred.user.sendEmailVerification();
+        document.getElementById('successRole').textContent = roleConfig[role]?.name || role;
+        document.getElementById('claimForm').style.display = 'none';
+        document.getElementById('successWrap').classList.add('show');
+      } catch (err) {
+        const msgs = {
+          'auth/email-already-in-use': 'An account with this email already exists. Try logging in.',
+          'auth/weak-password': 'Password is too weak.',
+          'auth/invalid-email': 'Invalid email address.'
+        };
+        showError(msgs[err.code] || err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '✅ Accept Invitation';
+      }
+    });
+
+    // Load after Firebase is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const checkFirebase = setInterval(() => {
+        try {
+          if (firebase.app()) { clearInterval(checkFirebase); loadInvite(); }
+        } catch { /* wait */ }
+      }, 200);
+      setTimeout(() => { clearInterval(checkFirebase); loadInvite(); }, 3000);
+    });
+  </script>
+</body>
+</html>

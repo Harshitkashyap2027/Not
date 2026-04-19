@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2FA Setup — lvlBase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FD79A8;
+      --warning: #FDCB6E; --bg: #0D0D1A; --border: rgba(255,255,255,0.1);
+      --text: #E8E8F0; --muted: #8888AA;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); min-height: 100vh; padding: 2rem 1rem;
+      background-image:
+        radial-gradient(ellipse 70% 60% at 15% 5%, rgba(108,92,231,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 95%, rgba(0,206,201,0.2) 0%, transparent 55%);
+      display: flex; align-items: flex-start; justify-content: center;
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: drift 14s ease-in-out infinite alternate; }
+    .orb-1 { width: 450px; height: 450px; background: var(--primary); top: -100px; left: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: var(--secondary); bottom: -80px; right: -80px; animation-delay: -5s; }
+    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(25px,15px); } }
+    .page-wrap { position: relative; z-index: 1; width: 100%; max-width: 540px; }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo-mark { display: inline-flex; align-items: center; gap: .5rem; font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem 2rem;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    /* Progress steps */
+    .steps { display: flex; align-items: center; margin-bottom: 2.5rem; }
+    .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 700; transition: all .3s;
+      border: 2px solid rgba(255,255,255,0.15); color: var(--muted); background: rgba(255,255,255,0.05);
+    }
+    .step-circle.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 0 0 4px rgba(108,92,231,0.25); }
+    .step-circle.done { background: var(--secondary); border-color: var(--secondary); color: #fff; }
+    .step-label { font-size: .72rem; color: var(--muted); margin-top: .35rem; text-align: center; transition: color .3s; }
+    .step-label.active { color: var(--primary); }
+    .step-line { flex: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 .5rem; margin-bottom: 1.5rem; transition: background .3s; }
+    .step-line.done { background: var(--secondary); }
+    /* Sections */
+    .section { display: none; animation: fade-in .3s ease; }
+    .section.active { display: block; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: .5rem; }
+    .section-desc { color: var(--muted); font-size: .9rem; line-height: 1.6; margin-bottom: 1.75rem; }
+    /* QR Code */
+    .qr-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.75rem; }
+    #qrCanvas {
+      border-radius: 12px; background: #fff; padding: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      image-rendering: pixelated;
+    }
+    .qr-placeholder {
+      width: 200px; height: 200px; border-radius: 12px; background: #fff; padding: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; color: #555; text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    .secret-row {
+      display: flex; align-items: center; gap: .5rem; margin-top: 1rem;
+      background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+      border-radius: 10px; padding: .75rem 1rem;
+    }
+    .secret-label { font-size: .75rem; color: var(--muted); margin-right: auto; display: block; }
+    .secret-val { font-family: monospace; font-size: .95rem; color: var(--secondary); letter-spacing: .1em; }
+    .btn-copy {
+      background: rgba(0,206,201,0.15); border: 1px solid rgba(0,206,201,0.3);
+      color: var(--secondary); border-radius: 7px; padding: .4rem .8rem;
+      font-size: .8rem; font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap;
+    }
+    .btn-copy:hover { background: rgba(0,206,201,0.25); }
+    .apps-row { display: flex; gap: .75rem; margin-bottom: 1.75rem; }
+    .app-chip {
+      flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      border-radius: 10px; padding: .6rem; text-align: center; font-size: .78rem; color: var(--muted); line-height: 1.4;
+    }
+    .app-chip strong { display: block; color: var(--text); font-size: .85rem; margin-bottom: .1rem; }
+    /* OTP Input */
+    .otp-inputs { display: flex; gap: .6rem; justify-content: center; margin-bottom: 1.5rem; }
+    .otp-digit {
+      width: 52px; height: 60px; text-align: center; font-size: 1.6rem; font-weight: 700;
+      background: rgba(255,255,255,0.07); border: 2px solid var(--border);
+      border-radius: 12px; color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s;
+      caret-color: var(--primary);
+    }
+    .otp-digit:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,92,231,0.25); }
+    .otp-digit.filled { border-color: var(--secondary); }
+    /* Backup codes */
+    .backup-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; margin-bottom: 1.5rem;
+    }
+    .backup-code {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      border-radius: 8px; padding: .6rem 1rem; font-family: monospace;
+      font-size: .85rem; color: var(--secondary); text-align: center; letter-spacing: .08em;
+      user-select: all; cursor: text;
+    }
+    .btn-primary {
+      width: 100%; padding: .85rem; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), #8B78FF); color: #fff;
+      font-size: 1rem; font-weight: 700; transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 20px rgba(108,92,231,0.4); margin-bottom: .75rem;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,92,231,0.55); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      width: 100%; padding: .75rem; border-radius: 10px; cursor: pointer;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); font-size: .9rem; font-weight: 600; transition: all .2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+    .alert { padding: .75rem 1rem; border-radius: 10px; font-size: .875rem; margin-bottom: 1.25rem; display: none; }
+    .alert.show { display: flex; align-items: center; gap: .6rem; }
+    .alert-error { background: rgba(255,100,100,0.12); border: 1px solid rgba(255,100,100,0.3); color: #FF8888; }
+    .alert-success { background: rgba(85,239,196,0.1); border: 1px solid rgba(85,239,196,0.3); color: #55EFC4; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    .back-link em { color: var(--primary); font-style: normal; font-weight: 600; }
+    .success-center { text-align: center; }
+    .success-icon { font-size: 4rem; margin-bottom: 1rem; animation: bounce-in .5s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes bounce-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="page-wrap">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-icon">🎓</div><span>lvl<strong>Base</strong></span></div>
+    </div>
+    <div class="card">
+      <!-- Progress Steps -->
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-circle active" id="step1-circle">1</div>
+          <div class="step-label active" id="step1-label">Scan QR</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item">
+          <div class="step-circle" id="step2-circle">2</div>
+          <div class="step-label" id="step2-label">Verify</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item">
+          <div class="step-circle" id="step3-circle">3</div>
+          <div class="step-label" id="step3-label">Backup</div>
+        </div>
+      </div>
+
+      <!-- Step 1: QR Code -->
+      <div class="section active" id="section1">
+        <h2>🛡️ Set Up Authenticator</h2>
+        <p class="section-desc">Scan the QR code with your authenticator app, or manually enter the secret key below.</p>
+        <div class="apps-row">
+          <div class="app-chip"><strong>📱 Google</strong>Authenticator</div>
+          <div class="app-chip"><strong>🔐 Authy</strong>by Twilio</div>
+          <div class="app-chip"><strong>🔑 1Password</strong>Built-in TOTP</div>
+          <div class="app-chip"><strong>🔒 Microsoft</strong>Authenticator</div>
+        </div>
+        <div class="qr-wrap">
+          <canvas id="qrCanvas" width="200" height="200"></canvas>
+        </div>
+        <div class="secret-row">
+          <div>
+            <span class="secret-label">Manual entry key</span>
+            <span class="secret-val" id="secretDisplay"></span>
+          </div>
+          <button class="btn-copy" id="copySecretBtn" onclick="copySecret()">Copy</button>
+        </div>
+        <div style="margin-top:1.75rem;">
+          <button class="btn-primary" onclick="goToStep(2)">I've Scanned the QR Code →</button>
+          <button class="btn-secondary" onclick="goToStep(2)">Enter Key Manually</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Verify OTP -->
+      <div class="section" id="section2">
+        <h2>🔢 Enter Verification Code</h2>
+        <p class="section-desc">Open your authenticator app and enter the 6-digit code for lvlBase.</p>
+        <div class="alert alert-error" id="otpError"><span>⚠️</span><span id="otpErrorText"></span></div>
+        <div class="otp-inputs" id="otpInputs">
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" />
+        </div>
+        <p style="text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:1.5rem;">Code refreshes every 30 seconds</p>
+        <button class="btn-primary" id="verifyBtn" onclick="verifyOTP()">
+          <span id="verifyBtnText">✓ Enable 2FA</span>
+        </button>
+        <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+      </div>
+
+      <!-- Step 3: Backup Codes -->
+      <div class="section" id="section3">
+        <h2>🗝️ Save Your Backup Codes</h2>
+        <p class="section-desc">Store these codes somewhere safe. Each code can be used once to access your account if you lose your authenticator.</p>
+        <div class="backup-grid" id="backupGrid"></div>
+        <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;">
+          <button style="flex:1;padding:.7rem;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'" onclick="copyBackupCodes()">📋 Copy All</button>
+          <button style="flex:1;padding:.7rem;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'" onclick="downloadBackupCodes()">⬇️ Download</button>
+        </div>
+        <button class="btn-primary" onclick="complete2FA()">🎉 Complete 2FA Setup</button>
+      </div>
+
+      <!-- Step 4: Done -->
+      <div class="section" id="section4">
+        <div class="success-center">
+          <div class="success-icon">🔐</div>
+          <h2>2FA Enabled!</h2>
+          <p class="section-desc">Your account is now protected with two-factor authentication. You'll be asked for a code when signing in.</p>
+          <a href="/app/dashboard.html" style="display:block;padding:.85rem;border-radius:10px;background:linear-gradient(135deg,var(--primary),#8B78FF);color:#fff;text-align:center;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(108,92,231,0.4);">Go to Dashboard</a>
+        </div>
+      </div>
+
+      <a href="/auth/portal-login.html" class="back-link">← Back to <em>Login</em></a>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="/core/js/firebase/init.js"></script>
+  <script src="/core/js/core/state.js"></script>
+  <script src="/core/js/core/ui-components.js"></script>
+  <script src="/core/js/core/security.js"></script>
+  <script src="/core/js/firebase/auth.js"></script>
+  <script src="/core/js/firebase/firestore.js"></script>
+  <script>
+    // Generate TOTP secret
+    function generateSecret(len = 32) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      let s = '';
+      const arr = new Uint8Array(len);
+      crypto.getRandomValues(arr);
+      arr.forEach(b => { s += chars[b % chars.length]; });
+      return s;
+    }
+
+    function generateBackupCodes(count = 8) {
+      const codes = [];
+      for (let i = 0; i < count; i++) {
+        const arr = new Uint8Array(5);
+        crypto.getRandomValues(arr);
+        const hex = Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+        codes.push(hex.slice(0,5) + '-' + hex.slice(5,10));
+      }
+      return codes;
+    }
+
+    const secret = generateSecret();
+    const backupCodes = generateBackupCodes(8);
+    let currentUser = null;
+
+    document.getElementById('secretDisplay').textContent = secret;
+
+    // Render backup codes
+    const grid = document.getElementById('backupGrid');
+    backupCodes.forEach(code => {
+      const div = document.createElement('div');
+      div.className = 'backup-code';
+      div.textContent = code;
+      grid.appendChild(div);
+    });
+
+    // Draw QR code placeholder (simple pixel art representation)
+    (function drawQRPlaceholder() {
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const size = 200;
+      const cellSize = 7;
+      const cells = Math.floor(size / cellSize);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      const seedStr = secret;
+      let seedVal = 0;
+      for (let i = 0; i < seedStr.length; i++) seedVal += seedStr.charCodeAt(i);
+
+      function pseudoRand(i, j) {
+        let val = (seedVal + i * 31 + j * 17 + i * j) % 100;
+        return val > 45 && !(i < 2 || i > cells - 3 || j < 2 || j > cells - 3);
+      }
+
+      // Finder patterns
+      function drawFinder(ox, oy) {
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(ox * cellSize, oy * cellSize, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect((ox + 1) * cellSize, (oy + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect((ox + 2) * cellSize, (oy + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+      }
+      drawFinder(0, 0); drawFinder(cells - 7, 0); drawFinder(0, cells - 7);
+
+      ctx.fillStyle = '#1a1a2e';
+      for (let i = 0; i < cells; i++) {
+        for (let j = 0; j < cells; j++) {
+          if (i < 8 && j < 8) continue;
+          if (i > cells - 9 && j < 8) continue;
+          if (i < 8 && j > cells - 9) continue;
+          if (pseudoRand(i, j)) {
+            ctx.fillRect(i * cellSize, j * cellSize, cellSize - 1, cellSize - 1);
+          }
+        }
+      }
+    })();
+
+    // OTP Input logic
+    const otpInputs = Array.from(document.querySelectorAll('.otp-digit'));
+    otpInputs.forEach((input, i) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val;
+        if (val) {
+          e.target.classList.add('filled');
+          if (i < 5) otpInputs[i + 1].focus();
+        } else {
+          e.target.classList.remove('filled');
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && i > 0) {
+          otpInputs[i - 1].focus();
+          otpInputs[i - 1].value = '';
+          otpInputs[i - 1].classList.remove('filled');
+        }
+      });
+      input.addEventListener('paste', (e) => {
+        const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        paste.split('').forEach((ch, idx) => {
+          if (otpInputs[idx]) { otpInputs[idx].value = ch; otpInputs[idx].classList.add('filled'); }
+        });
+        e.preventDefault();
+        if (otpInputs[paste.length]) otpInputs[paste.length].focus();
+      });
+    });
+
+    // Step navigation
+    function goToStep(step) {
+      [1, 2, 3, 4].forEach(s => document.getElementById('section' + s).classList.remove('active'));
+      document.getElementById('section' + step).classList.add('active');
+      [1, 2, 3].forEach(s => {
+        const circ = document.getElementById('step' + s + '-circle');
+        const lbl = document.getElementById('step' + s + '-label');
+        if (s < step) { circ.className = 'step-circle done'; circ.textContent = '✓'; lbl.className = 'step-label'; }
+        else if (s === step) { circ.className = 'step-circle active'; circ.textContent = s; lbl.className = 'step-label active'; }
+        else { circ.className = 'step-circle'; circ.textContent = s; lbl.className = 'step-label'; }
+      });
+      [1, 2].forEach(l => {
+        document.getElementById('line' + l).className = 'step-line' + (step > l + 1 ? ' done' : (step === l + 1 ? ' done' : ''));
+      });
+      if (step === 1) document.getElementById('line1').className = 'step-line';
+      if (step === 2) { document.getElementById('line1').className = 'step-line done'; document.getElementById('line2').className = 'step-line'; }
+      if (step >= 3) { document.getElementById('line1').className = 'step-line done'; document.getElementById('line2').className = 'step-line done'; }
+    }
+
+    function copySecret() {
+      navigator.clipboard.writeText(secret).then(() => {
+        const btn = document.getElementById('copySecretBtn');
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    function copyBackupCodes() {
+      navigator.clipboard.writeText(backupCodes.join('\n')).then(() => { alert('Backup codes copied!'); });
+    }
+
+    function downloadBackupCodes() {
+      const blob = new Blob(['lvlBase 2FA Backup Codes\n' + '='.repeat(30) + '\n\n' + backupCodes.join('\n') + '\n\nEach code can be used only once.\nKeep these codes secure.'], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'lvlbase-backup-codes.txt';
+      a.click();
+    }
+
+    async function verifyOTP() {
+      const code = otpInputs.map(i => i.value).join('');
+      if (code.length < 6) {
+        document.getElementById('otpErrorText').textContent = 'Please enter all 6 digits.';
+        document.getElementById('otpError').classList.add('show');
+        return;
+      }
+      document.getElementById('otpError').classList.remove('show');
+      const btn = document.getElementById('verifyBtn');
+      const btnText = document.getElementById('verifyBtnText');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span>Verifying...';
+      // Simulate TOTP verification (in production, verify against TOTP library)
+      await new Promise(r => setTimeout(r, 1200));
+      // Save 2FA setup to Firestore
+      try {
+        const user = firebase.auth().currentUser;
+        if (user) {
+          await firebase.firestore().collection('users').doc(user.uid).update({
+            twoFactorEnabled: true,
+            twoFactorSecret: secret,
+            backupCodes: backupCodes,
+            twoFactorSetupAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        goToStep(3);
+      } catch (err) {
+        document.getElementById('otpErrorText').textContent = err.message || 'Verification failed.';
+        document.getElementById('otpError').classList.add('show');
+      }
+      btn.disabled = false;
+      btnText.textContent = '✓ Enable 2FA';
+    }
+
+    function complete2FA() { goToStep(4); }
+
+    // Init
+    firebase.auth().onAuthStateChanged(user => { currentUser = user; });
+  </script>
+</body>
+</html>

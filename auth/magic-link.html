@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magic Link Sent — lvlBase</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6C5CE7; --secondary: #00CEC9; --accent: #FD79A8;
+      --warning: #FDCB6E; --bg: #0D0D1A; --border: rgba(255,255,255,0.1);
+      --text: #E8E8F0; --muted: #8888AA;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+      color: var(--text); display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 1rem;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 30% 20%, rgba(108,92,231,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 70% 80%, rgba(0,206,201,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(253,121,168,0.2) 0%, transparent 50%);
+    }
+    .bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35; animation: drift 14s ease-in-out infinite alternate; }
+    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -150px; left: -150px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; animation-delay: -6s; }
+    .orb-3 { width: 250px; height: 250px; background: var(--accent); top: 40%; left: 55%; animation-delay: -10s; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(20px,15px) scale(1.04); } }
+    .card-wrap { position: relative; z-index: 1; width: 100%; max-width: 480px; }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo-mark { display: inline-flex; align-items: center; gap: .5rem; font-size: 1.5rem; font-weight: 800; color: #fff; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 3rem 2.5rem;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    /* Animated email envelope */
+    .email-hero { margin-bottom: 2rem; position: relative; display: inline-block; }
+    .envelope {
+      width: 96px; height: 96px; margin: 0 auto;
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .env-body {
+      width: 80px; height: 56px; background: linear-gradient(135deg, rgba(108,92,231,0.4), rgba(0,206,201,0.3));
+      border: 2px solid rgba(108,92,231,0.6); border-radius: 8px; position: relative;
+      animation: envelope-float 3s ease-in-out infinite;
+    }
+    @keyframes envelope-float {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    .env-flap {
+      position: absolute; top: -1px; left: -1px; right: -1px; height: 28px;
+      background: linear-gradient(135deg, rgba(108,92,231,0.6), rgba(0,206,201,0.4));
+      border-radius: 8px 8px 0 0; clip-path: polygon(0 0, 100% 0, 50% 60%);
+      border: 2px solid rgba(108,92,231,0.6);
+    }
+    .env-lines {
+      position: absolute; bottom: 8px; left: 10px; right: 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .env-line { height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+    .env-line:first-child { width: 70%; }
+    .sparkles { position: absolute; inset: -20px; pointer-events: none; }
+    .sparkle {
+      position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      animation: sparkle-anim 2s ease-in-out infinite;
+    }
+    .sparkle:nth-child(1) { background: var(--accent); top: 10px; right: 15px; animation-delay: 0s; }
+    .sparkle:nth-child(2) { background: var(--secondary); top: 20px; left: 10px; animation-delay: -.5s; width: 4px; height: 4px; }
+    .sparkle:nth-child(3) { background: var(--warning); bottom: 15px; right: 10px; animation-delay: -1s; width: 5px; height: 5px; }
+    .sparkle:nth-child(4) { background: var(--primary); bottom: 5px; left: 20px; animation-delay: -1.5s; }
+    @keyframes sparkle-anim { 0%,100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
+    h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: .5rem; }
+    .gradient-text { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .subtitle { color: var(--muted); font-size: .95rem; line-height: 1.7; margin-bottom: .5rem; }
+    .email-display {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3);
+      border-radius: 30px; padding: .5rem 1.2rem; margin: 1rem 0;
+      font-weight: 600; color: var(--secondary);
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    /* Quick links */
+    .quick-links { display: flex; gap: .75rem; margin-bottom: 1.5rem; }
+    .quick-link {
+      flex: 1; padding: .85rem .5rem; background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+      text-decoration: none; font-size: .85rem; font-weight: 600;
+      transition: all .2s; display: flex; flex-direction: column; align-items: center; gap: .35rem;
+    }
+    .quick-link:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+    .quick-link-icon { font-size: 1.5rem; }
+    /* Resend button */
+    .btn-resend {
+      width: 100%; padding: .85rem; border-radius: 10px; cursor: pointer;
+      background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.35);
+      color: var(--primary); font-size: 1rem; font-weight: 700;
+      transition: all .2s; position: relative;
+    }
+    .btn-resend:hover:not(:disabled) { background: rgba(108,92,231,0.25); }
+    .btn-resend:disabled { opacity: .7; cursor: not-allowed; }
+    .cooldown-ring {
+      display: inline-block; width: 22px; height: 22px; margin-right: 8px;
+      position: relative; vertical-align: middle;
+    }
+    .cooldown-svg { transform: rotate(-90deg); }
+    .cooldown-track { fill: none; stroke: rgba(108,92,231,0.3); stroke-width: 3; }
+    .cooldown-fill { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
+    .tips-box {
+      background: rgba(0,206,201,0.06); border: 1px solid rgba(0,206,201,0.2);
+      border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; text-align: left;
+    }
+    .tips-title { font-size: .78rem; font-weight: 700; color: var(--secondary); margin-bottom: .6rem; letter-spacing: .08em; text-transform: uppercase; }
+    .tips li { font-size: .82rem; color: var(--muted); padding: .18rem 0 .18rem 1rem; position: relative; list-style: none; }
+    .tips li::before { content: '✦'; position: absolute; left: 0; color: var(--secondary); font-size: .65rem; }
+    .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    .back-link em { color: var(--primary); font-style: normal; font-weight: 600; }
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: .75rem 1.5rem; font-size: .875rem; color: var(--text);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1); z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="card-wrap">
+    <div class="logo">
+      <div class="logo-mark"><div class="logo-icon">🎓</div><span>lvl<strong>Base</strong></span></div>
+    </div>
+    <div class="card">
+      <div class="email-hero">
+        <div class="envelope">
+          <div class="env-body">
+            <div class="env-flap"></div>
+            <div class="env-lines"><div class="env-line"></div><div class="env-line"></div></div>
+          </div>
+          <div class="sparkles">
+            <div class="sparkle"></div><div class="sparkle"></div>
+            <div class="sparkle"></div><div class="sparkle"></div>
+          </div>
+        </div>
+      </div>
+      <h1><span class="gradient-text">Magic Link Sent!</span> ✨</h1>
+      <p class="subtitle">We've sent a secure sign-in link to</p>
+      <div class="email-display"><span>✉️</span><span id="emailDisplay">your email address</span></div>
+      <p class="subtitle" style="font-size:.85rem;">Click the link in that email to sign in instantly — no password needed.</p>
+      <hr class="divider" />
+      <div class="quick-links">
+        <a href="https://mail.google.com" target="_blank" class="quick-link">
+          <span class="quick-link-icon">📧</span>Open Gmail
+        </a>
+        <a href="https://outlook.live.com" target="_blank" class="quick-link">
+          <span class="quick-link-icon">📨</span>Open Outlook
+        </a>
+        <a href="https://mail.yahoo.com" target="_blank" class="quick-link">
+          <span class="quick-link-icon">📩</span>Open Yahoo
+        </a>
+      </div>
+      <div class="tips-box">
+        <div class="tips-title">🔍 Can't find the email?</div>
+        <ul class="tips">
+          <li>Check your Spam / Junk folder</li>
+          <li>The link expires in 10 minutes</li>
+          <li>Make sure <strong id="emailTip">your address</strong> is correct</li>
+          <li>Add noreply@lvlbase.app to contacts</li>
+        </ul>
+      </div>
+      <button class="btn-resend" id="resendBtn">
+        <span id="resendBtnText">🔄 Resend Magic Link</span>
+      </button>
+      <div id="cooldownWrap" style="display:none;text-align:center;margin-top:.6rem;">
+        <span style="font-size:.8rem;color:var(--muted);">Resend available in </span>
+        <span id="cooldownCount" style="color:var(--primary);font-weight:700;font-size:.8rem;">60</span>
+        <span style="font-size:.8rem;color:var(--muted);">s</span>
+      </div>
+      <a href="/auth/portal-login.html" class="back-link">← Back to <em>Login</em></a>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="/core/js/firebase/init.js"></script>
+  <script src="/core/js/core/state.js"></script>
+  <script src="/core/js/core/ui-components.js"></script>
+  <script src="/core/js/core/security.js"></script>
+  <script src="/core/js/firebase/auth.js"></script>
+  <script src="/core/js/firebase/firestore.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email') || localStorage.getItem('emailForSignIn') || '';
+    const emailDisplay = document.getElementById('emailDisplay');
+    const emailTip = document.getElementById('emailTip');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendBtnText = document.getElementById('resendBtnText');
+    const cooldownWrap = document.getElementById('cooldownWrap');
+    const cooldownCount = document.getElementById('cooldownCount');
+    const toast = document.getElementById('toast');
+
+    if (email) {
+      emailDisplay.textContent = email;
+      emailTip.textContent = email;
+    }
+
+    function showToast(msg, duration = 3000) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    let cooldownTimer = null;
+
+    function startCooldown() {
+      let seconds = 60;
+      resendBtn.disabled = true;
+      cooldownWrap.style.display = 'block';
+      cooldownCount.textContent = seconds;
+      cooldownTimer = setInterval(() => {
+        seconds--;
+        cooldownCount.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(cooldownTimer);
+          resendBtn.disabled = false;
+          resendBtnText.textContent = '🔄 Resend Magic Link';
+          cooldownWrap.style.display = 'none';
+        }
+      }, 1000);
+    }
+
+    resendBtn.addEventListener('click', async () => {
+      if (!email) { showToast('⚠️ No email address found. Please go back to login.'); return; }
+      resendBtnText.textContent = '⏳ Sending...';
+      resendBtn.disabled = true;
+      const actionCodeSettings = {
+        url: window.location.origin + '/auth/portal-login.html',
+        handleCodeInApp: true
+      };
+      try {
+        await firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings);
+        localStorage.setItem('emailForSignIn', email);
+        showToast('✅ Magic link resent successfully!');
+      } catch (err) {
+        showToast('❌ Failed to resend: ' + (err.message || 'Unknown error'));
+        resendBtnText.textContent = '🔄 Resend Magic Link';
+        resendBtn.disabled = false;
+        return;
+      }
+      resendBtnText.textContent = '✓ Sent!';
+      startCooldown();
+    });
+
+    // Handle magic link sign-in if user arrives here with the link
+    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+      let userEmail = email;
+      if (!userEmail) userEmail = window.prompt('Please confirm your email to complete sign in:');
+      if (userEmail) {
+        firebase.auth().signInWithEmailLink(userEmail, window.location.href)
+          .then(() => {
+            localStorage.removeItem('emailForSignIn');
+            window.location.href = '/app/dashboard.html';
+          })
+          .catch(err => showToast('❌ Sign-in failed: ' + err.message));
+      }
+    }
+  </script>
+</body>
+</html>
