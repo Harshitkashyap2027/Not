@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Live Session – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.live-banner{background:linear-gradient(135deg,rgba(253,121,168,.15),rgba(108,92,231,.15));border:1px solid rgba(253,121,168,.3);border-radius:16px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.live-dot{width:12px;height:12px;border-radius:50%;background:#FD79A8;animation:pulse 1.4s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
+.live-info{flex:1;}
+.live-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.live-meta{font-size:13px;color:rgba(255,255,255,.5);}
+.live-timer{font-size:26px;font-weight:800;color:#FD79A8;font-family:monospace;}
+.two-col{display:grid;grid-template-columns:2fr 3fr;gap:24px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ctrl-btn{width:100%;padding:13px;border-radius:12px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.ctrl-btn:hover{opacity:.85;transform:translateY(-1px);}
+.ctrl-btn:last-child{margin-bottom:0;}
+.ctrl-green{background:linear-gradient(135deg,#00b894,#00CEC9);color:#fff;}
+.ctrl-red{background:linear-gradient(135deg,#FD79A8,#e84393);color:#fff;}
+.ctrl-purple{background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff;}
+.ctrl-yellow{background:rgba(253,203,110,.15);border:1px solid rgba(253,203,110,.25);color:#FDCB6E;}
+.ctrl-gray{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-label{font-size:13px;color:rgba(255,255,255,.7);}
+.toggle{width:42px;height:22px;background:rgba(255,255,255,.1);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;}
+.toggle.on{background:#6C5CE7;}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;}
+.toggle.on::after{left:23px;}
+.hand-queue{display:flex;flex-direction:column;gap:8px;}
+.hand-item{display:flex;align-items:center;gap:10px;background:rgba(253,203,110,.08);border:1px solid rgba(253,203,110,.2);border-radius:10px;padding:10px 12px;}
+.hand-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.hand-name{flex:1;font-size:13px;font-weight:600;}
+.hand-time{font-size:11px;color:rgba(255,255,255,.4);}
+.hand-btn{padding:4px 10px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;transition:opacity .2s;}
+.hand-btn:hover{opacity:.8;}
+.poll-option{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.poll-option:last-child{border-bottom:none;}
+.poll-letter{width:24px;height:24px;border-radius:6px;background:rgba(108,92,231,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#a29bfe;flex-shrink:0;}
+.poll-text{flex:1;font-size:13px;}
+.poll-bar-wrap{width:80px;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.poll-pct{font-size:12px;font-weight:700;width:34px;text-align:right;flex-shrink:0;}
+.attendance-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+.attend-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center;transition:border-color .2s;}
+.attend-cell:hover{border-color:rgba(108,92,231,.4);}
+.attend-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;margin:0 auto 6px;}
+.attend-name{font-size:11px;font-weight:600;margin-bottom:4px;}
+.attend-status{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;}
+.present{background:rgba(0,184,148,.15);color:#00b894;}
+.away{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.absent{background:rgba(253,121,168,.15);color:#FD79A8;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item active"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">🔴</span>
+    <span class="header-title">Live Session</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">Math — Period 3</div>
+    <select style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 12px;color:#fff;font-size:13px;outline:none;cursor:pointer;">
+      <option>Math — Period 3</option><option>Science — Period 1</option>
+      <option>English — Period 2</option><option>History — Period 5</option>
+      <option>CS — Period 6</option>
+    </select>
+  </header>
+  <div class="app-content">
+
+    <!-- Live Banner -->
+    <div class="live-banner" id="liveBanner">
+      <div class="live-dot"></div>
+      <div class="live-info">
+        <div class="live-title">🔴 Session Active — Math Period 3</div>
+        <div class="live-meta">22 of 24 students connected · Started 18 minutes ago</div>
+      </div>
+      <div class="live-timer" id="sessionTimer">00:18:34</div>
+    </div>
+
+    <div class="two-col">
+      <!-- Controls -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-title">🎛️ Session Controls</div>
+          <button class="ctrl-btn ctrl-red" onclick="endSession()">⏹ End Session</button>
+          <button class="ctrl-btn ctrl-purple" onclick="togglePoll()">📊 Launch Quick Poll</button>
+          <button class="ctrl-btn ctrl-yellow" onclick="muteAll()">🔇 Mute All Mics</button>
+          <button class="ctrl-btn ctrl-gray" onclick="toggleScreen()">🖥️ Share Screen</button>
+          <button class="ctrl-btn ctrl-gray" onclick="toggleBreakout()">👥 Breakout Rooms</button>
+          <button class="ctrl-btn ctrl-green" onclick="sendXP()">⚡ Award Bonus XP</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚙️ Session Settings</div>
+          <div class="toggle-row">
+            <span class="toggle-label">🙋 Allow Raise Hand</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">💬 Enable Chat</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">📹 Student Cameras</span>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">🔒 Lock Session</span>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">📊 Show Poll Results Live</span>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">🎵 Focus Mode Music</span>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Raise Hand Queue -->
+        <div class="card">
+          <div class="card-title">🙋 Raise Hand Queue <span style="background:rgba(253,203,110,.15);color:#FDCB6E;font-size:12px;padding:2px 8px;border-radius:8px;">3</span></div>
+          <div class="hand-queue" id="handQueue"></div>
+        </div>
+
+        <!-- Live Poll -->
+        <div class="card">
+          <div class="card-title">📊 Active Poll <span style="font-size:12px;color:rgba(255,255,255,.4);font-weight:400">22 responses</span></div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px;">What is f(x) = x² + 3x − 4 factored?</div>
+          <div id="pollResults"></div>
+          <div style="margin-top:14px;display:flex;gap:8px;">
+            <button style="flex:1;padding:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;" onclick="closePoll()">Close Poll</button>
+            <button style="flex:1;padding:8px;background:rgba(108,92,231,.2);border:1px solid rgba(108,92,231,.3);border-radius:8px;color:#a29bfe;cursor:pointer;font-size:12px;" onclick="newPoll()">New Poll</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance Grid -->
+    <div class="card">
+      <div class="card-title">
+        👥 Student Attendance
+        <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.4);">22 present · 1 away · 1 absent</span>
+      </div>
+      <div class="attendance-grid" id="attendGrid"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const handRaisers = [
+  {name:'Alex Rivera',time:'2m ago',color:'#6C5CE7'},
+  {name:'Jordan Lee',time:'4m ago',color:'#FD79A8'},
+  {name:'Sam Nguyen',time:'6m ago',color:'#FDCB6E'},
+];
+
+const pollData = [
+  {letter:'A',text:'(x+4)(x−1)',votes:14,correct:true},
+  {letter:'B',text:'(x−4)(x+1)',votes:4,correct:false},
+  {letter:'C',text:'(x+2)(x−2)',votes:2,correct:false},
+  {letter:'D',text:'(x+4)(x+1)',votes:2,correct:false},
+];
+
+const attendees = [
+  {name:'Alex Rivera',status:'present',color:'#6C5CE7'},
+  {name:'Maya Patel',status:'present',color:'#00CEC9'},
+  {name:'Jordan Lee',status:'present',color:'#FD79A8'},
+  {name:'Sam Nguyen',status:'present',color:'#FDCB6E'},
+  {name:'Priya Singh',status:'present',color:'#00b894'},
+  {name:'Carlos Diaz',status:'present',color:'#a29bfe'},
+  {name:'Emma Wilson',status:'present',color:'#6C5CE7'},
+  {name:'Liam Brooks',status:'present',color:'#00CEC9'},
+  {name:'Sophia Chen',status:'present',color:'#FD79A8'},
+  {name:'Noah Kim',status:'away',color:'#FDCB6E'},
+  {name:'Ava Martinez',status:'present',color:'#00b894'},
+  {name:'Ethan Park',status:'present',color:'#a29bfe'},
+  {name:'Isabella Thomas',status:'present',color:'#6C5CE7'},
+  {name:'Oliver Johnson',status:'absent',color:'#00CEC9'},
+  {name:'Mia Williams',status:'present',color:'#FD79A8'},
+  {name:'James Anderson',status:'present',color:'#FDCB6E'},
+  {name:'Charlotte Davis',status:'present',color:'#00b894'},
+  {name:'Benjamin Garcia',status:'present',color:'#a29bfe'},
+  {name:'Amelia Rodriguez',status:'present',color:'#6C5CE7'},
+  {name:'Lucas White',status:'present',color:'#00CEC9'},
+  {name:'Harper Lewis',status:'present',color:'#FD79A8'},
+  {name:'Elijah Walker',status:'present',color:'#FDCB6E'},
+  {name:'Abigail Hall',status:'present',color:'#00b894'},
+  {name:'Daniel Allen',status:'present',color:'#a29bfe'},
+];
+
+function renderHandQueue() {
+  const q = document.getElementById('handQueue');
+  if (handRaisers.length === 0) {
+    q.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);font-size:13px;padding:20px">No raised hands</div>';
+    return;
+  }
+  handRaisers.forEach((h, i) => {
+    const initials = h.name.split(' ').map(n=>n[0]).join('');
+    q.innerHTML += `<div class="hand-item">
+      <span style="font-size:16px;color:#FDCB6E">#${i+1}</span>
+      <div class="hand-avatar" style="background:linear-gradient(135deg,${h.color},${h.color}88)">${initials}</div>
+      <span class="hand-name">${h.name}</span>
+      <span class="hand-time">${h.time}</span>
+      <button class="hand-btn" style="background:rgba(0,184,148,.15);color:#00b894;border:1px solid rgba(0,184,148,.2);" onclick="this.parentElement.remove()">✓ Call</button>
+      <button class="hand-btn" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.08);" onclick="this.parentElement.remove()">✕</button>
+    </div>`;
+  });
+}
+
+function renderPoll() {
+  const c = document.getElementById('pollResults');
+  const total = pollData.reduce((a,b) => a + b.votes, 0);
+  pollData.forEach(p => {
+    const pct = total > 0 ? Math.round(p.votes / total * 100) : 0;
+    c.innerHTML += `<div class="poll-option">
+      <div class="poll-letter" style="${p.correct ? 'background:rgba(0,184,148,.2);color:#00b894;' : ''}">${p.letter}</div>
+      <span class="poll-text" style="${p.correct ? 'color:#00b894;font-weight:600' : ''}">${p.text}${p.correct ? ' ✓' : ''}</span>
+      <div class="poll-bar-wrap"><div style="height:100%;width:${pct}%;background:${p.correct ? '#00b894' : 'rgba(108,92,231,.6)'};border-radius:4px;"></div></div>
+      <span class="poll-pct" style="color:${p.correct ? '#00b894' : 'rgba(255,255,255,.5)'}">${pct}%</span>
+    </div>`;
+  });
+}
+
+function renderAttendance() {
+  const grid = document.getElementById('attendGrid');
+  attendees.forEach(a => {
+    const initials = a.name.split(' ').map(n=>n[0]).join('');
+    grid.innerHTML += `<div class="attend-cell">
+      <div class="attend-avatar" style="background:linear-gradient(135deg,${a.color},${a.color}88)">${initials}</div>
+      <div class="attend-name">${a.name}</div>
+      <span class="attend-status ${a.status}">${a.status === 'present' ? '🟢 Present' : a.status === 'away' ? '🟡 Away' : '🔴 Absent'}</span>
+    </div>`;
+  });
+}
+
+let seconds = 1114;
+function updateTimer() {
+  seconds++;
+  const h = Math.floor(seconds / 3600).toString().padStart(2,'0');
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2,'0');
+  const s = (seconds % 60).toString().padStart(2,'0');
+  const el = document.getElementById('sessionTimer');
+  if (el) el.textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateTimer, 1000);
+
+function endSession() {
+  if (confirm('End the live session for all students?')) {
+    document.getElementById('liveBanner').style.borderColor = 'rgba(255,255,255,.1)';
+    document.getElementById('liveBanner').style.background = 'rgba(255,255,255,.02)';
+    document.querySelector('.live-dot').style.background = '#666';
+    document.querySelector('.live-dot').style.animation = 'none';
+    document.querySelector('.live-title').textContent = '⏹ Session Ended';
+  }
+}
+function closePoll() { document.getElementById('pollResults').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;font-size:13px;">Poll closed</div>'; }
+function newPoll() { alert('Poll creator coming soon!'); }
+function muteAll() { alert('All student microphones muted.'); }
+function toggleScreen() { alert('Screen share toggled.'); }
+function toggleBreakout() { alert('Breakout rooms feature launching soon!'); }
+function sendXP() { alert('Bonus 50 XP awarded to all present students! 🎉'); }
+function togglePoll() { alert('Poll launched to all students!'); }
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  renderHandQueue();
+  renderPoll();
+  renderAttendance();
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>

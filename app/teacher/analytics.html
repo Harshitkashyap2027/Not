@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Teacher Analytics – lvlBase</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.15);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#00CEC9,#6C5CE7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.user-role-sm{font-size:11px;color:#00CEC9;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px;}
+.stat-value{font-size:32px;font-weight:800;margin-bottom:4px;}
+.stat-label{font-size:12px;color:rgba(255,255,255,.5);}
+.stat-trend{font-size:11px;margin-top:8px;color:#00b894;}
+.two-col{display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-bottom:24px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-bottom:24px;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.bar-chart-wrap{display:flex;flex-direction:column;gap:12px;}
+.bar-row{display:flex;align-items:center;gap:12px;}
+.bar-label{font-size:13px;color:rgba(255,255,255,.7);width:130px;flex-shrink:0;}
+.bar-track{flex:1;height:14px;background:rgba(255,255,255,.06);border-radius:7px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:7px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.bar-val{width:42px;text-align:right;font-size:13px;font-weight:700;flex-shrink:0;}
+.trend-chart{display:flex;align-items:flex-end;gap:5px;height:110px;margin-bottom:6px;}
+.trend-bar{flex:1;border-radius:4px 4px 0 0;min-height:4px;position:relative;cursor:pointer;transition:opacity .2s;}
+.trend-bar:hover{opacity:.75;}
+.trend-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1a1a35;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;font-size:11px;white-space:nowrap;pointer-events:none;margin-bottom:4px;display:none;}
+.trend-bar:hover .trend-tooltip{display:block;}
+.trend-labels{display:flex;gap:5px;}
+.trend-label{flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,.35);}
+.top-student{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.top-student:last-child{border-bottom:none;}
+.ts-rank{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.ts-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.ts-info{flex:1;}
+.ts-name{font-size:13px;font-weight:600;}
+.ts-class{font-size:11px;color:rgba(255,255,255,.4);}
+.ts-xp{font-size:13px;font-weight:700;color:#FDCB6E;}
+.engage-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.engage-row:last-child{border-bottom:none;}
+.engage-icon{font-size:20px;width:28px;text-align:center;}
+.engage-info{flex:1;}
+.engage-label{font-size:13px;font-weight:600;}
+.engage-sub{font-size:11px;color:rgba(255,255,255,.4);}
+.engage-val{font-size:18px;font-weight:800;}
+@media(max-width:1100px){.stats-grid{grid-template-columns:1fr 1fr;}.two-col,.three-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Teach</div>
+    <a href="/app/teacher/dashboard.html" class="nav-item"><span class="nav-icon">🏠</span>Dashboard</a>
+    <a href="/app/teacher/class-manager.html" class="nav-item"><span class="nav-icon">🏫</span>My Classes</a>
+    <a href="/app/teacher/quest-builder.html" class="nav-item"><span class="nav-icon">⚔️</span>Quest Builder</a>
+    <a href="/app/teacher/gradebook.html" class="nav-item"><span class="nav-icon">📋</span>Gradebook</a>
+    <a href="/app/teacher/assignment-builder.html" class="nav-item"><span class="nav-icon">📝</span>Assignments</a>
+    <a href="/app/teacher/live-session.html" class="nav-item"><span class="nav-icon">🔴</span>Live Session</a>
+    <div class="nav-section-title">Students</div>
+    <a href="/app/teacher/student-profiles.html" class="nav-item"><span class="nav-icon">👥</span>Student Profiles</a>
+    <a href="/app/teacher/analytics.html" class="nav-item active"><span class="nav-icon">📊</span>Analytics</a>
+    <div class="nav-section-title">Tools</div>
+    <a href="/app/teacher/ai-tools.html" class="nav-item"><span class="nav-icon">🤖</span>AI Tools</a>
+    <a href="/app/teacher/announcements.html" class="nav-item"><span class="nav-icon">📢</span>Announcements</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">T</div>
+      <div class="user-info-sm"><div class="user-name-sm" id="sidebarName">Loading…</div><div class="user-role-sm">Teacher</div></div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:10px;width:100%;background:rgba(253,121,168,.1);border:1px solid rgba(253,121,168,.2);color:#FD79A8;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;">Sign Out</button>
+  </div>
+</aside>
+
+<main class="app-main">
+  <header class="app-header">
+    <span style="font-size:22px">📊</span>
+    <span class="header-title">Class Analytics</span>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);">All Classes · Fall 2024</div>
+    <select style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 12px;color:#fff;font-size:13px;outline:none;cursor:pointer;">
+      <option>This Month</option><option>Last Month</option><option>This Semester</option><option>All Time</option>
+    </select>
+  </header>
+  <div class="app-content">
+
+    <div class="stats-grid">
+      <div class="stat-card" style="border-top:2px solid #6C5CE7;">
+        <div style="font-size:24px;margin-bottom:10px">📈</div>
+        <div class="stat-value" style="color:#6C5CE7">82%</div>
+        <div class="stat-label">Overall Class Avg</div>
+        <div class="stat-trend">↑ +4% vs last month</div>
+      </div>
+      <div class="stat-card" style="border-top:2px solid #00CEC9;">
+        <div style="font-size:24px;margin-bottom:10px">✅</div>
+        <div class="stat-value" style="color:#00CEC9">94%</div>
+        <div class="stat-label">Assignment Completion</div>
+        <div class="stat-trend">↑ +2% vs last month</div>
+      </div>
+      <div class="stat-card" style="border-top:2px solid #FDCB6E;">
+        <div style="font-size:24px;margin-bottom:10px">⚡</div>
+        <div class="stat-value" style="color:#FDCB6E">78%</div>
+        <div class="stat-label">Daily Engagement</div>
+        <div class="stat-trend" style="color:#FD79A8">↓ −3% vs last week</div>
+      </div>
+      <div class="stat-card" style="border-top:2px solid #FD79A8;">
+        <div style="font-size:24px;margin-bottom:10px">🏆</div>
+        <div class="stat-value" style="color:#FD79A8">37</div>
+        <div class="stat-label">Quests Completed</div>
+        <div class="stat-trend">↑ +9 this month</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Class Performance Bars -->
+      <div class="card">
+        <div class="card-title">🏫 Class Performance Breakdown</div>
+        <div class="bar-chart-wrap" id="classBars"></div>
+      </div>
+      <!-- Weekly Trend -->
+      <div class="card">
+        <div class="card-title">📈 8-Week Engagement Trend</div>
+        <div class="trend-chart" id="engageTrend"></div>
+        <div class="trend-labels" id="engageLabels"></div>
+        <div style="display:flex;gap:16px;margin-top:14px;">
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Peak: <span style="color:#00b894;font-weight:700">94% (Week 6)</span></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45)">Avg: <span style="color:#FDCB6E;font-weight:700">80%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="three-col">
+      <!-- Subject Mastery -->
+      <div class="card">
+        <div class="card-title">🎯 Subject Mastery</div>
+        <div class="bar-chart-wrap" id="subjectMastery"></div>
+      </div>
+
+      <!-- Top Performers -->
+      <div class="card">
+        <div class="card-title">🏅 Top Performers <span style="font-size:12px;color:rgba(255,255,255,.35);font-weight:400">This month</span></div>
+        <div id="topStudents"></div>
+      </div>
+
+      <!-- Engagement Metrics -->
+      <div class="card">
+        <div class="card-title">⚡ Engagement Metrics</div>
+        <div id="engageMetrics"></div>
+      </div>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">📊 Grade Distribution — All Classes</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:120px;margin-bottom:12px;" id="gradeDistBar"></div>
+      <div style="display:flex;gap:8px;" id="gradeDistLabels"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const classPerf = [
+  {name:'CS Fundamentals P6',avg:91,color:'#00b894'},
+  {name:'English Lit P2',avg:88,color:'#FD79A8'},
+  {name:'Math Algebra II P3',avg:82,color:'#6C5CE7'},
+  {name:'World History P5',avg:79,color:'#FDCB6E'},
+  {name:'Chemistry P1',avg:76,color:'#00CEC9'},
+  {name:'AP Physics P4',avg:74,color:'#a29bfe'},
+];
+
+const subjectMastery = [
+  {name:'Programming Logic',pct:91,color:'#00b894'},
+  {name:'Literary Analysis',pct:87,color:'#FD79A8'},
+  {name:'Algebra & Functions',pct:84,color:'#6C5CE7'},
+  {name:'World History Events',pct:78,color:'#FDCB6E'},
+  {name:'Chemical Reactions',pct:74,color:'#00CEC9'},
+  {name:'Kinematics',pct:71,color:'#a29bfe'},
+];
+
+const weeklyEngage = [72,75,78,80,83,94,87,78];
+const weekLabels = ['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
+
+const topStudents = [
+  {name:'Emma Wilson',class:'CS P6',xp:'4,820',color:'#00b894'},
+  {name:'Maya Patel',class:'Math P3',xp:'4,650',color:'#6C5CE7'},
+  {name:'Priya Singh',class:'Science P1',xp:'4,510',color:'#00CEC9'},
+  {name:'Amelia Rodriguez',class:'English P2',xp:'4,390',color:'#FD79A8'},
+  {name:'Abigail Hall',class:'History P5',xp:'4,200',color:'#FDCB6E'},
+];
+
+const engageMetrics = [
+  {icon:'📅',label:'Avg Days Active/Week',sub:'Per student',val:'4.2',color:'#6C5CE7'},
+  {icon:'⏱️',label:'Avg Session Time',sub:'Per login',val:'42m',color:'#00CEC9'},
+  {icon:'🔁',label:'Streak Average',sub:'Across all classes',val:'8d',color:'#FDCB6E'},
+  {icon:'💬',label:'Forum Posts',sub:'This month',val:'312',color:'#FD79A8'},
+  {icon:'🏅',label:'Badges Earned',sub:'This month',val:'67',color:'#00b894'},
+];
+
+const gradeDist = [
+  {label:'A (90-100)',count:42,color:'#00b894'},
+  {label:'B (80-89)',count:38,color:'#6C5CE7'},
+  {label:'C (70-79)',count:34,color:'#FDCB6E'},
+  {label:'D (60-69)',count:18,color:'#FD79A8'},
+  {label:'F (<60)',count:10,color:'#ff6b9d'},
+];
+
+function renderClassBars() {
+  const c = document.getElementById('classBars');
+  classPerf.forEach(cl => {
+    const col = cl.avg >= 85 ? '#00b894' : cl.avg >= 75 ? '#FDCB6E' : '#FD79A8';
+    c.innerHTML += `<div class="bar-row">
+      <div class="bar-label">${cl.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%;background:linear-gradient(90deg,${cl.color},${cl.color}88)" data-pct="${cl.avg}"></div></div>
+      <div class="bar-val" style="color:${col}">${cl.avg}%</div>
+    </div>`;
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(f => f.style.width = f.dataset.pct + '%');
+  }, 200);
+}
+
+function renderSubjectMastery() {
+  const c = document.getElementById('subjectMastery');
+  subjectMastery.forEach(s => {
+    c.innerHTML += `<div class="bar-row">
+      <div class="bar-label" style="width:140px;">${s.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%;background:linear-gradient(90deg,${s.color},${s.color}88)" data-pct="${s.pct}"></div></div>
+      <div class="bar-val" style="color:${s.color}">${s.pct}%</div>
+    </div>`;
+  });
+  setTimeout(() => {
+    document.querySelectorAll('#subjectMastery .bar-fill').forEach(f => f.style.width = f.dataset.pct + '%');
+  }, 300);
+}
+
+function renderEngageTrend() {
+  const chart = document.getElementById('engageTrend');
+  const labels = document.getElementById('engageLabels');
+  const max = Math.max(...weeklyEngage);
+  weeklyEngage.forEach((v, i) => {
+    const pct = Math.round(v / max * 100);
+    const col = v >= 90 ? '#00b894' : v >= 80 ? '#6C5CE7' : v >= 70 ? '#FDCB6E' : '#FD79A8';
+    const bar = document.createElement('div');
+    bar.className = 'trend-bar';
+    bar.style.cssText = `height:${pct}%;background:${col};flex:1;`;
+    bar.innerHTML = `<div class="trend-tooltip">${weekLabels[i]}: ${v}%</div>`;
+    chart.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.className = 'trend-label'; lbl.textContent = weekLabels[i];
+    labels.appendChild(lbl);
+  });
+}
+
+function renderTopStudents() {
+  const c = document.getElementById('topStudents');
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  topStudents.forEach((s, i) => {
+    const initials = s.name.split(' ').map(n => n[0]).join('');
+    c.innerHTML += `<div class="top-student">
+      <div class="ts-rank" style="background:${i===0?'#FDCB6E22':i===1?'rgba(255,255,255,.06)':'rgba(255,255,255,.04)'};color:${i===0?'#FDCB6E':'rgba(255,255,255,.5)'}">${medals[i]}</div>
+      <div class="ts-avatar" style="background:linear-gradient(135deg,${s.color},${s.color}88)">${initials}</div>
+      <div class="ts-info"><div class="ts-name">${s.name}</div><div class="ts-class">${s.class}</div></div>
+      <div class="ts-xp">${s.xp} XP</div>
+    </div>`;
+  });
+}
+
+function renderEngageMetrics() {
+  const c = document.getElementById('engageMetrics');
+  engageMetrics.forEach(m => {
+    c.innerHTML += `<div class="engage-row">
+      <div class="engage-icon">${m.icon}</div>
+      <div class="engage-info"><div class="engage-label">${m.label}</div><div class="engage-sub">${m.sub}</div></div>
+      <div class="engage-val" style="color:${m.color}">${m.val}</div>
+    </div>`;
+  });
+}
+
+function renderGradeDist() {
+  const bar = document.getElementById('gradeDistBar');
+  const lbl = document.getElementById('gradeDistLabels');
+  const maxCount = Math.max(...gradeDist.map(g => g.count));
+  gradeDist.forEach(g => {
+    const pct = Math.round(g.count / maxCount * 100);
+    bar.innerHTML += `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:6px;">
+      <div style="font-size:13px;font-weight:700;color:${g.color}">${g.count}</div>
+      <div style="width:100%;height:${pct}%;min-height:8px;background:linear-gradient(180deg,${g.color},${g.color}55);border-radius:6px 6px 0 0;"></div>
+    </div>`;
+    lbl.innerHTML += `<div style="flex:1;text-align:center;font-size:11px;color:rgba(255,255,255,.4)">${g.label}</div>`;
+  });
+}
+
+function loadPage() {
+  LvlAuth.requireAuth(['teacher']);
+  document.getElementById('sidebarName').textContent = 'Ms. Johnson';
+  document.getElementById('avatarInitial').textContent = 'J';
+  renderClassBars();
+  renderSubjectMastery();
+  renderEngageTrend();
+  renderTopStudents();
+  renderEngageMetrics();
+  renderGradeDist();
+}
+loadPage();
+LvlSecurity.initActivityTracking();
+</script>
+</body>
+</html>
