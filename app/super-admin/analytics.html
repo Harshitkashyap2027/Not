@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Platform Analytics – lvlBase Super Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0D0D1A;color:#fff;}
+.app-sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:#12122A;border-right:1px solid rgba(108,92,231,.15);overflow-y:auto;z-index:200;display:flex;flex-direction:column;}
+.app-main{margin-left:260px;min-height:100vh;display:flex;flex-direction:column;}
+.app-header{height:64px;display:flex;align-items:center;padding:0 24px;background:#12122A;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;gap:12px;}
+.app-content{flex:1;padding:24px;background:#0D0D1A;}
+.sidebar-logo{padding:20px 24px;border-bottom:1px solid rgba(108,92,231,.2);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6C5CE7,#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:18px;font-weight:700;background:linear-gradient(135deg,#6C5CE7,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sidebar-nav{flex:1;padding:16px 0;}
+.nav-section-title{font-size:11px;font-weight:600;color:rgba(108,92,231,.6);padding:8px 24px 4px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(108,92,231,.1);color:#fff;border-left-color:#6C5CE7;}
+.nav-item.active{background:rgba(108,92,231,.18);color:#a29bfe;border-left-color:#6C5CE7;}
+.nav-icon{font-size:18px;width:22px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,.08);}
+.user-mini{display:flex;align-items:center;gap:10px;}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6C5CE7,#FD79A8);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.user-info-sm{flex:1;min-width:0;}
+.user-name-sm{font-size:13px;font-weight:600;color:#fff;}
+.header-title{font-size:18px;font-weight:700;flex:1;}
+.card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:24px;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-success{background:rgba(0,184,148,.15);color:#00B894;}
+.badge-warning{background:rgba(253,203,110,.15);color:#FDCB6E;}
+.badge-danger{background:rgba(214,48,49,.15);color:#D63031;}
+.badge-purple{background:rgba(108,92,231,.15);color:#a29bfe;}
+.badge-teal{background:rgba(0,206,201,.15);color:#00CEC9;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.kpi-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;}
+.kpi-val{font-size:26px;font-weight:800;margin-bottom:4px;}
+.kpi-label{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:8px;}
+.kpi-trend{font-size:11px;padding:2px 8px;border-radius:10px;display:inline-block;}
+.trend-up{background:rgba(0,184,148,.12);color:#00B894;}
+.two-col{display:grid;grid-template-columns:3fr 2fr;gap:20px;margin-bottom:24px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-label-left{font-size:12px;color:rgba(255,255,255,.5);width:28px;text-align:right;}
+.bar-track{flex:1;height:20px;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden;position:relative;}
+.bar-fill-teal{height:100%;background:linear-gradient(90deg,#00CEC9,#81ecec);border-radius:6px;}
+.bar-fill-purple{height:100%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);border-radius:6px;}
+.bar-val-right{font-size:11px;color:rgba(255,255,255,.45);width:36px;}
+.h-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.h-bar-month{font-size:12px;color:rgba(255,255,255,.5);width:30px;}
+.h-bar-track{flex:1;height:22px;background:rgba(255,255,255,.04);border-radius:6px;overflow:hidden;}
+.h-bar-fill{height:100%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:11px;color:rgba(255,255,255,.7);font-weight:600;}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.feature-card{background:#12122A;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;}
+.feature-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:6px;}
+.feature-pct{font-size:20px;font-weight:800;color:#a29bfe;margin-bottom:8px;}
+.usage-track{height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.usage-fill{height:100%;background:linear-gradient(90deg,#6C5CE7,#a29bfe);border-radius:3px;}
+.churn-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+.churn-row:last-child{border-bottom:none;}
+.geo-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.geo-state{font-size:13px;color:rgba(255,255,255,.7);width:90px;}
+.geo-track{flex:1;height:12px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
+.geo-fill{height:100%;background:linear-gradient(90deg,#00CEC9,#81ecec);border-radius:4px;}
+.geo-count{font-size:12px;color:rgba(255,255,255,.4);width:60px;text-align:right;}
+.period-btns{display:flex;gap:6px;}
+.period-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);}
+.period-btn.active{background:rgba(108,92,231,.25);color:#a29bfe;border:1px solid rgba(108,92,231,.3);}
+.eng-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.eng-row:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+<aside class="app-sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">⚡</div><span class="logo-text">lvlBase</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Super Admin</div>
+    <a href="/app/super-admin/dashboard.html" class="nav-item"><span class="nav-icon">🏛️</span>Dashboard</a>
+    <a href="/app/super-admin/schools.html" class="nav-item"><span class="nav-icon">🏫</span>Schools</a>
+    <a href="/app/super-admin/users.html" class="nav-item"><span class="nav-icon">👥</span>Users</a>
+    <a href="/app/super-admin/analytics.html" class="nav-item active"><span class="nav-icon">📊</span>Analytics</a>
+    <a href="/app/super-admin/settings.html" class="nav-item"><span class="nav-icon">⚙️</span>Settings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-mini">
+      <div class="user-avatar-sm" id="avatarInitial">A</div>
+      <div class="user-info-sm">
+        <div class="user-name-sm" id="sidebarName">Super Admin</div>
+        <div style="font-size:11px;color:#6C5CE7;">Platform Administrator</div>
+      </div>
+    </div>
+    <button onclick="LvlAuth.signOut()" style="margin-top:12px;width:100%;background:rgba(214,48,49,.15);color:#D63031;border:1px solid rgba(214,48,49,.3);border-radius:10px;padding:8px;font-size:13px;cursor:pointer;">Sign Out</button>
+  </div>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-title">📊 Platform Analytics</div>
+    <div class="period-btns">
+      <button class="period-btn active">Last 7 Days</button>
+      <button class="period-btn">Last 30 Days</button>
+      <button class="period-btn">Last 90 Days</button>
+    </div>
+  </header>
+  <main class="app-content">
+
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-val" style="color:#00CEC9;">14,820</div>
+        <div class="kpi-label">Daily Active Users (DAU)</div>
+        <span class="kpi-trend trend-up">↑ +12%</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val" style="color:#a29bfe;">71,204</div>
+        <div class="kpi-label">Monthly Active Users (MAU)</div>
+        <span class="kpi-trend trend-up">↑ +8%</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val" style="color:#FD79A8;">20.8%</div>
+        <div class="kpi-label">DAU / MAU Ratio</div>
+        <span class="kpi-trend trend-up">↑ +2%</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val" style="color:#00B894;">$291</div>
+        <div class="kpi-label">Avg Revenue per School</div>
+        <span class="kpi-trend trend-up">↑ +5%</span>
+      </div>
+    </div>
+
+    <!-- DAU/MAU Trend + Top Schools -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">DAU / MAU Trend — 8 Weeks<span style="font-size:12px;color:rgba(255,255,255,.3);font-weight:400;">Weekly</span></div>
+        <div style="display:flex;align-items:flex-end;gap:12px;height:130px;padding-bottom:4px;">
+          <!-- W1 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:54px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:78px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W1</span>
+          </div>
+          <!-- W2 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:62px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:82px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W2</span>
+          </div>
+          <!-- W3 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:60px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:79px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W3</span>
+          </div>
+          <!-- W4 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:69px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:86px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W4</span>
+          </div>
+          <!-- W5 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:65px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:83px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W5</span>
+          </div>
+          <!-- W6 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:74px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:89px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W6</span>
+          </div>
+          <!-- W7 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:78px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:93px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W7</span>
+          </div>
+          <!-- W8 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:100px;">
+              <div style="width:14px;background:linear-gradient(180deg,#00CEC9,rgba(0,206,201,.3));border-radius:4px 4px 0 0;height:82px;"></div>
+              <div style="width:14px;background:linear-gradient(180deg,#6C5CE7,rgba(108,92,231,.3));border-radius:4px 4px 0 0;height:100px;opacity:.5;"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35);">W8</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.5);"><div style="width:10px;height:10px;border-radius:2px;background:#00CEC9;"></div>DAU</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.5);"><div style="width:10px;height:10px;border-radius:2px;background:#6C5CE7;opacity:.6;"></div>MAU (scaled)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏆 Top Schools by Engagement</div>
+        <div class="eng-row">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Westview Academy</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);">DAU: 892</div>
+          </div>
+          <span class="badge" style="background:rgba(0,184,148,.15);color:#00B894;">98%</span>
+        </div>
+        <div class="eng-row">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Tech Prep High</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);">DAU: 781</div>
+          </div>
+          <span class="badge" style="background:rgba(0,184,148,.12);color:#00B894;">94%</span>
+        </div>
+        <div class="eng-row">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Harbor View High</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);">DAU: 712</div>
+          </div>
+          <span class="badge badge-purple">91%</span>
+        </div>
+        <div class="eng-row">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Pine Ridge Academy</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);">DAU: 698</div>
+          </div>
+          <span class="badge badge-purple">89%</span>
+        </div>
+        <div class="eng-row">
+          <div>
+            <div style="font-weight:600;font-size:13px;">Riverside Elementary</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);">DAU: 634</div>
+          </div>
+          <span class="badge badge-teal">86%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title">💰 Monthly Recurring Revenue — Last 6 Months</div>
+      <div class="h-bar-row"><span class="h-bar-month">Jun</span><div class="h-bar-track"><div class="h-bar-fill" style="width:89%;">$38,200</div></div></div>
+      <div class="h-bar-row"><span class="h-bar-month">Jul</span><div class="h-bar-track"><div class="h-bar-fill" style="width:92%;">$39,400</div></div></div>
+      <div class="h-bar-row"><span class="h-bar-month">Aug</span><div class="h-bar-track"><div class="h-bar-fill" style="width:94%;">$40,100</div></div></div>
+      <div class="h-bar-row"><span class="h-bar-month">Sep</span><div class="h-bar-track"><div class="h-bar-fill" style="width:96%;">$41,200</div></div></div>
+      <div class="h-bar-row"><span class="h-bar-month">Oct</span><div class="h-bar-track"><div class="h-bar-fill" style="width:97.5%;">$41,800</div></div></div>
+      <div class="h-bar-row"><span class="h-bar-month">Nov</span><div class="h-bar-track"><div class="h-bar-fill" style="width:100%;background:linear-gradient(90deg,#FD79A8,#a29bfe);">$42,800</div></div></div>
+    </div>
+
+    <!-- Feature Usage -->
+    <div class="card-title" style="margin-bottom:12px;">⚙️ Feature Usage Stats</div>
+    <div class="feature-grid" style="margin-bottom:24px;">
+      <div class="feature-card"><div class="feature-name">🗡️ Quest System</div><div class="feature-pct">94%</div><div class="usage-track"><div class="usage-fill" style="width:94%;"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">138 of 147 schools</div></div>
+      <div class="feature-card"><div class="feature-name">🤖 AI Sage</div><div class="feature-pct" style="color:#00CEC9;">78%</div><div class="usage-track"><div class="usage-fill" style="width:78%;background:linear-gradient(90deg,#00CEC9,#81ecec);"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">115 of 147 schools</div></div>
+      <div class="feature-card"><div class="feature-name">⚔️ Arena / PvP</div><div class="feature-pct" style="color:#FD79A8;">65%</div><div class="usage-track"><div class="usage-fill" style="width:65%;background:linear-gradient(90deg,#FD79A8,#fdcfe0);"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">96 of 147 schools</div></div>
+      <div class="feature-card"><div class="feature-name">🛡️ Guild System</div><div class="feature-pct" style="color:#FDCB6E;">71%</div><div class="usage-track"><div class="usage-fill" style="width:71%;background:linear-gradient(90deg,#FDCB6E,#fd9a4a);"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">104 of 147 schools</div></div>
+      <div class="feature-card"><div class="feature-name">🎯 Focus Mode</div><div class="feature-pct" style="color:#b2bec3;">58%</div><div class="usage-track"><div class="usage-fill" style="width:58%;background:linear-gradient(90deg,#636e72,#b2bec3);"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">85 of 147 schools</div></div>
+      <div class="feature-card"><div class="feature-name">📊 Analytics Dashboard</div><div class="feature-pct" style="color:#00B894;">89%</div><div class="usage-track"><div class="usage-fill" style="width:89%;background:linear-gradient(90deg,#00B894,#55efc4);"></div></div><div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px;">131 of 147 schools</div></div>
+    </div>
+
+    <!-- Bottom: Churn Risk + Geo -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card-title">⚠️ Churn Risk Monitor</div>
+        <div class="churn-row">
+          <div><div style="font-weight:600;font-size:13px;">Jefferson Prep</div><div style="font-size:11px;color:rgba(255,255,255,.35);">Last login: 7 days ago · Suspended</div></div>
+          <span class="badge" style="background:rgba(214,48,49,.15);color:#D63031;">High Risk · 87</span>
+        </div>
+        <div class="churn-row">
+          <div><div style="font-weight:600;font-size:13px;">Meadow Creek MS</div><div style="font-size:11px;color:rgba(255,255,255,.35);">Engagement dropped 30% MoM</div></div>
+          <span class="badge badge-warning">Medium · 62</span>
+        </div>
+        <div class="churn-row">
+          <div><div style="font-weight:600;font-size:13px;">Oak Park K-8</div><div style="font-size:11px;color:rgba(255,255,255,.35);">Low feature adoption</div></div>
+          <span class="badge badge-warning">Medium · 55</span>
+        </div>
+        <div class="churn-row">
+          <div><div style="font-weight:600;font-size:13px;">Lincoln Middle School</div><div style="font-size:11px;color:rgba(255,255,255,.35);">Still in trial — no upgrade</div></div>
+          <span class="badge badge-teal">Low · 34</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗺️ Geographic Distribution</div>
+        <div class="geo-row"><span class="geo-state">California</span><div class="geo-track"><div class="geo-fill" style="width:100%;"></div></div><span class="geo-count">34 schools</span></div>
+        <div class="geo-row"><span class="geo-state">Texas</span><div class="geo-track"><div class="geo-fill" style="width:82%;"></div></div><span class="geo-count">28 schools</span></div>
+        <div class="geo-row"><span class="geo-state">New York</span><div class="geo-track"><div class="geo-fill" style="width:65%;"></div></div><span class="geo-count">22 schools</span></div>
+        <div class="geo-row"><span class="geo-state">Florida</span><div class="geo-track"><div class="geo-fill" style="width:56%;"></div></div><span class="geo-count">19 schools</span></div>
+        <div class="geo-row"><span class="geo-state">Illinois</span><div class="geo-track"><div class="geo-fill" style="width:41%;"></div></div><span class="geo-count">14 schools</span></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);font-size:12px;color:rgba(255,255,255,.35);">+ 32 other states · 147 total schools</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="/core/js/firebase/init.js"></script>
+<script src="/core/js/core/state.js"></script>
+<script src="/core/js/core/ui-components.js"></script>
+<script src="/core/js/core/security.js"></script>
+<script src="/core/js/firebase/auth.js"></script>
+<script src="/core/js/firebase/firestore.js"></script>
+<script>LvlAuth.requireAuth(['superAdmin']);</script>
+<script>
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0] || 'Admin';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+  }
+});
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
